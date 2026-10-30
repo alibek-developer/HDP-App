@@ -1,11 +1,13 @@
 {
   "name": "hdp-math-bot",
   "version": "1.0.0",
+  "type": "module",
   "description": "HDP Math Telegram WebApp",
   "scripts": {
     "dev:webapp": "cd webapp && vite",
     "dev:bot": "cd bot && ts-node index.ts",
     "build": "cd webapp && vite build",
+    "build:vercel": "cd webapp && vite build",
     "preview": "cd webapp && vite preview"
   },
   "dependencies": {
