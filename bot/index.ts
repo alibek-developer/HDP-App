@@ -1,5 +1,8 @@
-import { Bot, webhookCallback } from 'grammy'
+import { Bot } from 'grammy'
 import { autoRetry } from '@grammyjs/auto-retry'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const bot = new Bot(process.env.BOT_TOKEN || '')
 
@@ -48,12 +51,8 @@ bot.catch((err) => {
   console.error('Error in bot:', err)
 })
 
-// Export for webhook or long polling
-export { bot }
+// Start the bot
+bot.start()
+  .then(() => console.log('Bot started'))
+  .catch((err) => console.error('Failed to start bot:', err))
 
-// If running directly, start the bot
-if (require.main === module) {
-  bot.start()
-    .then(() => console.log('Bot started'))
-    .catch((err) => console.error('Failed to start bot:', err))
-}
