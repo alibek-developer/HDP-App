@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 
 const HomeScreen = () => {
   const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] = useState(0)
+  const [showProModal, setShowProModal] = useState(false)
+
+  // Auto-open small aesthetic Pro Promo Modal after Home loads
+  useEffect(() => {
+    const modalTimer = setTimeout(() => {
+      setShowProModal(true)
+      triggerHaptic('light')
+    }, 650)
+    return () => clearTimeout(modalTimer)
+  }, [])
 
   // Real-time Countdown Timer for Daily Mega Problem
   const [timeLeft, setTimeLeft] = useState({
@@ -466,6 +476,90 @@ const HomeScreen = () => {
           </div>
         </div>
       </div>
+
+      {/* 9. Aesthetic Small Pro Promo Modal */}
+      <AnimatePresence>
+        {showProModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop Blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { triggerHaptic('light'); setShowProModal(false) }}
+              className="absolute inset-0 bg-black/45 backdrop-blur-xs"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 320 }}
+              className="relative w-full max-w-[330px] bg-white rounded-[32px] p-5 shadow-2xl border border-emerald-50 overflow-hidden text-center z-10"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => { triggerHaptic('light'); setShowProModal(false) }}
+                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-xs font-bold transition-colors"
+              >
+                ✕
+              </button>
+
+              {/* Glowing Top Emblem */}
+              <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-[#006C49] to-emerald-400 text-white flex items-center justify-center mx-auto mb-3 shadow-md shadow-emerald-700/20 text-2xl">
+                💎
+              </div>
+
+              {/* Promo Badge */}
+              <span className="inline-block px-3 py-0.5 bg-emerald-50 border border-emerald-200 text-[#006C49] font-bold text-[10px] rounded-full uppercase tracking-wider mb-2">
+                HDP PRO · MAXSUS TAKLIF
+              </span>
+
+              {/* Title */}
+              <h3 className="text-base font-extrabold text-[#131B2E] leading-snug mb-1">
+                Matematikani 2x Tezroq va Chuqurroq Egallang!
+              </h3>
+
+              <p className="text-xs text-slate-500 leading-relaxed mb-3.5 px-1">
+                100+ yopiq video darslar, AI qadam-baqadam yechim va IMO olimpiada tahlillariga to'liq cheksiz kirish.
+              </p>
+
+              {/* Discount Box */}
+              <div className="bg-[#F0FDF4] border border-emerald-200/80 rounded-2xl p-3 mb-4">
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-900">
+                  <span>🔥</span>
+                  <span>12 Oylik Reja: -50% Chegirma</span>
+                </div>
+                <div className="text-[11px] text-emerald-700 mt-0.5">
+                  Oyiga bor-yo'g'i <span className="font-extrabold text-sm text-[#006C49]">26,500 so'm</span>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={() => {
+                  triggerHaptic('medium')
+                  setShowProModal(false)
+                  navigate('/pro')
+                }}
+                className="w-full bg-[#006C49] hover:bg-[#00573a] text-white py-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 shadow-[0_6px_16px_rgba(0,108,73,0.25)] transition-all"
+              >
+                <span>Pro Obunani Ko'rish</span>
+                <span className="text-sm">→</span>
+              </button>
+
+              {/* Skip / Later */}
+              <button
+                onClick={() => { triggerHaptic('light'); setShowProModal(false) }}
+                className="mt-2.5 text-[11px] font-semibold text-slate-400 hover:text-slate-600 block mx-auto"
+              >
+                Keyinroq ko'rish
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
