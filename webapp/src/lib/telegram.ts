@@ -2,41 +2,64 @@ import { TelegramWebApp } from '../types'
 
 declare global {
   interface Window {
-    Telegram: {
-      WebApp: TelegramWebApp
+    Telegram?: {
+      WebApp?: TelegramWebApp & {
+        HapticFeedback?: {
+          impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void
+          notificationOccurred: (type: 'error' | 'success' | 'warning') => void
+          selectionChanged: () => void
+        }
+      }
     }
   }
 }
 
-export const tg = window.Telegram?.WebApp
+export const getTelegram = () => {
+  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+    return window.Telegram.WebApp
+  }
+  return null
+}
 
 export const initTelegram = () => {
-  if (typeof window !== 'undefined' && (window as any).Telegram) {
-    const tg = (window as any).Telegram.WebApp
+  const tg = getTelegram()
+  if (tg) {
     tg.ready()
     tg.expand()
-    tg.setHeaderColor("#006C49")
-    tg.setBackgroundColor("#FAF8FF")
+    tg.setHeaderColor('#006C49')
+    tg.setBackgroundColor('#FAF8FF')
   }
 }
 
-export const setupBackButton = () => {
-  if (typeof window !== 'undefined' && (window as any).Telegram) {
-    const tg = (window as any).Telegram.WebApp
-    if (tg.BackButton) {
-      tg.BackButton.show()
-      tg.BackButton.onClick(() => {
-        window.history.back()
-      })
+export const triggerHaptic = (
+  type: 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'warning' | 'error' = 'light'
+) => {
+  try {
+    const tg = getTelegram()
+    if (!tg?.HapticFeedback) return
+    if (type === 'selection') {
+      tg.HapticFeedback.selectionChanged()
+    } else if (type === 'success' || type === 'warning' || type === 'error') {
+      tg.HapticFeedback.notificationOccurred(type)
+    } else {
+      tg.HapticFeedback.impactOccurred(type)
     }
+  } catch (e) {
+    // ignore
   }
 }
 
 export const showBack = (cb: () => void) => {
-  tg?.BackButton.show()
-  tg?.BackButton.onClick(cb)
+  const tg = getTelegram()
+  if (tg?.BackButton) {
+    tg.BackButton.show()
+    tg.BackButton.onClick(cb)
+  }
 }
 
 export const hideBack = () => {
-  tg?.BackButton.hide()
+  const tg = getTelegram()
+  if (tg?.BackButton) {
+    tg.BackButton.hide()
+  }
 }
