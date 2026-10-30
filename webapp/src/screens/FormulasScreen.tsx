@@ -1,71 +1,81 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 
 interface FormulaItem {
   id: number
-  code: string
-  codeBg: string
-  codeColor: string
+  cat: string
+  catBg: string
+  catColor: string
   title: string
-  subtitle: string
-  math1: string
-  math2?: string
+  desc: string
+  formula: string
   tags: string[]
-  memorized: boolean
-  bookmarked: boolean
+  isMemorized: boolean
+  isSaved: boolean
 }
 
-const initialFormulas: FormulaItem[] = [
+const formulasDatabase: FormulaItem[] = [
   {
     id: 1,
-    code: 'Alg',
-    codeBg: 'bg-emerald-50 border-emerald-200',
-    codeColor: 'text-[#006C49]',
+    cat: 'Alg',
+    catBg: 'from-emerald-500/10 to-teal-500/20 border-emerald-500/30',
+    catColor: 'text-[#006C49]',
     title: 'Viyet Teoremasi',
-    subtitle: 'Kvadrat tenglama ildizlari xossalari',
-    math1: 'x₁ + x₂ = -b / a',
-    math2: 'x₁ · x₂ = c / a',
-    tags: ['8-sinf', 'Tezkor usul'],
-    memorized: true,
-    bookmarked: false,
+    desc: 'Kvadrat tenglama ildizlari xossalari',
+    formula: 'x₁ + x₂ = −b/a  •  x₁ · x₂ = c/a',
+    tags: ['8-sinf', 'DTM Bazaviy'],
+    isMemorized: true,
+    isSaved: false,
   },
   {
     id: 2,
-    code: 'Geo',
-    codeBg: 'bg-blue-50 border-blue-200',
-    codeColor: 'text-blue-700',
+    cat: 'Geo',
+    catBg: 'from-blue-500/10 to-indigo-500/20 border-blue-500/30',
+    catColor: 'text-blue-700',
     title: 'Kosinuslar Teoremasi',
-    subtitle: 'Ixtiyoriy uchburchak tomonlari va burchaklari',
-    math1: 'a² = b² + c² - 2bc · cos(α)',
+    desc: 'Ixtiyoriy uchburchak tomonlari va burchaklari',
+    formula: 'a² = b² + c² − 2bc · cos(α)',
     tags: ['Planimetriya', 'DTM Blok'],
-    memorized: true,
-    bookmarked: false,
+    isMemorized: true,
+    isSaved: true,
   },
   {
     id: 3,
-    code: 'Mat',
-    codeBg: 'bg-purple-50 border-purple-200',
-    codeColor: 'text-purple-700',
+    cat: 'Mat',
+    catBg: 'from-purple-500/10 to-pink-500/20 border-purple-500/30',
+    catColor: 'text-purple-700',
     title: 'Murakkab Funksiya Hosilasi',
-    subtitle: 'Zanjir qoidasi (Chain Rule)',
-    math1: "(f(g(x)))' = f'(g(x)) · g'(x)",
+    desc: 'Zanjir qoidasi (Chain Rule)',
+    formula: "(f(g(x)))' = f'(g(x)) · g'(x)",
     tags: ['Hosila', 'Olimpiada'],
-    memorized: true,
-    bookmarked: false,
+    isMemorized: false,
+    isSaved: false,
   },
   {
     id: 4,
-    code: 'Trig',
-    codeBg: 'bg-emerald-50 border-emerald-200',
-    codeColor: 'text-emerald-700',
+    cat: 'Trig',
+    catBg: 'from-amber-500/10 to-orange-500/20 border-amber-500/30',
+    catColor: 'text-amber-700',
     title: 'Keltirish Formulalari',
-    subtitle: 'π/2 va π burchaklar bo\'yicha reduksiya',
-    math1: 'sin(π/2 - α) = cos(α)',
-    math2: 'tg(π/2 + α) = -ctg(α)',
+    desc: 'π/2 va π burchaklar bo\'yicha reduksiya',
+    formula: 'sin(π/2 − α) = cos(α) • tg(π/2 + α) = −ctg(α)',
     tags: ['Trigonometriya', 'Shpora'],
-    memorized: true,
-    bookmarked: false,
+    isMemorized: true,
+    isSaved: false,
+  },
+  {
+    id: 5,
+    cat: 'Alg',
+    catBg: 'from-emerald-500/10 to-teal-500/20 border-emerald-500/30',
+    catColor: 'text-[#006C49]',
+    title: 'Qisqa Ko\'paytirish Formulalari',
+    desc: 'Kublar yig\'indisi va ayirmasi',
+    formula: 'a³ ± b³ = (a ± b)(a² ∓ ab + b²)',
+    tags: ['7-sinf', 'Asosiy'],
+    isMemorized: true,
+    isSaved: false,
   },
 ]
 
@@ -73,66 +83,59 @@ const FormulasScreen = () => {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState(0)
-  const [formulas, setFormulas] = useState(initialFormulas)
-  const [isSavedHero, setIsSavedHero] = useState(false)
+  const [formulas, setFormulas] = useState(formulasDatabase)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg)
+    triggerHaptic('light')
+    setTimeout(() => setToastMessage(null), 2000)
+  }
 
   const toggleBookmark = (id: number) => {
-    triggerHaptic('light')
+    triggerHaptic('selection')
     setFormulas((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, bookmarked: !f.bookmarked } : f))
+      prev.map((f) => (f.id === id ? { ...f, isSaved: !f.isSaved } : f))
     )
   }
 
-  const filteredFormulas = formulas.filter((f) =>
-    f.title.toLowerCase().includes(search.toLowerCase()) ||
-    f.subtitle.toLowerCase().includes(search.toLowerCase()) ||
-    f.math1.toLowerCase().includes(search.toLowerCase())
+  const toggleMemorized = (id: number) => {
+    triggerHaptic('success')
+    setFormulas((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, isMemorized: !f.isMemorized } : f))
+    )
+  }
+
+  const copyFormula = (text: string) => {
+    navigator.clipboard?.writeText(text)
+    showToast('Formula nusxalandi! 📋')
+  }
+
+  const categories = ['Barchasi (140+)', 'Algebra (45)', 'Geometriya (35)', 'Analiz (32)', 'Trigonometriya (28)']
+
+  const filtered = formulas.filter((item) =>
+    item.title.toLowerCase().includes(search.toLowerCase()) ||
+    item.desc.toLowerCase().includes(search.toLowerCase()) ||
+    item.formula.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF] pb-32 text-[#131B2E] select-none">
-      {/* 1. Top Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#006C49]">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
-          </div>
-          <div>
-            <span className="text-[10px] font-bold tracking-widest text-[#006C49] uppercase block">
-              HDP ACADEMY
-            </span>
-            <h1 className="text-lg font-extrabold text-[#131B2E] leading-tight">
-              Formulalar & Shporalar
-            </h1>
-          </div>
+    <div className="min-h-screen bg-[#F8F9FE] pb-32 text-[#111827] select-none font-sans overflow-x-hidden">
+      {/* 1. Header */}
+      <header className="px-4 pt-4 pb-2 flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-black text-[#006C49] tracking-widest uppercase block">
+            HDP ACADEMY
+          </span>
+          <h1 className="text-lg font-black text-[#131B2E] tracking-tight">
+            Formulalar & Shporalar
+          </h1>
         </div>
 
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => triggerHaptic('light')}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs"
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </button>
-
-          <button 
-            onClick={() => triggerHaptic('light')}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs"
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-          </button>
-
-          <button 
+          <button
             onClick={() => { triggerHaptic('light'); navigate('/profile') }}
-            className="w-9 h-9 rounded-full bg-[#006C49] flex items-center justify-center text-white shadow-sm"
+            className="w-9 h-9 rounded-full bg-[#006C49] text-white flex items-center justify-center shadow-xs"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
@@ -140,12 +143,12 @@ const FormulasScreen = () => {
             </svg>
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* 2. Search Input & Filter Button */}
+      {/* 2. Search & Filter Bar */}
       <div className="px-4 py-2 flex items-center gap-2">
         <div className="flex-1 flex items-center gap-2.5 bg-white border border-slate-200/90 rounded-2xl px-3.5 py-2.5 shadow-2xs">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
@@ -156,11 +159,16 @@ const FormulasScreen = () => {
             placeholder="Formulani qidirish (Viyet, Pifagor...)"
             className="w-full bg-transparent outline-none text-xs text-[#131B2E] placeholder:text-slate-400 font-medium"
           />
+          {search && (
+            <button onClick={() => setSearch('')} className="text-slate-400 text-xs font-bold">
+              ✕
+            </button>
+          )}
         </div>
 
-        <button 
+        <button
           onClick={() => triggerHaptic('light')}
-          className="w-11 h-11 bg-indigo-50 border border-indigo-100/80 rounded-2xl flex items-center justify-center text-indigo-700 shadow-2xs hover:bg-indigo-100"
+          className="w-11 h-11 bg-white border border-slate-200/90 rounded-2xl flex items-center justify-center text-slate-700 shadow-2xs hover:bg-slate-50"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="4" y1="21" x2="4" y2="14"/>
@@ -169,268 +177,192 @@ const FormulasScreen = () => {
             <line x1="12" y1="8" x2="12" y2="3"/>
             <line x1="20" y1="21" x2="20" y2="16"/>
             <line x1="20" y1="12" x2="20" y2="3"/>
-            <line x1="1" y1="14" x2="7" y2="14"/>
-            <line x1="9" y1="8" x2="15" y2="8"/>
-            <line x1="17" y1="16" x2="23" y2="16"/>
           </svg>
         </button>
       </div>
 
-      {/* 3. Category Filter Chips */}
+      {/* 3. Category Chips */}
       <div className="px-4 py-1.5 flex gap-2 overflow-x-auto no-scrollbar">
-        {[
-          { label: 'Barchasi (140+)' },
-          { label: 'Algebra (45)' },
-          { label: 'Trigonometriya (32)' },
-        ].map((cat, idx) => {
+        {categories.map((cat, idx) => {
           const isActive = selectedCategory === idx
           return (
             <button
-              key={cat.label}
+              key={cat}
               onClick={() => { triggerHaptic('selection'); setSelectedCategory(idx) }}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
                 isActive
                   ? 'bg-[#006C49] text-white shadow-xs'
-                  : 'bg-white border border-slate-200 text-slate-600'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
               }`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-300' : 'bg-slate-400'}`} />
-              <span>{cat.label}</span>
+              {cat}
             </button>
           )
         })}
       </div>
 
-      {/* 4. Kun Formulasi Hero Card (Nyuton-Leybnits) */}
-      <div className="px-4 py-3">
-        <div className="relative rounded-3xl bg-gradient-to-br from-[#005739] via-[#006C49] to-[#047857] text-white p-5 shadow-[0_8px_24px_rgba(0,108,73,0.22)] overflow-hidden">
-          {/* Subtle grid pattern */}
-          <div 
-            className="absolute inset-0 pointer-events-none opacity-15"
-            style={{
-              backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
-              backgroundSize: '16px 16px'
-            }}
-          />
-
-          <div className="relative z-10 flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/15 backdrop-blur-xs rounded-full text-[10px] font-bold text-emerald-100 uppercase tracking-wider">
-              <span>☆</span> KUN FORMULASI · DTM 100%
+      {/* 4. Formula of the Day (Nyuton-Leybnits) */}
+      <section className="px-4 py-2.5">
+        <div className="relative rounded-[32px] bg-gradient-to-br from-[#004E35] via-[#006042] to-[#006C49] text-white p-5 shadow-[0_12px_32px_rgba(0,108,73,0.24)] overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-[10px] font-bold text-emerald-200 uppercase tracking-wider">
+              <span>⭐</span> KUN FORMULASI · DTM 100%
             </span>
-
-            <button 
-              onClick={() => { triggerHaptic('light'); setIsSavedHero(!isSavedHero) }}
-              className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-xs flex items-center justify-center text-white hover:bg-white/25"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill={isSavedHero ? "white" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-              </svg>
-            </button>
+            <span className="text-[11px] text-emerald-200/90 font-medium">
+              👁 9.4k ko'rildi
+            </span>
           </div>
 
-          <div className="relative z-10 mb-3">
-            <div className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest mb-0.5">
-              MATEMATIK ANALIZ
-            </div>
-            <h2 className="text-xl font-extrabold text-white">
-              Nyuton-Leybnits Teoremasi
-            </h2>
-          </div>
+          <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest block mb-0.5">
+            MATEMATIK ANALIZ
+          </span>
+          <h2 className="text-xl font-black text-white tracking-tight mb-3">
+            Nyuton-Leybnits Teoremasi
+          </h2>
 
-          {/* Math Box */}
-          <div className="relative z-10 bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/10 text-center mb-4">
-            <div className="font-serif text-lg font-bold text-emerald-200 tracking-wide">
+          <div 
+            onClick={() => copyFormula('∫ₐᵇ f(x)dx = F(b) − F(a)')}
+            className="bg-black/30 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center mb-3.5 cursor-pointer hover:border-white/30 transition-colors"
+          >
+            <div className="font-serif text-lg sm:text-xl font-bold text-emerald-300 tracking-wide">
               ∫ₐᵇ f(x)dx = F(b) − F(a)
             </div>
+            <span className="text-[10px] text-white/50 block mt-1">Nusxalash uchun bosing 📋</span>
           </div>
 
-          {/* Footer info & action */}
-          <div className="relative z-10 flex items-center justify-between">
-            <span className="text-xs text-emerald-100 flex items-center gap-1 font-medium">
-              <span>👁</span> 9.4k ko'rildi
-            </span>
-
-            <button 
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-white/80">Integral va boshlang'ich funksiya</span>
+            <button
               onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
-              className="bg-white hover:bg-emerald-50 text-[#006C49] font-extrabold text-xs px-4 py-2 rounded-full flex items-center gap-1 shadow-md"
+              className="bg-white hover:bg-emerald-50 text-[#006C49] font-black text-xs px-4 py-2 rounded-full shadow-md"
             >
-              <span>Tahlil & Misol</span>
-              <span>→</span>
+              Tahlil & Misol →
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 5. Quick Actions: Formula Blitz & PDF Shpora */}
+      {/* 5. Quick Action Cards (Formula Blitz & PDF Conspectus) */}
       <div className="px-4 py-2 grid grid-cols-2 gap-3">
-        {/* Formula Blitz */}
-        <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-2.5">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-              </svg>
-            </div>
-            <h4 className="font-extrabold text-sm text-[#131B2E]">Formula Blitz</h4>
-            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-              5 daqiqada 10 formula sinovi
-            </p>
+        <motion.div
+          whileTap={{ scale: 0.97 }}
+          onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
+          className="bg-white rounded-[24px] p-4 border border-slate-200/80 shadow-sm cursor-pointer flex flex-col justify-between"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#006C49] flex items-center justify-center text-xl mb-2">
+            ⚡
           </div>
-
-          <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-50">
+          <div>
+            <h3 className="text-xs font-black text-[#131B2E]">Formula Blitz</h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">5 daqiqada 10 formula</p>
+          </div>
+          <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-100">
             <span className="text-xs font-bold text-emerald-700">+30 XP</span>
-            <button
-              onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
-              className="w-8 h-8 rounded-full bg-[#006C49] text-white flex items-center justify-center shadow-xs"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-            </button>
+            <span className="w-6 h-6 rounded-full bg-[#006C49] text-white flex items-center justify-center text-[10px]">▶</span>
           </div>
-        </div>
+        </motion.div>
 
-        {/* PDF Shpora */}
-        <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col justify-between">
+        <motion.div
+          whileTap={{ scale: 0.97 }}
+          onClick={() => showToast('PDF yuklab olindi (12 MB)')}
+          className="bg-white rounded-[24px] p-4 border border-slate-200/80 shadow-sm cursor-pointer flex flex-col justify-between"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center text-xl mb-2">
+            📥
+          </div>
           <div>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-2.5">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-            </div>
-            <h4 className="font-extrabold text-sm text-[#131B2E]">PDF Shpora</h4>
-            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-              DTM 2024 to'liq konspekt
-            </p>
+            <h3 className="text-xs font-black text-[#131B2E]">PDF Shpora</h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">DTM 2025 to'liq kitob</p>
           </div>
-
-          <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-50">
-            <span className="text-xs font-bold text-slate-500">12 MB</span>
-            <button
-              onClick={() => { triggerHaptic('light') }}
-              className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center shadow-2xs"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-            </button>
+          <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-100">
+            <span className="text-xs font-bold text-slate-500 font-mono">12 MB</span>
+            <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[10px]">⬇</span>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* 6. Asosiy Formulalar Ro'yxati */}
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5 font-extrabold text-base text-[#131B2E]">
-            <span className="text-[#006C49] font-serif font-black text-lg">Σ</span>
-            <h3>Asosiy Formulalar</h3>
-          </div>
-          <span className="text-xs text-slate-500 font-medium">142 ta mavjud</span>
+      {/* 6. Curated Formulas List */}
+      <section className="px-4 py-2 space-y-3">
+        <div className="flex items-center justify-between px-0.5">
+          <h3 className="text-sm font-black text-[#131B2E]">Asosiy Formulalar Banki</h3>
+          <span className="text-xs font-bold text-slate-400">142 ta mavjud</span>
         </div>
 
-        <div className="space-y-3">
-          {filteredFormulas.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm"
-            >
-              {/* Header with code and bookmark */}
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-xs font-bold ${item.codeBg} ${item.codeColor}`}>
-                    {item.code}
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-sm text-[#131B2E]">{item.title}</h4>
-                    <p className="text-[11px] text-slate-500">{item.subtitle}</p>
-                  </div>
+        {filtered.map((item) => (
+          <motion.div
+            key={item.id}
+            className="bg-white rounded-[26px] p-4 border border-slate-200/70 shadow-sm flex flex-col justify-between"
+          >
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${item.catBg} border flex items-center justify-center font-bold text-xs ${item.catColor}`}>
+                  {item.cat}
                 </div>
+                <div>
+                  <h4 className="text-xs font-black text-[#131B2E]">{item.title}</h4>
+                  <p className="text-[11px] text-slate-500">{item.desc}</p>
+                </div>
+              </div>
 
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => toggleBookmark(item.id)}
-                  className="text-slate-400 hover:text-slate-700 p-1"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill={item.bookmarked ? "#006C49" : "none"} stroke={item.bookmarked ? "#006C49" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={item.isSaved ? "#006C49" : "none"} stroke={item.isSaved ? "#006C49" : "currentColor"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                   </svg>
                 </button>
               </div>
+            </div>
 
-              {/* Formula Container */}
-              <div className="bg-[#F6F8FF] rounded-2xl p-3 my-2.5 text-center space-y-1.5">
-                <div className="font-mono text-sm font-bold text-[#131B2E] tracking-wider">
-                  {item.math1}
-                </div>
-                {item.math2 && (
-                  <div className="font-mono text-sm font-bold text-[#131B2E] tracking-wider">
-                    {item.math2}
-                  </div>
-                )}
-              </div>
+            {/* Formula Block */}
+            <div 
+              onClick={() => copyFormula(item.formula)}
+              className="bg-[#F8FAFC] border border-slate-100 rounded-2xl p-3 my-2 text-center font-mono text-xs font-black text-[#131B2E] cursor-pointer hover:bg-slate-100 transition-colors"
+            >
+              {item.formula}
+            </div>
 
-              {/* Tags & Memorized status */}
-              <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-1.5">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-semibold"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
-                    <span className="text-emerald-600 font-bold">✓</span>
-                    <span>Yodlangan</span>
+            {/* Tags and Status */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-1.5">
+                {item.tags.map((tag) => (
+                  <span key={tag} className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold text-slate-600">
+                    {tag}
                   </span>
-
-                  <button 
-                    onClick={() => { triggerHaptic('light'); navigate('/solve') }}
-                    className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                  </button>
-                </div>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* 7. Bottom Floating Test CTA */}
-      <div className="fixed bottom-16 left-0 right-0 max-w-mobile mx-auto px-4 pointer-events-none z-40">
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 border border-slate-200/80 shadow-lg flex items-center justify-between pointer-events-auto">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-800 text-white flex items-center justify-center shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="9" y1="15" x2="15" y2="15"/>
-              </svg>
+              <button
+                onClick={() => toggleMemorized(item.id)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition-all ${
+                  item.isMemorized
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                <span>{item.isMemorized ? '✓' : '○'}</span>
+                <span>{item.isMemorized ? 'Yodlangan' : 'Yodlash'}</span>
+              </button>
             </div>
-            <div>
-              <p className="text-xs font-bold text-[#131B2E]">Bugungi formula testi...</p>
-              <p className="text-[10px] text-slate-500">Bilimingizni mustahkamlang</p>
-            </div>
-          </div>
+          </motion.div>
+        ))}
+      </section>
 
-          <button
-            onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
-            className="px-4 py-2 bg-[#006C49] hover:bg-[#00573a] text-white rounded-full text-xs font-bold shadow-xs"
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#131B2E] text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg z-50 flex items-center gap-2"
           >
-            Boshlash
-          </button>
-        </div>
-      </div>
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
