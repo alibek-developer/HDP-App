@@ -40,12 +40,10 @@ bot.catch((err) => {
   console.error('Error in bot:', err)
 })
 
-// Start the bot
-bot.start()
-  .then(() => console.log('✅ Bot started successfully!'))
-  .catch((err) => {
-    console.error('❌ Failed to start bot:', err)
-    process.exit(1)
-  })
+// Start the bot with polling
+bot.start({
+  onStart: () => console.log('✅ Bot started successfully!'),
+  onPollingError: (err) => console.error('Polling error:', err),
+})
 
 
