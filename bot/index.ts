@@ -1,49 +1,38 @@
 import { Bot } from 'grammy'
-import { autoRetry } from '@grammyjs/auto-retry'
-import dotenv from 'dotenv'
 
-dotenv.config()
+const BOT_TOKEN = '9262718967:AAFH7At-oxEstKDA6GIh-yhTz6jeIfYGY54'
+const WEBAPP_URL = 'https://hdpapp-topaz.vercel.app'
 
-const bot = new Bot(process.env.BOT_TOKEN || '')
+console.log('Starting bot with token:', BOT_TOKEN.substring(0, 10) + '...')
 
-// Enable auto-retry for network errors
-bot.api.config.use(autoRetry())
+const bot = new Bot(BOT_TOKEN)
 
-// Handle /start command
-bot.command('start', (ctx) => {
-  const webAppUrl = process.env.WEBAPP_URL || 'https://your-webapp-url.com'
-  ctx.reply(
-    'HDP Math - Matematikani o\'rganing! 🎓\n\nQuyidagi tugmani bosing:',
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: '🚀 HDP Mathni ochish',
-              web_app: { url: webAppUrl },
-            },
+// Handle all messages
+bot.on('message', (ctx) => {
+  const text = ctx.message.text || ''
+  console.log('Message received:', text)
+
+  if (text === '/start') {
+    ctx.reply(
+      'HDP Math - Matematikani o\'rganing! 🎓\n\nQuyidagi tugmani bosing:',
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: '🚀 HDP Mathni ochish',
+                web_app: { url: WEBAPP_URL },
+              },
+            ],
           ],
-        ],
+        },
       },
-    },
-  )
-})
-
-// Handle /help command
-bot.command('help', (ctx) => {
-  ctx.reply(
-    'HDP Math Bot yordam:\n\n' +
-      '/start - WebAppni ochish\n' +
-      '/help - Yordam\n' +
-      '/profile - Profilingizni ko\'rish\n' +
-      '/stats - Statistikangizni ko\'rish',
-  )
-})
-
-// Handle callback queries
-bot.on('callback_query', async (ctx) => {
-  await ctx.answerCallbackQuery()
-  // Handle inline button clicks here
+    )
+  } else if (text === '/help') {
+    ctx.reply('HDP Math Bot yordam:\n\n/start - WebAppni ochish\n/help - Yordam')
+  } else {
+    ctx.reply('Iltimos /start buyrug\'ini yuboring')
+  }
 })
 
 // Error handling
@@ -53,6 +42,10 @@ bot.catch((err) => {
 
 // Start the bot
 bot.start()
-  .then(() => console.log('Bot started'))
-  .catch((err) => console.error('Failed to start bot:', err))
+  .then(() => console.log('✅ Bot started successfully!'))
+  .catch((err) => {
+    console.error('❌ Failed to start bot:', err)
+    process.exit(1)
+  })
+
 
