@@ -3,21 +3,101 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 
+interface ProblemItem {
+  id: number
+  symbol: string
+  symbolBg: string
+  symbolColor: string
+  title: string
+  category: string
+  difficulty: 'Oson' | 'O\'rta' | 'Qiyin' | 'Olimpiada'
+  difficultyColor: string
+  passRate: string
+  coin: number
+  xp: number
+  status: 'new' | 'solved' | 'locked'
+}
+
+const problemsList: ProblemItem[] = [
+  {
+    id: 1,
+    symbol: 'Σ',
+    symbolBg: 'from-emerald-500/10 to-teal-500/20 border-emerald-500/30',
+    symbolColor: 'text-[#006C49]',
+    title: 'Viyet teoremasi va parametrli tenglamalar',
+    category: 'Algebra',
+    difficulty: 'Oson',
+    difficultyColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    passRate: '92%',
+    coin: 15,
+    xp: 25,
+    status: 'new',
+  },
+  {
+    id: 2,
+    symbol: '△',
+    symbolBg: 'from-blue-500/10 to-indigo-500/20 border-blue-500/30',
+    symbolColor: 'text-blue-700',
+    title: 'Uchburchak medianasi va bissektrisasi xossalari',
+    category: 'Geometriya',
+    difficulty: 'O\'rta',
+    difficultyColor: 'bg-blue-50 text-blue-800 border-blue-200',
+    passRate: '78%',
+    coin: 25,
+    xp: 40,
+    status: 'solved',
+  },
+  {
+    id: 3,
+    symbol: '∫',
+    symbolBg: 'from-purple-500/10 to-pink-500/20 border-purple-500/30',
+    symbolColor: 'text-purple-700',
+    title: 'Aniq integral yordamida yuzalarni hisoblash',
+    category: 'Matematik Analiz',
+    difficulty: 'O\'rta',
+    difficultyColor: 'bg-blue-50 text-blue-800 border-blue-200',
+    passRate: '65%',
+    coin: 30,
+    xp: 50,
+    status: 'new',
+  },
+  {
+    id: 4,
+    symbol: '🔒',
+    symbolBg: 'from-amber-500/10 to-rose-500/20 border-amber-500/30',
+    symbolColor: 'text-amber-700',
+    title: 'Murakkab trigonometrik tengsizliklar (IMO)',
+    category: 'Olimpiada',
+    difficulty: 'Olimpiada',
+    difficultyColor: 'bg-rose-50 text-rose-800 border-rose-200',
+    passRate: '24%',
+    coin: 60,
+    xp: 100,
+    status: 'locked',
+  },
+]
+
 const HomeScreen = () => {
   const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] = useState(0)
   const [showProModal, setShowProModal] = useState(false)
+  const [userCoins, setUserCoins] = useState(1250)
+  const [userXp, setUserXp] = useState(3850)
 
-  // Auto-open small aesthetic Pro Promo Modal after Home loads
+  // Session-based promo modal: only once per session
   useEffect(() => {
-    const modalTimer = setTimeout(() => {
-      setShowProModal(true)
-      triggerHaptic('light')
-    }, 650)
-    return () => clearTimeout(modalTimer)
+    const hasSeen = sessionStorage.getItem('hdp_pro_modal_seen')
+    if (!hasSeen) {
+      const timer = setTimeout(() => {
+        setShowProModal(true)
+        sessionStorage.setItem('hdp_pro_modal_seen', 'true')
+        triggerHaptic('light')
+      }, 750)
+      return () => clearTimeout(timer)
+    }
   }, [])
 
-  // Real-time Countdown Timer for Daily Mega Problem
+  // Live countdown timer for Mega Quest
   const [timeLeft, setTimeLeft] = useState({
     hours: 4,
     minutes: 22,
@@ -27,457 +107,430 @@ const HomeScreen = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 }
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 }
-        }
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 }
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
+        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 }
         return { hours: 0, minutes: 0, seconds: 0 }
       })
     }, 1000)
     return () => clearInterval(timer)
   }, [])
 
-  const formatTime = (val: number) => val.toString().padStart(2, '0')
+  const formatTimer = (n: number) => n.toString().padStart(2, '0')
+
+  const categories = [
+    { label: 'Barchasi', count: '320' },
+    { label: 'Algebra', count: '110' },
+    { label: 'Geometriya', count: '85' },
+    { label: 'Analiz', count: '65' },
+    { label: 'Olimpiada', count: '60' },
+  ]
+
+  const streakDays = [
+    { day: 'D', done: true },
+    { day: 'S', done: true },
+    { day: 'CH', done: true },
+    { day: 'P', done: true },
+    { day: 'J', done: true },
+    { day: 'SH', today: true },
+    { day: 'Y', done: false },
+  ]
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF] pb-24 text-[#131B2E] select-none">
-      {/* 1. Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#006C49]">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
-          </div>
-          <div>
-            <span className="text-[10px] font-bold tracking-widest text-[#006C49] uppercase block">
-              HDP ACADEMY
+    <div className="min-h-screen bg-[#F8F9FE] pb-28 text-[#111827] select-none font-sans overflow-x-hidden">
+      {/* Decorative top ambient mesh gradient */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-64 pointer-events-none opacity-60 -z-0"
+        style={{
+          background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 108, 73, 0.15) 0%, rgba(16, 185, 129, 0.05) 50%, transparent 100%)'
+        }}
+      />
+
+      {/* 1. Ultra-clean Header */}
+      <header className="relative z-10 px-4 pt-3.5 pb-2 flex items-center justify-between">
+        {/* User Greeting & Level */}
+        <div 
+          onClick={() => { triggerHaptic('light'); navigate('/profile') }}
+          className="flex items-center gap-3 cursor-pointer group"
+        >
+          <div className="relative">
+            <div className="w-11 h-11 rounded-[18px] bg-gradient-to-tr from-[#006C49] to-[#10B981] p-[2px] shadow-[0_4px_12px_rgba(0,108,73,0.18)] transition-transform group-hover:scale-105">
+              <div className="w-full h-full bg-white rounded-[16px] flex items-center justify-center font-extrabold text-[#006C49] text-xs">
+                AS
+              </div>
+            </div>
+            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 bg-[#006C49] text-white rounded-full text-[9px] font-black tracking-tighter border-2 border-white shadow-xs">
+              Lv.4
             </span>
-            <h1 className="text-lg font-extrabold text-[#131B2E] leading-tight">
-              Formulalar & Shporalar
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-slate-500">Xayrli kech</span>
+              <span className="text-xs">👋</span>
+            </div>
+            <h1 className="text-sm font-black text-[#131B2E] tracking-tight leading-none mt-0.5">
+              Sardor Aliyev
             </h1>
           </div>
         </div>
 
+        {/* Currency & Notification Pills */}
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => { triggerHaptic('light'); navigate('/formulas') }}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs"
+          {/* Coin Pill */}
+          <motion.div
+            whileTap={{ scale: 0.94 }}
+            onClick={() => { triggerHaptic('light'); navigate('/shop') }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur-md rounded-full border border-slate-200/80 shadow-2xs cursor-pointer hover:border-amber-300 transition-colors"
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </button>
+            <span className="text-xs">🪙</span>
+            <span className="text-xs font-black text-slate-800 font-mono">
+              {userCoins.toLocaleString()}
+            </span>
+          </motion.div>
 
-          <button 
-            onClick={() => { triggerHaptic('light'); navigate('/formulas') }}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs"
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-          </button>
-
-          <button 
+          {/* XP Pill */}
+          <motion.div
+            whileTap={{ scale: 0.94 }}
             onClick={() => { triggerHaptic('light'); navigate('/profile') }}
-            className="w-9 h-9 rounded-full bg-[#006C49] flex items-center justify-center text-white shadow-sm"
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-white/95 backdrop-blur-md rounded-full border border-slate-200/80 shadow-2xs cursor-pointer"
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
+            <span className="text-xs font-black text-blue-600">⚡</span>
+            <span className="text-xs font-black text-slate-800 font-mono">
+              {userXp.toLocaleString()}
+            </span>
+          </motion.div>
+
+          {/* Notification Button */}
+          <button 
+            onClick={() => triggerHaptic('light')}
+            className="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs relative hover:bg-slate-50 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
+            <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 ring-2 ring-white" />
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* 2. Stats Bar */}
-      <div className="px-4 py-2">
-        <div className="bg-white rounded-2xl p-2.5 border border-slate-100 shadow-sm flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200/70 rounded-full text-xs font-bold text-amber-900">
-              <span>🪙</span>
-              <span>1,250 Coin</span>
+      {/* 2. Interactive Weekly Streak Bar (Duolingo Style) */}
+      <section className="px-4 py-2 relative z-10">
+        <div className="bg-white rounded-[26px] p-3.5 border border-slate-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl shadow-inner">
+              🔥
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-200/70 rounded-full text-xs font-bold text-blue-900">
-              <span className="text-blue-600 font-black">⚡</span>
-              <span>3,850 XP</span>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-black text-[#131B2E]">12 Kunlik Streak!</span>
+              </div>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Kunlik odat: 3/5 masala yechildi
+              </p>
             </div>
           </div>
-          <button 
-            onClick={() => { triggerHaptic('light'); navigate('/profile') }}
-            className="text-xs font-semibold text-slate-500 hover:text-slate-800 pr-1 flex items-center gap-0.5"
-          >
-            Tarix <span className="text-[10px]">›</span>
-          </button>
-        </div>
-      </div>
 
-      {/* 3. Info Notice */}
-      <div className="px-4 py-1">
-        <div className="bg-[#F0F4FF] rounded-xl px-3.5 py-2.5 border border-blue-100/80 flex items-center gap-2 text-xs text-slate-700">
-          <span className="text-blue-600 font-bold text-sm">ⓘ</span>
-          <span>Coinlarni HDP Pro yoki kurslarga almashtiring</span>
+          {/* 7-Day Pills Row */}
+          <div className="flex items-center gap-1">
+            {streakDays.map((item, idx) => (
+              <div key={idx} className="flex flex-col items-center gap-1">
+                <span className="text-[9px] font-bold text-slate-400 font-mono">
+                  {item.day}
+                </span>
+                <div 
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                    item.today
+                      ? 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-sm ring-2 ring-amber-400/40 animate-pulse'
+                      : item.done
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-slate-100 text-slate-400'
+                  }`}
+                >
+                  {item.today ? '🔥' : item.done ? '✓' : '•'}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* 4. Daily Mega Problem (Hero Card) */}
-      <div className="px-4 py-3">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#004A33] via-[#005B3F] to-[#006C49] text-white p-5 shadow-[0_8px_24px_rgba(0,108,73,0.22)]">
-          {/* Subtle math graph grid */}
+      {/* 3. Featured Hero: Daily Mega Problem (Dribbble Glassmorphism Card) */}
+      <section className="px-4 py-2.5 relative z-10">
+        <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#003823] via-[#005739] to-[#006C49] text-white p-5 shadow-[0_16px_36px_rgba(0,108,73,0.28)] border border-emerald-400/20">
+          {/* Subtle math graph overlay */}
           <div 
             className="absolute inset-0 pointer-events-none opacity-10"
             style={{
               backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
-              backgroundSize: '16px 16px'
+              backgroundSize: '18px 18px'
             }}
           />
 
-          {/* Top Badge Row */}
-          <div className="relative z-10 flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-400/20 backdrop-blur-xs border border-emerald-300/30 rounded-full text-[10px] font-bold text-emerald-200 uppercase tracking-wider">
-              <span>🔥</span> KUNLIK MEGA MASALA
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-mono text-emerald-100 bg-black/20 px-2 py-0.5 rounded-md">
-              <span>⏱</span> {formatTime(timeLeft.hours)}:{formatTime(timeLeft.minutes)}:{formatTime(timeLeft.seconds)}
-            </span>
+          {/* Top Row: Pill Badges */}
+          <div className="relative z-10 flex items-center justify-between mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full border border-white/15 text-[10px] font-extrabold tracking-wider uppercase text-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>KUNLIK MEGA SINOV</span>
+            </div>
+
+            <div className="flex items-center gap-1 bg-black/30 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-mono font-bold text-emerald-100 border border-white/10">
+              <span>⏱</span>
+              <span>{formatTimer(timeLeft.hours)}:{formatTimer(timeLeft.minutes)}:{formatTimer(timeLeft.seconds)}</span>
+            </div>
           </div>
 
-          {/* Title & Tag */}
+          {/* Title & Level */}
           <div className="relative z-10 mb-3">
-            <div className="inline-block px-2 py-0.5 bg-emerald-500/30 text-emerald-200 text-[10px] font-bold rounded mb-1">
-              DTM / IMO
-            </div>
-            <h2 className="text-xl font-bold text-white tracking-tight">
-              Parametrli Tenglama
+            <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest block mb-0.5">
+              DTM / IMO OLIMPIADA · #142
+            </span>
+            <h2 className="text-xl font-black text-white tracking-tight leading-snug">
+              Parametrli Kvadrat Tenglama
             </h2>
           </div>
 
-          {/* Formula Preview Box */}
-          <div className="relative z-10 bg-black/25 backdrop-blur-sm rounded-2xl p-3.5 border border-white/10 mb-4">
-            <div className="font-mono text-base font-bold text-emerald-300 tracking-wide mb-1">
-              f(x) = x² - 2ax + a + 6 = 0
+          {/* Formula Glass Box */}
+          <div className="relative z-10 bg-black/25 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-inner mb-4">
+            <div className="font-serif text-lg sm:text-xl font-extrabold text-emerald-300 tracking-wide text-center">
+              f(x) = x² − 2ax + a + 6 = 0
             </div>
-            <p className="text-xs text-white/80 leading-relaxed font-sans">
-              tenglama ikkita musbat ildizga ega bo'lsa, <span className="font-bold text-emerald-200">a</span> ning barcha qiymatlar sohasini toping.
+            <p className="text-xs text-white/80 leading-relaxed text-center font-sans mt-1.5">
+              Tenglama ikkita har xil musbat ildizga ega bo'lsa, <span className="font-bold text-emerald-200">a</span> parametrning barcha butun qiymatlari yig'indisini toping.
             </p>
           </div>
 
-          {/* Rewards & CTA */}
+          {/* Rewards & 3D Tactile CTA Button */}
           <div className="relative z-10 flex items-center justify-between pt-1">
             <div className="flex items-center gap-2">
-              <span className="bg-white/15 px-2.5 py-1 rounded-full text-xs font-bold text-amber-300 border border-white/10">
-                🪙 +50
-              </span>
-              <span className="bg-white/15 px-2.5 py-1 rounded-full text-xs font-bold text-blue-200 border border-white/10">
-                ⚡ +80 XP
-              </span>
+              <div className="px-3 py-1.5 bg-white/15 backdrop-blur-md rounded-xl text-xs font-black text-amber-300 border border-white/10 flex items-center gap-1">
+                <span>🪙</span>
+                <span>+50</span>
+              </div>
+              <div className="px-3 py-1.5 bg-white/15 backdrop-blur-md rounded-xl text-xs font-black text-blue-200 border border-white/10 flex items-center gap-1">
+                <span>⚡</span>
+                <span>+80 XP</span>
+              </div>
             </div>
 
             <motion.button
-              onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
               whileTap={{ scale: 0.95 }}
-              className="bg-white hover:bg-emerald-50 active:bg-slate-100 text-[#006C49] font-extrabold text-xs px-5 py-2.5 rounded-full flex items-center gap-1.5 shadow-md"
+              onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
+              className="bg-white hover:bg-emerald-50 active:bg-slate-100 text-[#006C49] font-black text-xs px-6 py-3 rounded-full flex items-center gap-2 shadow-[0_6px_20px_rgba(0,0,0,0.15)] transition-all"
             >
-              <span>Yechish</span>
-              <span>→</span>
+              <span>Yechishga kirish</span>
+              <span className="text-base font-bold">→</span>
             </motion.button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 5. Categories & Filters */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between mb-2.5">
-          <h3 className="text-base font-extrabold text-[#131B2E]">Kategoriyalar</h3>
-          <button 
-            onClick={() => triggerHaptic('light')}
-            className="text-xs font-semibold text-[#006C49] hover:underline"
+      {/* 4. Interactive Quick Modes (Dribbble 3-Card Grid) */}
+      <section className="px-4 py-2.5 relative z-10">
+        <div className="flex items-center justify-between mb-2.5 px-0.5">
+          <h3 className="text-sm font-black text-[#131B2E] tracking-tight">
+            Tezkor Trenirovka Rejimlari
+          </h3>
+          <span className="text-[11px] font-bold text-[#006C49]">
+            Bugun 2x bonus
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {/* Blitz Duel Card */}
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
+            className="bg-white rounded-[26px] p-4 border border-slate-200/70 shadow-sm cursor-pointer relative overflow-hidden flex flex-col justify-between group hover:border-emerald-300 transition-all"
           >
-            Filterlar
-          </button>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/20 text-[#006C49] flex items-center justify-center text-xl mb-3 border border-emerald-500/20">
+              ⚔️
+            </div>
+
+            <div>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <h4 className="text-sm font-black text-[#131B2E]">Blitz Duel</h4>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <p className="text-[11px] text-slate-500 leading-snug">
+                1v1 real-vaqt bellashuv. 3 daqiqada 5 ta misol.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
+              <span className="text-xs font-black text-amber-700 font-mono">
+                +30 Coin
+              </span>
+              <div className="w-7 h-7 rounded-full bg-[#006C49] text-white flex items-center justify-center text-xs shadow-xs group-hover:scale-110 transition-transform">
+                ▶
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Formula Flashcards Card */}
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            onClick={() => { triggerHaptic('medium'); navigate('/formulas') }}
+            className="bg-white rounded-[26px] p-4 border border-slate-200/70 shadow-sm cursor-pointer relative overflow-hidden flex flex-col justify-between group hover:border-blue-300 transition-all"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/20 text-blue-700 flex items-center justify-center text-xl mb-3 border border-blue-500/20">
+              🎴
+            </div>
+
+            <div>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <h4 className="text-sm font-black text-[#131B2E]">Formula Express</h4>
+              </div>
+              <p className="text-[11px] text-slate-500 leading-snug">
+                140+ shporalar banki va kunlik formula testi.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
+              <span className="text-xs font-black text-blue-700 font-mono">
+                +40 XP
+              </span>
+              <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs shadow-xs group-hover:scale-110 transition-transform">
+                →
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 5. Clean Category Pills */}
+      <section className="px-4 py-2 relative z-10">
+        <div className="flex items-center justify-between mb-2.5 px-0.5">
+          <h3 className="text-sm font-black text-[#131B2E] tracking-tight">
+            Mavzular Katalogi
+          </h3>
+          <span className="text-xs font-bold text-slate-400">
+            320 ta masala
+          </span>
         </div>
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {[
-            { label: 'Barchasi (320+)' },
-            { label: 'Algebra (110)' },
-            { label: 'Geometriya (85)' },
-          ].map((cat, idx) => {
+          {categories.map((cat, idx) => {
             const isActive = selectedCategory === idx
             return (
               <button
                 key={cat.label}
                 onClick={() => { triggerHaptic('selection'); setSelectedCategory(idx) }}
-                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-[#006C49] text-white shadow-sm'
-                    : 'bg-white border border-slate-200 text-slate-600'
+                    ? 'bg-[#006C49] text-white shadow-sm shadow-emerald-900/15'
+                    : 'bg-white border border-slate-200/80 text-slate-600 hover:border-slate-300'
                 }`}
               >
-                {cat.label}
+                <span>{cat.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {cat.count}
+                </span>
               </button>
             )
           })}
         </div>
-      </div>
+      </section>
 
-      {/* 6. Quick Exercises & Blitz */}
-      <div className="px-4 py-3">
-        <h3 className="text-base font-extrabold text-[#131B2E]">Tezkor Mashqlar & Blitz</h3>
-        <p className="text-xs text-slate-500 mb-3">
-          Do'stlar bilan bellashing va bonus coin yutib oling
-        </p>
-
-        <div className="grid grid-cols-2 gap-3">
-          {/* Blitz Duel */}
-          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 mb-3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
-                  <line x1="13" y1="19" x2="19" y2="13"/>
-                  <line x1="16" y1="16" x2="20" y2="20"/>
-                  <line x1="19" y1="21" x2="21" y2="19"/>
-                  <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/>
-                  <line x1="5" y1="14" x2="9" y2="18"/>
-                  <line x1="7" y1="17" x2="4" y2="20"/>
-                  <line x1="3" y1="19" x2="5" y2="21"/>
-                </svg>
-              </div>
-
-              <h4 className="font-extrabold text-sm text-[#131B2E]">Blitz Duel</h4>
-              <p className="text-[11px] font-semibold text-emerald-700 mt-0.5">1v1 Real-vaqt</p>
-              <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                3 daqiqada 5 ta misol yechib do'stingiz bilan bellashing.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-50">
-              <span className="text-xs font-bold text-amber-700 flex items-center gap-1">
-                🪙 +30 Coin
-              </span>
-              <button
-                onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
-                className="w-8 h-8 rounded-full bg-[#006C49] text-white flex items-center justify-center shadow-sm"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Streak Seriya */}
-          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 mb-3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                </svg>
-              </div>
-
-              <h4 className="font-extrabold text-sm text-[#131B2E]">Streak Seriya</h4>
-              <p className="text-[11px] font-semibold text-emerald-700 mt-0.5">2x Koeffitsiyent</p>
-              <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                Ketma-ket 10 ta to'g'ri javob bering va bonus oling.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-50">
-              <span className="text-xs font-bold text-amber-700 flex items-center gap-1">
-                🪙 +100 Coin
-              </span>
-              <button
-                onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
-                className="w-8 h-8 rounded-full bg-[#006C49] text-white flex items-center justify-center shadow-sm"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 7. Themed Problems (Mavzuli Masalalar) */}
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="text-base font-extrabold text-[#131B2E]">Mavzuli Masalalar</h3>
-          <button 
-            onClick={() => { triggerHaptic('light'); navigate('/courses') }}
-            className="text-xs font-semibold text-[#006C49] flex items-center gap-0.5 hover:underline"
+      {/* 6. Curated Problems List (Modern Dribbble Cards) */}
+      <section className="px-4 py-2 relative z-10 space-y-3">
+        {problemsList.map((item) => (
+          <motion.div
+            key={item.id}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              if (item.status === 'locked') {
+                triggerHaptic('medium')
+                navigate('/pro')
+              } else {
+                triggerHaptic('medium')
+                navigate('/solve')
+              }
+            }}
+            className="bg-white rounded-[26px] p-4 border border-slate-200/70 shadow-sm cursor-pointer hover:border-emerald-200 transition-all flex flex-col justify-between"
           >
-            Hammasi <span className="text-[10px]">›</span>
+            <div className="flex items-start gap-3.5 mb-2.5">
+              {/* Math Glyphs Badge */}
+              <div className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${item.symbolBg} border flex items-center justify-center font-serif font-black text-xl shrink-0 ${item.symbolColor}`}>
+                {item.symbol}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-1 mb-0.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {item.category}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${item.difficultyColor}`}>
+                    {item.difficulty}
+                  </span>
+                </div>
+
+                <h4 className="text-xs font-extrabold text-[#131B2E] leading-snug line-clamp-1">
+                  {item.title}
+                </h4>
+
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+                  <span>Aniq yechim: <strong className="text-emerald-700">{item.passRate}</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Actions & Rewards */}
+            <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+              <div className="flex items-center gap-2 text-xs font-black">
+                <span className="text-amber-800">🪙 +{item.coin}</span>
+                <span className="text-blue-800">⚡ +{item.xp} XP</span>
+              </div>
+
+              {item.status === 'locked' ? (
+                <button className="px-3.5 py-1.5 bg-amber-50 text-amber-800 rounded-full text-xs font-bold flex items-center gap-1 border border-amber-200">
+                  <span>🔒</span>
+                  <span>Pro bilan ochish</span>
+                </button>
+              ) : item.status === 'solved' ? (
+                <button className="px-3.5 py-1.5 bg-slate-100 text-slate-700 rounded-full text-xs font-bold hover:bg-slate-200">
+                  Qayta yechish
+                </button>
+              ) : (
+                <button className="px-4 py-1.5 bg-[#006C49] hover:bg-[#00573a] text-white rounded-full text-xs font-bold shadow-xs">
+                  Yechish →
+                </button>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </section>
+
+      {/* 7. Pro Membership Highlight Banner */}
+      <section className="px-4 py-3 relative z-10">
+        <div className="relative rounded-[28px] bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 p-4 border border-emerald-200/70 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#006C49] text-white flex items-center justify-center text-xl shadow-xs shrink-0">
+              💎
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-[#131B2E]">
+                HDP Pro · DTM 100 Ballik Kafolat
+              </h4>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Barcha olimpiada va yopiq darslar to'liq ochiq
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => { triggerHaptic('medium'); navigate('/pro') }}
+            className="px-4 py-2 bg-[#006C49] text-white font-bold text-xs rounded-full shrink-0 shadow-xs hover:bg-[#00573a]"
+          >
+            Ko'rish →
           </button>
         </div>
-        <p className="text-xs text-slate-500 mb-3">
-          Bosqichma-bosqich o'rganish va amaliyot
-        </p>
+      </section>
 
-        <div className="space-y-3">
-          {/* Problem 1 - New */}
-          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-serif font-black text-indigo-700 text-lg shrink-0">
-                Σ
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1 mb-1">
-                  <h4 className="font-extrabold text-sm text-[#131B2E] truncate">
-                    Viyet teoremasi va kvadratik tenglamalar
-                  </h4>
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-md shrink-0">
-                    Yangi
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-2">
-                  <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-medium">Oson</span>
-                  <span>•</span>
-                  <span>Algebra</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
-              <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="text-amber-800">🪙 +15 Coin</span>
-                <span className="text-blue-800">⚡ +25 XP</span>
-              </div>
-              <button
-                onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
-                className="px-4 py-1.5 bg-[#006C49] text-white rounded-full text-xs font-bold shadow-xs hover:bg-[#00573a]"
-              >
-                Yechish
-              </button>
-            </div>
-          </div>
-
-          {/* Problem 2 - Solved */}
-          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center font-black text-[#006C49] text-lg shrink-0">
-                △
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1 mb-1">
-                  <h4 className="font-extrabold text-sm text-[#131B2E] truncate">
-                    Uchburchak medianasi va bissektrisasi xossalari
-                  </h4>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md shrink-0 flex items-center gap-1">
-                    ✓ Yechilgan
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-2">
-                  <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-medium">O'rta</span>
-                  <span>•</span>
-                  <span>Geometriya</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
-              <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="text-amber-800">🪙 +25 Coin</span>
-                <span className="text-blue-800">⚡ +40 XP</span>
-              </div>
-              <button
-                onClick={() => { triggerHaptic('light'); navigate('/solve') }}
-                className="px-4 py-1.5 bg-slate-100 text-slate-700 rounded-full text-xs font-bold hover:bg-slate-200"
-              >
-                Qayta ko'rish
-              </button>
-            </div>
-          </div>
-
-          {/* Problem 3 - Locked */}
-          <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 text-base shrink-0">
-                🔒
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1 mb-1">
-                  <h4 className="font-extrabold text-sm text-[#131B2E] truncate">
-                    Murakkab trigonometrik tengsizliklar (IMO)
-                  </h4>
-                  <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-md shrink-0">
-                    Qulflangan
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-2">
-                  <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-medium">Qiyin (Olimpiada)</span>
-                  <span>•</span>
-                  <span>Analiz</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-1">
-              <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="text-amber-800">🪙 +60 Coin</span>
-                <span className="text-blue-800">⚡ +100 XP</span>
-              </div>
-              <button
-                onClick={() => { triggerHaptic('medium'); navigate('/shop') }}
-                className="px-3.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold flex items-center gap-1 hover:bg-indigo-100"
-              >
-                <span>🔒</span>
-                <span>200 Coin</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 8. Coinlar Do'koni Banner */}
-      <div className="px-4 py-3">
-        <div className="bg-gradient-to-r from-blue-50/80 via-emerald-50/50 to-blue-50/80 rounded-3xl p-4 border border-blue-100/80 shadow-sm">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-11 h-11 rounded-2xl bg-white shadow-xs border border-slate-100 flex items-center justify-center text-2xl">
-                🛍️
-              </div>
-              <div>
-                <h4 className="text-base font-extrabold text-[#131B2E]">Coinlar Do'koni</h4>
-                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
-                  HDP STORE EXCLUSIVE
-                </span>
-              </div>
-            </div>
-            <span className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-full shadow-2xs">
-              1,250 mavjud
-            </span>
-          </div>
-
-          <p className="text-xs text-slate-600 leading-relaxed my-2.5">
-            To'plangan coiningizni 1 oylik <span className="font-bold text-[#131B2E]">HDP Pro</span> obunasiga yoki DTM yopiq konspektlariga almashtiring!
-          </p>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-1.5">
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">DTM</span>
-              <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">PRO</span>
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded">PDF</span>
-            </div>
-
-            <button
-              onClick={() => { triggerHaptic('medium'); navigate('/shop') }}
-              className="px-4 py-2 bg-[#006C49] hover:bg-[#00573a] text-white rounded-full text-xs font-bold flex items-center gap-1 shadow-sm"
-            >
-              <span>Do'konga o'tish</span>
-              <span>→</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 9. Aesthetic Small Pro Promo Modal */}
+      {/* 8. Pro Promo Modal (Shows ONLY ONCE per session) */}
       <AnimatePresence>
         {showProModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -507,7 +560,7 @@ const HomeScreen = () => {
               </button>
 
               {/* Glowing Top Emblem */}
-              <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-[#006C49] to-emerald-400 text-white flex items-center justify-center mx-auto mb-3 shadow-md shadow-emerald-700/20 text-2xl">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#006C49] to-emerald-400 text-white flex items-center justify-center mx-auto mb-3 shadow-md shadow-emerald-700/20 text-2xl">
                 💎
               </div>
 
