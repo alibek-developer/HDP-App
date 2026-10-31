@@ -52,6 +52,13 @@ const config: Config = {
         'leaf-soft': '#DDF3DC',
         'leaf-tint': '#EFF8EC',
 
+        // Soft mint canvas + bright lime action (splash / hero surfaces)
+        mint:       '#E2F0D6',
+        'mint-soft': '#F2F8EC',
+        lime:       '#A8E063',
+        'lime-deep': '#8FD14F',
+        'ink-on-lime': '#1C3214',
+
         // Reward & signal
         coin:       '#E8A33D',
         'coin-soft': '#FCF1DC',

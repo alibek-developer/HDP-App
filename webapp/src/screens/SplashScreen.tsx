@@ -2,84 +2,154 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 
+const ease = [0.22, 1, 0.36, 1] as const
+
+const PHOTOS = [
+  { src: '/splash/student-left.png', alt: 'Talaba' },
+  { src: '/splash/student-center.png', alt: 'Masala yechayotgan talaba' },
+  { src: '/splash/student-right.png', alt: 'Dars tayyorlayotgan talaba' },
+]
+
 /**
  * 1-qadam: Ilova ochilganda.
- * Avtomatik o'tish YO'Q — foydalanuvchi ikki yo'ldan birini tanlaydi,
- * tanlov /login ga `mode` sifatida uzatiladi.
+ * Avtomatik o'tish YO'Q — foydalanuvchi ikki yo'ldan birini tanlaydi.
  */
 const SplashScreen = () => {
   const navigate = useNavigate()
 
-  const go = (mode: 'start' | 'signin') => {
+  const go = (path: '/signup' | '/login') => {
     triggerHaptic('medium')
-    navigate('/login', { state: { mode } })
+    navigate(path)
   }
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen flex flex-col justify-between px-6 pt-20 pb-10 select-none font-sans"
-      style={{ background: 'linear-gradient(160deg, #1E1B4B 0%, #312E81 60%, #3730A3 100%)' }}
+      className="relative min-h-screen flex flex-col overflow-hidden font-sans"
+      style={{ background: 'linear-gradient(180deg, #E2F0D6 0%, #F2F8EC 38%, #FFFFFF 66%)' }}
     >
+      {/* Daftar to'ri — faqat yuqori mint maydonda */}
+      <div className="absolute inset-x-0 top-0 h-[280px] grid-paper opacity-60 pointer-events-none" />
+
       {/* Brend */}
-      <div className="text-center">
-        <div
-          className="w-20 h-20 rounded-[26px] mx-auto mb-6 flex items-center justify-center relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
-            boxShadow: '0 18px 50px rgba(99,102,241,0.4), 0 0 0 1px rgba(255,255,255,0.08)',
-          }}
-        >
-          <span className="text-white font-black text-4xl" style={{ fontFamily: 'serif' }}>
-            Σ
-          </span>
-        </div>
-        <h1 className="text-[44px] font-black text-white leading-none" style={{ letterSpacing: '-2.5px' }}>
-          HDP
-        </h1>
-        <p className="text-indigo-300 text-[11px] font-semibold tracking-[5px] uppercase mt-2">
-          Math Academy
+      <header className="relative z-10 flex justify-center safe-top pt-4">
+        <p className="font-serif text-[25px] text-brand-deep" style={{ letterSpacing: '-0.01em' }}>
+          HDP Matematika
         </p>
+      </header>
+
+      {/* ── Foto uchlik + brend belgisi ── */}
+      <div className="relative z-10 flex justify-center items-center mt-6">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.7, ease }}
+          className="flex items-center"
+        >
+          {/* Chap */}
+          <div
+            className="w-[96px] h-[122px] rounded-[22px] overflow-hidden shrink-0"
+            style={{ boxShadow: '0 10px 26px rgba(28,50,20,0.14)', border: '3px solid rgba(255,255,255,0.7)' }}
+          >
+            <img src={PHOTOS[0].src} alt={PHOTOS[0].alt} className="w-full h-full object-cover" />
+          </div>
+
+          {/* Markaz — ko'tarilgan va kattaroq */}
+          <div
+            className="w-[140px] h-[170px] rounded-[26px] overflow-hidden shrink-0 -mx-4 relative z-10"
+            style={{ boxShadow: '0 18px 44px rgba(28,50,20,0.22)', border: '4px solid #FFFFFF' }}
+          >
+            <img src={PHOTOS[1].src} alt={PHOTOS[1].alt} className="w-full h-full object-cover" />
+          </div>
+
+          {/* O'ng */}
+          <div
+            className="w-[96px] h-[122px] rounded-[22px] overflow-hidden shrink-0"
+            style={{ boxShadow: '0 10px 26px rgba(28,50,20,0.14)', border: '3px solid rgba(255,255,255,0.7)' }}
+          >
+            <img src={PHOTOS[2].src} alt={PHOTOS[2].alt} className="w-full h-full object-cover" />
+          </div>
+        </motion.div>
+
+        {/* Σ belgisi — markaziy foto ostida.
+            Joylashuv statik qatorda: motion ichki transform yozgani uchun
+            -translate-x-1/2 shu elementda saqlanmaydi. */}
+        <div className="absolute -bottom-[52px] left-1/2 -translate-x-1/2 z-20">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.34, type: 'spring', stiffness: 240, damping: 17 }}
+            className="w-[68px] h-[68px] rounded-[23px] flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(150deg, #B8E986 0%, #A8E063 60%, #8FD14F 100%)',
+              border: '5px solid rgba(255,255,255,0.85)',
+              boxShadow: '0 14px 30px rgba(143,209,79,0.42), inset 0 1.5px 0 rgba(255,255,255,0.6)',
+            }}
+          >
+            <span className="font-serif text-[30px] leading-none text-ink-on-lime">Σ</span>
+          </motion.div>
+        </div>
       </div>
 
-      {/* Sarlavha */}
+      {/* Nuqta indikatori */}
+      <div className="relative z-10 flex justify-center items-center gap-1.5 mt-16 mb-6">
+        <span className="w-1.5 h-1.5 rounded-full bg-ink-on-lime opacity-80" />
+        <span className="w-1.5 h-1.5 rounded-full bg-ink-on-lime opacity-20" />
+      </div>
+
+      {/* ── Sarlavha + matn ── */}
+      <div className="relative z-10 px-7">
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.44, duration: 0.7, ease }}
+          className="text-[31px] leading-[1.16]"
+          style={{ letterSpacing: '-0.032em' }}
+        >
+          <span className="font-normal text-ink-4">Sizning </span>
+          <span className="font-extrabold text-ink">shaxsiy</span>
+          <br />
+          <span className="font-normal text-ink-4">matematika </span>
+          <span className="font-extrabold text-ink">ustozingiz</span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.54, duration: 0.6, ease }}
+          className="text-body-md text-ink-3 mt-3 leading-relaxed max-w-[318px]"
+        >
+          Video dars, misol va test — bittasi ikkinchisiga olib kiradigan izchil yo'l.
+        </motion.p>
+      </div>
+
+      {/* ── Ikki tanlov ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="text-center"
+        transition={{ delay: 0.64, duration: 0.6, ease }}
+        className="relative z-10 px-6 pt-4 pb-5 mt-auto"
       >
-        <h2 className="text-[30px] font-extrabold text-white leading-tight" style={{ letterSpacing: '-1px' }}>
-          Matematikani
-          <br />
-          <span className="text-indigo-300">chuqurroq</span> egallang
-        </h2>
-        <p className="text-indigo-200/70 text-sm leading-relaxed mt-3 max-w-[280px] mx-auto">
-          Darslar, misollar va testlar — bittasi ikkinchisiga olib kiradigan izchil o'quv yo'li.
-        </p>
-      </motion.div>
-
-      {/* Ikki tanlov — majburiy to'xtash nuqtasi */}
-      <div className="space-y-3">
         <button
-          onClick={() => go('start')}
-          className="w-full py-4 rounded-full font-bold text-base text-white"
+          onClick={() => go('/signup')}
+          className="w-full h-[56px] rounded-full text-[16px] font-extrabold text-ink-on-lime active:scale-[0.975] transition-transform"
           style={{
-            background: 'linear-gradient(135deg, #6366F1, #4338CA)',
-            boxShadow: '0 10px 30px rgba(99,102,241,0.4)',
+            background: 'linear-gradient(135deg, #B8E986 0%, #A8E063 100%)',
+            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 12px 26px rgba(143,209,79,0.36)',
           }}
         >
           Boshlash
         </button>
+
         <button
-          onClick={() => go('signin')}
-          className="w-full py-4 rounded-full font-bold text-base text-white"
-          style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.22)' }}
+          onClick={() => go('/login')}
+          className="w-full h-[56px] mt-3 rounded-full text-[16px] font-bold text-ink active:scale-[0.985] transition-transform"
+          style={{ background: '#F1F4EC', border: '1px solid #E4E9DD' }}
         >
           Kirish
         </button>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }

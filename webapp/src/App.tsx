@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import SplashScreen from './screens/SplashScreen'
 import LoginScreen from './screens/LoginScreen'
+import SignUpScreen from './screens/SignUpScreen'
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen'
 import HomeScreen from './screens/HomeScreen'
 import CoursesScreen from './screens/CoursesScreen'
 import LessonScreen from './screens/LessonScreen'
@@ -20,7 +22,9 @@ import BottomNav from './components/BottomNav'
  * Oqim xaritasi (majburiy ketma-ketlik):
  *
  *  /            Splash        — brend + [Boshlash] / [Kirish]
- *  /login       Login         — tanlangan rejim bilan, keyin /home
+ *  /signup      Ro'yxatdan    — yangi hisob ([Boshlash] shu yerga)
+ *  /login       Login         — mavjud hisobga kirish ([Kirish] shu yerga)
+ *  /forgot      Parolni tiklash — emailga havola
  *  /home        Home          — kurs, 10 bepul dars, progress
  *  /courses     Kurslar       — barcha darslar (qulf mantiqi shu yerda)
  *  /lesson/:id            Video dars  — "Misolga o'tish" video tugagach ochiladi
@@ -47,6 +51,8 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<SplashScreen />} />
         <Route path="/login" element={<LoginScreen />} />
+        <Route path="/signup" element={<SignUpScreen />} />
+        <Route path="/forgot" element={<ForgotPasswordScreen />} />
         <Route path="/home" element={<HomeScreen />} />
 
         <Route path="/courses" element={<CoursesScreen />} />
