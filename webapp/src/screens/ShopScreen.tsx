@@ -2,14 +2,29 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
+import { useApp } from '../store/useStore'
 
-const ITEMS = [
+interface ShopItem {
+  id: number
+  icon: string
+  title: string
+  desc: string
+  cost: number
+  badge: string
+  badgeBg: string
+  badgeColor: string
+  /** coin bilan sotib olinganda faollashadigan Pro muddati (oy) */
+  proMonths?: number
+}
+
+const ITEMS: ShopItem[] = [
   {
     id: 1,
     icon: '💎',
     title: '1 Oylik HDP Pro',
     desc: 'Barcha yopiq darslar va IMO masalalar',
     cost: 200,
+    proMonths: 1,
     badge: 'PRO',
     badgeBg: '#EEF2FF',
     badgeColor: '#4338CA',
@@ -20,6 +35,7 @@ const ITEMS = [
     title: '3 Oylik HDP Pro VIP',
     desc: '90 kunlik intensiv + VIP master-klasslar',
     cost: 500,
+    proMonths: 3,
     badge: 'VIP',
     badgeBg: '#FFFBEB',
     badgeColor: '#D97706',
@@ -48,9 +64,12 @@ const ITEMS = [
 
 const ShopScreen = () => {
   const navigate = useNavigate()
-  const [coins, setCoins]       = useState(340)
-  const [toast, setToast]       = useState<string | null>(null)
-  const [buying, setBuying]     = useState<number | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const [buying, setBuying] = useState<number | null>(null)
+
+  const coins = useApp(s => s.coin)
+  const spendCoins = useApp(s => s.spendCoins)
+  const subscribePro = useApp(s => s.subscribePro)
 
   const handleBuy = (item: typeof ITEMS[0]) => {
     if (coins < item.cost) {
@@ -65,8 +84,15 @@ const ShopScreen = () => {
   const confirmBuy = () => {
     const item = ITEMS.find(i => i.id === buying)
     if (!item) return
+    if (!spendCoins(item.cost)) {
+      triggerHaptic('error')
+      setToast('Coin yetarli emas!')
+      setBuying(null)
+      setTimeout(() => setToast(null), 2000)
+      return
+    }
+    if (item.proMonths) subscribePro(item.proMonths)
     triggerHaptic('success')
-    setCoins(c => c - item.cost)
     setBuying(null)
     setToast(`✓ ${item.title} sotib olindi!`)
     setTimeout(() => setToast(null), 2500)

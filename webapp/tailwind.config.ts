@@ -1,5 +1,10 @@
 import type { Config } from 'tailwindcss'
 
+/**
+ * HDP Academy Math — design tokens
+ * Palette: deep emerald brand identity (#006C49 lineage) carried on an
+ * airy sage canvas with a lime growth ramp for CTAs and progress.
+ */
 const config: Config = {
   content: [
     "./index.html",
@@ -8,64 +13,84 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
-        'h1': ['32px', { lineHeight: 'normal', letterSpacing: '-0.02em', fontWeight: '700' }],
-        'h2': ['24px', { lineHeight: 'normal', letterSpacing: '-0.01em', fontWeight: '700' }],
-        'h3': ['20px', { lineHeight: 'normal', letterSpacing: '-0.005em', fontWeight: '600' }],
-        'body-lg': ['18px', { lineHeight: 'normal', fontWeight: '400' }],
-        'body-md': ['16px', { lineHeight: 'normal', fontWeight: '400' }],
-        'body-sm': ['14px', { lineHeight: 'normal', fontWeight: '400' }],
-        'label': ['12px', { lineHeight: 'normal', letterSpacing: '0.02em', fontWeight: '600' }],
-        'tiny': ['11px', { lineHeight: 'normal', letterSpacing: '0.04em', fontWeight: '700' }],
+        'display':  ['34px', { lineHeight: '1.06', letterSpacing: '-0.035em', fontWeight: '800' }],
+        'h1':       ['27px', { lineHeight: '1.15', letterSpacing: '-0.028em', fontWeight: '800' }],
+        'h2':       ['21px', { lineHeight: '1.2',  letterSpacing: '-0.02em',  fontWeight: '800' }],
+        'h3':       ['17px', { lineHeight: '1.3',  letterSpacing: '-0.012em', fontWeight: '700' }],
+        'body-lg':  ['16px', { lineHeight: '1.5',  fontWeight: '500' }],
+        'body-md':  ['14.5px', { lineHeight: '1.55', fontWeight: '500' }],
+        'body-sm':  ['13px', { lineHeight: '1.5',  fontWeight: '500' }],
+        'label':    ['12px', { lineHeight: '1.35', letterSpacing: '0.01em', fontWeight: '700' }],
+        'tiny':     ['10.5px', { lineHeight: '1.3', letterSpacing: '0.07em', fontWeight: '800' }],
       },
       colors: {
-        primary: {
-          DEFAULT: '#006C49',
-          light: '#10B981',
-          dark: '#00422B',
-          container: '#DCFCE7',
-        },
-        surface: {
-          DEFAULT: '#FAF8FF',
-          low: '#F2F3FF',
-          card: '#FFFFFF',
-          border: '#E2E7FF',
-        },
-        text: {
-          primary: '#131B2E',
-          secondary: '#3C4A42',
-          muted: '#6C7A71',
-        },
-        coin: '#F59E0B',
-        xp: '#3B82F6',
-        error: '#BA1A1A',
-        success: '#10B981',
-        warning: '#F59E0B',
+        // Canvas & surfaces — sage-tinted neutrals, never pure gray
+        canvas:      '#F1F4EE',
+        'canvas-deep': '#E6EBE2',
+        surface:     '#FFFFFF',
+        'surface-2': '#F6F8F3',
+        line:        '#E3E8DE',
+        'line-soft': '#EDF1E9',
+
+        // Ink — green-black for warmth against the sage canvas
+        ink:        '#0E1A12',
+        'ink-2':    '#33452F',
+        'ink-3':    '#6B7C66',
+        'ink-4':    '#9AA995',
+
+        // Brand: emerald depth → lime growth
+        brand:      '#0B6E4F',
+        'brand-deep': '#063F2E',
+        'brand-mid': '#1B9A6B',
+        leaf:       '#4CC16F',
+        'leaf-bright': '#8FE388',
+        'leaf-soft': '#DDF3DC',
+        'leaf-tint': '#EFF8EC',
+
+        // Reward & signal
+        coin:       '#E8A33D',
+        'coin-soft': '#FCF1DC',
+        xp:         '#4C7DF0',
+        'xp-soft':  '#E5ECFE',
+        danger:     '#D9483B',
+        'danger-soft': '#FBE9E7',
+        violet:     '#7C5CE0',
+        'violet-soft': '#EDE7FC',
       },
       borderRadius: {
-        'sm': '4px',
-        'md': '8px',
-        'lg': '12px',
-        'xl': '16px',
-        '2xl': '24px',
+        'sm':   '10px',
+        'md':   '14px',
+        'lg':   '18px',
+        'xl':   '22px',
+        '2xl':  '28px',
+        '3xl':  '34px',
         'full': '9999px',
       },
       spacing: {
-        'xs': '4px',
-        'sm': '8px',
-        'md': '16px',
-        'lg': '24px',
-        'xl': '32px',
-        '2xl': '48px',
+        '1.5': '6px',
+        '2.5': '10px',
+        '18':  '72px',
       },
       boxShadow: {
-        card: '0px 2px 12px rgba(0,0,0,0.06)',
-        modal: '0px 8px 32px rgba(0,0,0,0.12)',
+        // Diffuse, green-tinted — matches the sage canvas (never flat gray)
+        card:   '0 1px 2px rgba(14,26,18,0.03), 0 6px 18px rgba(14,26,18,0.045)',
+        lifted: '0 2px 6px rgba(14,26,18,0.04), 0 18px 44px rgba(14,26,18,0.09)',
+        float:  '0 6px 24px rgba(14,26,18,0.10), 0 2px 6px rgba(14,26,18,0.05)',
+        glow:   '0 10px 28px rgba(27,154,107,0.32)',
+        'glow-leaf': '0 10px 26px rgba(76,193,111,0.38)',
+        'glow-coin': '0 10px 26px rgba(232,163,61,0.32)',
+        inset:  'inset 0 1px 0 rgba(255,255,255,0.9)',
       },
       maxWidth: {
-        'mobile': '430px',
+        mobile: '430px',
+      },
+      transitionTimingFunction: {
+        spring: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
     },
   },

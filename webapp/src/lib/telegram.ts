@@ -21,8 +21,17 @@ export const getTelegram = () => {
   return null
 }
 
-export const initTelegram = () => {
-  const tg = getTelegram()
+export const getTelegramUser = (): { name: string; username: string } | null => {
+  const tg = getTelegram() as any
+  const u = tg?.initDataUnsafe?.user
+  if (!u) return null
+  return {
+    name: [u.first_name, u.last_name].filter(Boolean).join(' '),
+    username: u.username ?? '',
+  }
+}
+
+export const initTelegram = () => {  const tg = getTelegram()
   if (tg) {
     tg.ready()
     tg.expand()

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
+import { useApp } from '../store/useStore'
 
 const PLANS = [
   {
@@ -47,13 +48,21 @@ const GATEWAYS = [
 
 const ProScreen = () => {
   const navigate = useNavigate()
-  const [selected, setSelected]     = useState<'1m' | '3m' | '1y'>('3m')
-  const [gateway, setGateway]       = useState('Payme')
+  const [selected, setSelected] = useState<'1m' | '3m' | '1y'>('3m')
+  const [gateway, setGateway] = useState('Payme')
   const [showSuccess, setShowSuccess] = useState(false)
+
+  const isPro = useApp(s => s.isPro)
+  const proExpires = useApp(s => s.proExpires)
+  const subscribePro = useApp(s => s.subscribePro)
+  const cancelPro = useApp(s => s.cancelPro)
 
   const plan = PLANS.find(p => p.id === selected)!
 
+  const MONTHS: Record<'1m' | '3m' | '1y', number> = { '1m': 1, '3m': 3, '1y': 12 }
+
   const handleSubscribe = () => {
+    subscribePro(MONTHS[selected])
     triggerHaptic('success')
     setShowSuccess(true)
   }
@@ -218,19 +227,42 @@ const ProScreen = () => {
 
       {/* CTA */}
       <section className="px-4">
-        <button
-          onClick={handleSubscribe}
-          className="w-full py-4 rounded-xl font-extrabold text-white text-sm mb-3"
-          style={{
-            background: 'linear-gradient(135deg, #4338CA, #6366F1)',
-            boxShadow:  '0 4px 16px rgba(67,56,202,0.28)',
-          }}
-        >
-          {plan.label} — {plan.price} so'm{plan.per} orqali obuna bo'lish
-        </button>
-        <p className="text-center text-xs" style={{ color: '#94A3B8' }}>
-          Istalgan vaqt bekor qilish mumkin · Xavfsiz to'lov
-        </p>
+        {isPro ? (
+          <>
+            <div
+              className="w-full rounded-xl p-4 mb-3"
+              style={{ background: '#ECFDF5', border: '1px solid #A7F3D0' }}
+            >
+              <p className="text-sm font-extrabold mb-0.5" style={{ color: '#065F46' }}>
+                Pro faol{proExpires ? ` · ${proExpires} gacha` : ''}
+              </p>
+              <p className="text-xs" style={{ color: '#047857' }}>Barcha darslar va to'plamlar ochiq.</p>
+            </div>
+            <button
+              onClick={() => { cancelPro(); triggerHaptic('warning'); navigate('/home') }}
+              className="w-full py-3 rounded-xl font-bold text-sm"
+              style={{ background: '#FFFFFF', border: '1.5px solid #E2E8F0', color: '#64748B' }}
+            >
+              Obunani bekor qilish
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={handleSubscribe}
+              className="w-full py-4 rounded-xl font-extrabold text-white text-sm mb-3"
+              style={{
+                background: 'linear-gradient(135deg, #4338CA, #6366F1)',
+                boxShadow: '0 4px 16px rgba(67,56,202,0.28)',
+              }}
+            >
+              {plan.label} — {plan.price} so'm{plan.per} orqali obuna bo'lish
+            </button>
+            <p className="text-center text-xs" style={{ color: '#94A3B8' }}>
+              Istalgan vaqt bekor qilish mumkin · Xavfsiz to'lov
+            </p>
+          </>
+        )}
       </section>
 
       {/* Success modal */}

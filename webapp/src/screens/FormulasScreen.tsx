@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
+import { PROBLEM_SETS } from '../data/content'
 
 const FORMULAS = [
   {
@@ -238,7 +239,12 @@ const FormulasScreen = () => {
                 {detail.formula}
               </div>
               <button
-                onClick={() => { triggerHaptic('medium'); setDetail(null); navigate('/solve') }}
+                onClick={() => {
+                  triggerHaptic('medium')
+                  const setId = PROBLEM_SETS.find(s => s.topic === detail.cat)?.id
+                  setDetail(null)
+                  navigate(setId ? `/problems/${setId}` : '/problems')
+                }}
                 className="w-full py-3.5 rounded-xl font-bold text-white text-sm mb-2.5"
                 style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)', boxShadow: '0 4px 16px rgba(67,56,202,0.28)' }}
               >
