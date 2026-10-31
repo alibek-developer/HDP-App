@@ -10,7 +10,7 @@ import { triggerHaptic } from '../lib/telegram'
  */
 const TABS = [
   { path: '/home', label: 'Asosiy', icon: Home },
-  { path: '/formulas', label: 'Formulalar', icon: Sigma },
+  { path: '/problems', label: 'Masalalar', icon: Target },
   { path: '/shop', label: "Do'kon", icon: ShoppingBag },
   { path: '/profile', label: 'Profil', icon: User },
 ]
@@ -62,7 +62,7 @@ const BottomNav = () => {
                   size={active ? 18 : 19}
                   strokeWidth={active ? 2.5 : 2.1}
                   className="relative z-10 transition-colors duration-200"
-                  color={active ? '#0E1A12' : 'rgba(226,240,214,0.55)'}
+                  color={active ? '#0E1A12' : 'rgba(205,233,174,0.55)'}
                 />
 
                 <AnimatePresence initial={false}>

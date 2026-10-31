@@ -14,7 +14,7 @@ const ProblemSetScreen = () => {
   const { setId } = useParams()
   const set = findProblemSet(String(setId))
 
-  const isPro = useApp(s => s.isPro)
+  const canOpenSet = useApp(s => s.canOpenSet)
   const finishProblemSet = useApp(s => s.finishProblemSet)
   const coin = useApp(s => s.coin)
 
@@ -33,8 +33,8 @@ const ProblemSetScreen = () => {
     )
   }
 
-  // Zanjir qoidasi: Pro to'plam faqat obunachilarga
-  if (!set.free && !isPro) {
+  // Zanjir qoidasi: Pro yoki coin evaziga ochilmagan to'plamga kirmaymiz
+  if (!canOpenSet(set.id)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: '#F1F4F9' }}>
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#FFF7E6' }}>
@@ -89,13 +89,15 @@ const ProblemSetScreen = () => {
 
   const finish = (all: SessionResult['answers']) => {
     const ok = all.filter(a => a.ok).length
+    /** Streak rejimi: hammasi to'g'ri bo'lsa mukofot ikkilanadi */
+    const mult = set.perfectBonus && ok === all.length ? 2 : 1
     finishProblemSet(set.id, {
       kind: 'problem-set',
       refId: set.id,
       title: set.title,
       answers: all,
-      coinsEarned: ok * set.coinPerSolve,
-      xpEarned: ok * set.xpPerSolve,
+      coinsEarned: ok * set.coinPerSolve * mult,
+      xpEarned: ok * set.xpPerSolve * mult,
     })
     triggerHaptic('success')
     navigate('/result', { replace: true })

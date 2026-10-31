@@ -27,7 +27,7 @@ const SplashScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="relative min-h-screen flex flex-col overflow-hidden font-sans"
-      style={{ background: 'linear-gradient(180deg, #E2F0D6 0%, #F2F8EC 38%, #FFFFFF 66%)' }}
+      style={{ background: 'linear-gradient(180deg, #CDE9AE 0%, #E6F5D2 40%, #F7FCED 76%)' }}
     >
       {/* Daftar to'ri — faqat yuqori mint maydonda */}
       <div className="absolute inset-x-0 top-0 h-[280px] grid-paper opacity-60 pointer-events-none" />
@@ -82,9 +82,9 @@ const SplashScreen = () => {
             transition={{ delay: 0.34, type: 'spring', stiffness: 240, damping: 17 }}
             className="w-[68px] h-[68px] rounded-[23px] flex items-center justify-center"
             style={{
-              background: 'linear-gradient(150deg, #B8E986 0%, #A8E063 60%, #8FD14F 100%)',
+              background: 'linear-gradient(150deg, #9BE04B 0%, #7ED321 60%, #5FAF22 100%)',
               border: '5px solid rgba(255,255,255,0.85)',
-              boxShadow: '0 14px 30px rgba(143,209,79,0.42), inset 0 1.5px 0 rgba(255,255,255,0.6)',
+              boxShadow: '0 14px 30px rgba(95,175,34,0.42), inset 0 1.5px 0 rgba(255,255,255,0.6)',
             }}
           >
             <span className="font-serif text-[30px] leading-none text-ink-on-lime">Σ</span>
@@ -135,8 +135,8 @@ const SplashScreen = () => {
           onClick={() => go('/signup')}
           className="w-full h-[56px] rounded-full text-[16px] font-extrabold text-ink-on-lime active:scale-[0.975] transition-transform"
           style={{
-            background: 'linear-gradient(135deg, #B8E986 0%, #A8E063 100%)',
-            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 12px 26px rgba(143,209,79,0.36)',
+            background: 'linear-gradient(135deg, #9BE04B 0%, #7ED321 100%)',
+            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 12px 26px rgba(95,175,34,0.36)',
           }}
         >
           Boshlash

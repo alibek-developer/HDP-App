@@ -48,15 +48,15 @@ const config: Config = {
         'brand-deep': '#063F2E',
         'brand-mid': '#1B9A6B',
         leaf:       '#4CC16F',
-        'leaf-bright': '#8FE388',
+        'leaf-bright': '#8CE86A',
         'leaf-soft': '#DDF3DC',
         'leaf-tint': '#EFF8EC',
 
         // Soft mint canvas + bright lime action (splash / hero surfaces)
-        mint:       '#E2F0D6',
-        'mint-soft': '#F2F8EC',
-        lime:       '#A8E063',
-        'lime-deep': '#8FD14F',
+        mint:       '#CDE9AE',
+        'mint-soft': '#E6F5D2',
+        lime:       '#7ED321',
+        'lime-deep': '#5FAF22',
         'ink-on-lime': '#1C3214',
 
         // Reward & signal

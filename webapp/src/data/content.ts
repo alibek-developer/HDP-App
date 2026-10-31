@@ -51,10 +51,16 @@ export interface ProblemSet {
   title: string
   topic: string
   difficulty: 'oson' | "o'rta" | 'qiyin'
+  /** sinf — ro'yxat kartasida ko'rsatiladi */
+  grade: string
   /** har bir to'g'ri yechilgan masala uchun */
   coinPerSolve: number
   xpPerSolve: number
   free: boolean
+  /** Pro emas, lekin coin evaziga ochiladi */
+  unlockPrice?: number
+  /** barcha javoblar to'g'ri bo'lsa mukofot ikkilanadi */
+  perfectBonus?: boolean
   questions: Question[]
 }
 
@@ -469,6 +475,7 @@ export const PROBLEM_SETS: ProblemSet[] = [
     title: 'Trigonometriya mashqlari',
     topic: 'Trigonometriya',
     difficulty: 'oson',
+    grade: "9-sinf",
     coinPerSolve: 10,
     xpPerSolve: 15,
     free: true,
@@ -484,6 +491,7 @@ export const PROBLEM_SETS: ProblemSet[] = [
     title: 'Tenglamalar banki',
     topic: 'Algebra',
     difficulty: "o'rta",
+    grade: "8-sinf",
     coinPerSolve: 15,
     xpPerSolve: 20,
     free: true,
@@ -500,6 +508,7 @@ export const PROBLEM_SETS: ProblemSet[] = [
     title: 'Hosila ustidan mashq',
     topic: 'Analiz',
     difficulty: 'qiyin',
+    grade: "11-sinf",
     coinPerSolve: 25,
     xpPerSolve: 35,
     free: true,
@@ -515,9 +524,11 @@ export const PROBLEM_SETS: ProblemSet[] = [
     title: 'Geometriya masalalari',
     topic: 'Geometriya',
     difficulty: "o'rta",
+    grade: "9-sinf",
     coinPerSolve: 15,
     xpPerSolve: 20,
     free: false,
+    unlockPrice: 200,
     questions: [
       { id: 'g1', prompt: 'r = 5 aylana yuzasi:', options: ['10π', '25π', '5π', '50π'], correct: 1, explain: 'S = πr² = 25π.' },
       { id: 'g2', prompt: 'Tomoni 6 bo\'lgan teng tomonli uchburchak yuzasi:', options: ['9√3', '6√3', '18', '3√3'], correct: 0, explain: 'S = a²√3/4 = 36√3/4 = 9√3.' },
@@ -529,9 +540,11 @@ export const PROBLEM_SETS: ProblemSet[] = [
     title: 'Olimpiada darajasi',
     topic: 'Olimpiada',
     difficulty: 'qiyin',
+    grade: "10–11-sinf",
     coinPerSolve: 40,
     xpPerSolve: 60,
     free: false,
+    unlockPrice: 200,
     questions: [
       { id: 'o1', prompt: '10 kishidan 3 kishili jamoa nechta usulda tanlanadi:', options: ['120', '720', '30', '300'], correct: 0, explain: 'C(10,3) = 10!/(3!·7!) = 120. Tartib muhim bo\'lmaganda — terma.' },
       { id: 'o2', prompt: '5 xatni 5 konvertga noto\'g\'ri joylashtirish (derangement) soni:', options: ['44', '24', '120', '12'], correct: 0, explain: "D₅ = 44. Formula: Dₙ = n!·Σ(−1)ᵏ/k!." },
@@ -540,5 +553,54 @@ export const PROBLEM_SETS: ProblemSet[] = [
 ]
 
 export function findProblemSet(id: string): ProblemSet | undefined {
-  return PROBLEM_SETS.find(s => s.id === id)
+  return ALL_SETS.find(s => s.id === id)
+}
+
+/* ─────────────────── MASHQ REJIMLARI ─────────────────── */
+/* Streak va Sinov — mavjud savollardan yig'iladigan sintetik to'plamlar.
+   Bitta yechish dvigateli (/problems/:setId) hammasini ko'taradi. */
+
+const questionsByDifficulty = (d: ProblemSet['difficulty']) =>
+  PROBLEM_SETS.filter(s => s.difficulty === d).flatMap(s => s.questions)
+
+export const STREAK_SET: ProblemSet = {
+  id: 'ps-streak',
+  title: 'Streak Seriya',
+  topic: 'Aralash',
+  difficulty: 'oson',
+  grade: '9–11-sinf',
+  coinPerSolve: 10,
+  xpPerSolve: 15,
+  free: true,
+  perfectBonus: true,
+  questions: [...questionsByDifficulty('oson'), ...questionsByDifficulty("o'rta")].slice(0, 10),
+}
+
+export const EXAM_SET: ProblemSet = {
+  id: 'ps-exam',
+  title: 'Umumiy sinov',
+  topic: 'Aralash',
+  difficulty: 'qiyin',
+  grade: '9–11-sinf',
+  coinPerSolve: 20,
+  xpPerSolve: 30,
+  free: false,
+  questions: [
+    ...PROBLEM_SETS.flatMap(s => s.questions),
+    ...LESSONS.filter(l => l.free).flatMap(l => l.questions),
+  ].slice(0, 30),
+}
+
+export const ALL_SETS: ProblemSet[] = [...PROBLEM_SETS, STREAK_SET, EXAM_SET]
+
+/**
+ * Kunlik mega masala — kun raqamiga qarab bepul to'plamlardan biri aylanadi.
+ * Yarim tunda yangilanadi; bonus bir marta beriladi.
+ */
+export function dailyProblem(date = new Date()) {
+  const free = PROBLEM_SETS.filter(s => s.free)
+  const start = new Date(date.getFullYear(), 0, 0)
+  const day = Math.floor((date.getTime() - start.getTime()) / 86_400_000)
+  const set = free[day % free.length]
+  return { set, question: set.questions[day % set.questions.length], day }
 }

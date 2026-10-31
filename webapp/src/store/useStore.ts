@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { LESSONS, PROBLEM_SETS, findLesson } from '../data/content'
+import { LESSONS, PROBLEM_SETS, findLesson, findProblemSet, dailyProblem } from '../data/content'
 
 /**
  * Ilovaning yagona holat manbai.
@@ -55,6 +55,15 @@ interface AppState {
   lessons: Record<number, LessonProgress>
   /** to'plamda yechilgan savol id'lari */
   solvedQuestions: Record<string, string[]>
+  /** coin evaziga ochilgan to'plamlar */
+  unlocked: string[]
+  /** kunlik hisoblagichlar kaliti (sana) — o'zgarsa nollanadi */
+  day: string
+  solvedToday: number
+  olympToday: number
+  claimedMissions: string[]
+  /** kunlik mega masala bonusi olingan sana */
+  dailyBonusOn: string | null
   /** oxirgi natija ekrani ma'lumoti */
   lastResult: SessionResult | null
   /** zanjir davomida ochib turadigan dars id'si */
@@ -75,6 +84,11 @@ interface AppState {
   subscribePro: (months: number) => void
   cancelPro: () => void
   spendCoins: (amount: number) => boolean
+  /** to'plamni coin evaziga ochish */
+  unlockSet: (id: string, price: number) => boolean
+  /** sana o'zgarganda kunlik hisoblagichlarni nollash */
+  rollDay: () => void
+  claimMission: (key: string, reward: number) => void
   resetAll: () => void
 
   /* ── Derived ── */
@@ -82,10 +96,16 @@ interface AppState {
   canOpenLesson: (id: number) => boolean
   canEnterExample: (id: number) => boolean
   canEnterTest: (id: number) => boolean
+  canOpenSet: (id: string) => boolean
   xpForNext: () => number
 }
 
+const todayKey = () => new Date().toISOString().slice(0, 10)
+
 const XP_STEP = 1000
+
+/** Kunlik mega masala bonusi — bir marta, kuniga */
+export const DAILY_BONUS = { coin: 50, xp: 80 }
 
 /** Daraja har 1000 XP da ko'tariladi */
 function levelFromXp(xp: number): number {
@@ -108,6 +128,12 @@ export const useApp = create<AppState>()(
 
       lessons: {},
       solvedQuestions: {},
+      unlocked: [],
+      day: todayKey(),
+      solvedToday: 0,
+      olympToday: 0,
+      claimedMissions: [],
+      dailyBonusOn: null,
       lastResult: null,
       activeLessonId: null,
       onboarded: false,
@@ -162,17 +188,28 @@ export const useApp = create<AppState>()(
 
       finishProblemSet: (setId, result) =>
         set((s) => {
+          const day = todayKey()
+          const rolled = s.day !== day
           const newly = result.answers.filter((a) => a.ok).length
           const prev = s.solvedQuestions[setId] ?? []
           const now = result.answers
             .map((a, i) => (a.ok ? result.refId + '#' + i : null))
             .filter(Boolean) as string[]
+          const solved = findProblemSet(setId)
+          const dailyHit = dailyProblem().set.id === setId && s.dailyBonusOn !== day
+          const extraCoin = dailyHit ? DAILY_BONUS.coin : 0
+          const extraXp = dailyHit ? DAILY_BONUS.xp : 0
           return {
             solvedQuestions: { ...s.solvedQuestions, [setId]: [...new Set([...prev, ...now])] },
-            coin: s.coin + result.coinsEarned,
-            xp: s.xp + result.xpEarned,
-            level: levelFromXp(s.xp + result.xpEarned),
+            coin: s.coin + result.coinsEarned + extraCoin,
+            xp: s.xp + result.xpEarned + extraXp,
+            level: levelFromXp(s.xp + result.xpEarned + extraXp),
             solvedCount: s.solvedCount + newly,
+            day,
+            solvedToday: (rolled ? 0 : s.solvedToday) + newly,
+            olympToday: (rolled ? 0 : s.olympToday) + (solved?.topic === 'Olimpiada' ? newly : 0),
+            claimedMissions: rolled ? [] : s.claimedMissions,
+            dailyBonusOn: dailyHit ? day : s.dailyBonusOn,
             lastResult: result,
           }
         }),
@@ -200,6 +237,27 @@ export const useApp = create<AppState>()(
         return true
       },
 
+      /** To'plamni coin evaziga ochish — bir marta, abadiy */
+      unlockSet: (id, price) => {
+        if (get().unlocked.includes(id)) return true
+        if (get().coin < price) return false
+        set((s) => ({ coin: s.coin - price, unlocked: [...s.unlocked, id] }))
+        return true
+      },
+
+      /** Sana o'zgarsa kunlik hisoblagichlarni nollash */
+      rollDay: () => {
+        const day = todayKey()
+        if (get().day === day) return
+        set({ day, solvedToday: 0, olympToday: 0, claimedMissions: [] })
+      },
+
+      claimMission: (key, reward) => {
+        const s = get()
+        if (s.claimedMissions.includes(key)) return
+        set({ coin: s.coin + reward, claimedMissions: [...s.claimedMissions, key] })
+      },
+
       resetAll: () =>
         set({
           xp: 0,
@@ -211,6 +269,11 @@ export const useApp = create<AppState>()(
           proExpires: null,
           lessons: {},
           solvedQuestions: {},
+          unlocked: [],
+          solvedToday: 0,
+          olympToday: 0,
+          claimedMissions: [],
+          dailyBonusOn: null,
           lastResult: null,
           activeLessonId: null,
           onboarded: false,
@@ -237,6 +300,13 @@ export const useApp = create<AppState>()(
       /** Misol yechilmagan bo'lsa — testga kirib bo'lmaydi */
       canEnterTest: (id) => !!get().lessons[id]?.exampleDone,
 
+      /** Bepul to'plam hammaga; Pro yoki ochilganlar qolganiga ham kiradi */
+      canOpenSet: (id) => {
+        const set = findProblemSet(id)
+        if (!set) return false
+        return set.free || get().isPro || get().unlocked.includes(id)
+      },
+
       xpForNext: () => {
         const { xp } = get()
         return (Math.floor(xp / XP_STEP) + 1) * XP_STEP - xp
@@ -258,6 +328,12 @@ export const useApp = create<AppState>()(
         proExpires: s.proExpires,
         lessons: s.lessons,
         solvedQuestions: s.solvedQuestions,
+        unlocked: s.unlocked,
+        day: s.day,
+        solvedToday: s.solvedToday,
+        olympToday: s.olympToday,
+        claimedMissions: s.claimedMissions,
+        dailyBonusOn: s.dailyBonusOn,
         onboarded: s.onboarded,
       }),
     }

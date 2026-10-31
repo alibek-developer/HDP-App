@@ -35,7 +35,7 @@ export const initTelegram = () => {  const tg = getTelegram()
   if (tg) {
     tg.ready()
     tg.expand()
-    tg.setHeaderColor('#E2F0D6')
+    tg.setHeaderColor('#CDE9AE')
     tg.setBackgroundColor('#FFFFFF')
   }
 }

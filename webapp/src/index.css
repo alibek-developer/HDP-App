@@ -48,7 +48,7 @@ body {
   inset: 0 0 auto 0;
   height: 340px;
   background:
-    radial-gradient(120% 80% at 18% 0%, rgba(143, 227, 136, 0.34) 0%, rgba(143, 227, 136, 0) 62%),
+    radial-gradient(120% 80% at 18% 0%, rgba(126, 211, 33, 0.34) 0%, rgba(126, 211, 33, 0) 62%),
     radial-gradient(100% 70% at 92% 4%, rgba(27, 154, 107, 0.16) 0%, rgba(27, 154, 107, 0) 58%);
   pointer-events: none;
   z-index: 0;

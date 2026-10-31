@@ -48,7 +48,7 @@ const LoginScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="relative min-h-screen flex flex-col overflow-hidden font-sans"
-      style={{ background: 'linear-gradient(180deg, #E2F0D6 0%, #F2F8EC 38%, #FFFFFF 66%)' }}
+      style={{ background: 'linear-gradient(180deg, #CDE9AE 0%, #E6F5D2 40%, #F7FCED 76%)' }}
     >
       <div className="absolute inset-x-0 top-0 h-[340px] grid-paper opacity-60 pointer-events-none" />
 
@@ -74,8 +74,8 @@ const LoginScreen = () => {
         <span
           className="w-[38px] h-[38px] rounded-[13px] flex items-center justify-center shrink-0"
           style={{
-            background: 'linear-gradient(150deg, #B8E986 0%, #A8E063 60%, #8FD14F 100%)',
-            boxShadow: '0 8px 20px rgba(143,209,79,0.36), inset 0 1px 0 rgba(255,255,255,0.6)',
+            background: 'linear-gradient(150deg, #9BE04B 0%, #7ED321 60%, #5FAF22 100%)',
+            boxShadow: '0 8px 20px rgba(95,175,34,0.36), inset 0 1px 0 rgba(255,255,255,0.6)',
           }}
         >
           <span className="font-serif text-[19px] leading-none text-ink-on-lime">Σ</span>
@@ -142,7 +142,7 @@ const LoginScreen = () => {
               className="w-[20px] h-[20px] rounded-[7px] flex items-center justify-center transition-colors"
               style={
                 remember
-                  ? { background: 'linear-gradient(135deg,#B8E986,#A8E063)', border: '1px solid #A8E063' }
+                  ? { background: 'linear-gradient(135deg,#9BE04B,#7ED321)', border: '1px solid #7ED321' }
                   : { background: '#FFFFFF', border: '1px solid #D8E0D2' }
               }
             >
@@ -163,8 +163,8 @@ const LoginScreen = () => {
           onClick={enter}
           className="w-full h-[56px] mt-6 rounded-full text-[16px] font-extrabold text-ink-on-lime active:scale-[0.975] transition-transform"
           style={{
-            background: 'linear-gradient(135deg, #B8E986 0%, #A8E063 100%)',
-            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 12px 26px rgba(143,209,79,0.36)',
+            background: 'linear-gradient(135deg, #9BE04B 0%, #7ED321 100%)',
+            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 12px 26px rgba(95,175,34,0.36)',
           }}
         >
           Kirish
