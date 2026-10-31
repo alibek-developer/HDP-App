@@ -1,616 +1,428 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
+import { mockDailyProblem } from '../data/mockData'
 
-interface ProblemItem {
-  id: number
-  symbol: string
-  symbolBg: string
-  symbolColor: string
-  title: string
-  category: string
-  difficulty: 'Oson' | 'O\'rta' | 'Qiyin' | 'Olimpiada'
-  difficultyColor: string
-  passRate: string
-  coin: number
-  xp: number
-  status: 'new' | 'solved' | 'locked'
-}
-
-const problemsList: ProblemItem[] = [
-  {
-    id: 1,
-    symbol: 'Σ',
-    symbolBg: 'from-emerald-500/10 to-teal-500/20 border-emerald-500/30',
-    symbolColor: 'text-[#006C49]',
-    title: 'Viyet teoremasi va parametrli tenglamalar',
-    category: 'Algebra',
-    difficulty: 'Oson',
-    difficultyColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-    passRate: '92%',
-    coin: 15,
-    xp: 25,
-    status: 'new',
-  },
-  {
-    id: 2,
-    symbol: '△',
-    symbolBg: 'from-blue-500/10 to-indigo-500/20 border-blue-500/30',
-    symbolColor: 'text-blue-700',
-    title: 'Uchburchak medianasi va bissektrisasi xossalari',
-    category: 'Geometriya',
-    difficulty: 'O\'rta',
-    difficultyColor: 'bg-blue-50 text-blue-800 border-blue-200',
-    passRate: '78%',
-    coin: 25,
-    xp: 40,
-    status: 'solved',
-  },
-  {
-    id: 3,
-    symbol: '∫',
-    symbolBg: 'from-purple-500/10 to-pink-500/20 border-purple-500/30',
-    symbolColor: 'text-purple-700',
-    title: 'Aniq integral yordamida yuzalarni hisoblash',
-    category: 'Matematik Analiz',
-    difficulty: 'O\'rta',
-    difficultyColor: 'bg-blue-50 text-blue-800 border-blue-200',
-    passRate: '65%',
-    coin: 30,
-    xp: 50,
-    status: 'new',
-  },
-  {
-    id: 4,
-    symbol: '🔒',
-    symbolBg: 'from-amber-500/10 to-rose-500/20 border-amber-500/30',
-    symbolColor: 'text-amber-700',
-    title: 'Murakkab trigonometrik tengsizliklar (IMO)',
-    category: 'Olimpiada',
-    difficulty: 'Olimpiada',
-    difficultyColor: 'bg-rose-50 text-rose-800 border-rose-200',
-    passRate: '24%',
-    coin: 60,
-    xp: 100,
-    status: 'locked',
-  },
+const ALL_LESSONS = [
+  // ── Bepul (10 ta) ──
+  { id: 1,  title: 'Kvadrat tenglamalar asoslari',              dur: '18 min', topic: 'Algebra',        free: true,  done: true  },
+  { id: 2,  title: 'Viyet teoremasi va qo\'llanilishi',         dur: '22 min', topic: 'Algebra',        free: true,  done: true  },
+  { id: 3,  title: 'Parametrli tenglamalar',                    dur: '31 min', topic: 'Algebra',        free: true,  done: true  },
+  { id: 4,  title: 'Trigonometrik funksiyalar kirish',          dur: '25 min', topic: 'Trigonometriya', free: true,  done: false, current: true },
+  { id: 5,  title: 'Sinuslar va kosinuslar teoremasi',          dur: '28 min', topic: 'Trigonometriya', free: true,  done: false },
+  { id: 6,  title: 'Logarifm va ko\'rsatkichli funksiyalar',    dur: '24 min', topic: 'Analiz',         free: true,  done: false },
+  { id: 7,  title: 'Hosilalar va geometrik ma\'no',             dur: '35 min', topic: 'Analiz',         free: true,  done: false },
+  { id: 8,  title: 'Integral asoslari',                         dur: '30 min', topic: 'Analiz',         free: true,  done: false },
+  { id: 9,  title: 'Geometrik progressiya',                     dur: '20 min', topic: 'Algebra',        free: true,  done: false },
+  { id: 10, title: 'Kombinatorika va ehtimollik',               dur: '26 min', topic: 'Statistika',     free: true,  done: false },
+  // ── Pro (yopiq) ──
+  { id: 11, title: 'Murakkab funksiyalar tahlili',              dur: '42 min', topic: 'Analiz',         free: false, done: false },
+  { id: 12, title: 'IMO darajasidagi tenglamalar',              dur: '55 min', topic: 'Olimpiada',      free: false, done: false },
+  { id: 13, title: 'DTM 2025 tahlili va strategiyasi',          dur: '48 min', topic: 'DTM Prep',       free: false, done: false },
+  { id: 14, title: 'Vektorlar va koordinatalar',                dur: '38 min', topic: 'Geometriya',     free: false, done: false },
+  { id: 15, title: 'Aniq integral va yuzalar',                  dur: '44 min', topic: 'Analiz',         free: false, done: false },
+  { id: 16, title: 'Murakkab trigonometrik tengsizliklar',      dur: '50 min', topic: 'Trigonometriya', free: false, done: false },
 ]
+
+const TOPIC_COLORS: Record<string, string> = {
+  Algebra:        'bg-blue-50 text-blue-600',
+  Trigonometriya: 'bg-violet-50 text-violet-600',
+  Analiz:         'bg-indigo-50 text-indigo-600',
+  Statistika:     'bg-teal-50 text-teal-600',
+  Olimpiada:      'bg-rose-50 text-rose-600',
+  'DTM Prep':     'bg-amber-50 text-amber-700',
+  Geometriya:     'bg-emerald-50 text-emerald-700',
+}
 
 const HomeScreen = () => {
   const navigate = useNavigate()
-  const [selectedCategory, setSelectedCategory] = useState(0)
+  const location = useLocation()
   const [showProModal, setShowProModal] = useState(false)
-  const [userCoins, setUserCoins] = useState(1250)
-  const [userXp, setUserXp] = useState(3850)
 
-  // Session-based promo modal: only once per session
+  const doneFree  = ALL_LESSONS.filter(l => l.free && l.done).length
+  const totalFree = ALL_LESSONS.filter(l => l.free).length
+  const current   = ALL_LESSONS.find(l => l.current)
+  const progress  = Math.round((doneFree / totalFree) * 100)
+  const coins     = 340
+  const streak    = 12
+
+  // Pro modal — faqat 1 marta (per session), onboarding (Login) dan kelganda ko'rsatilmaydi
   useEffect(() => {
-    const hasSeen = sessionStorage.getItem('hdp_pro_modal_seen')
-    if (!hasSeen) {
-      const timer = setTimeout(() => {
+    const fromLogin = (location.state as any)?.from === '/login'
+    if (!fromLogin && !sessionStorage.getItem('hdp_promo_seen')) {
+      const t = setTimeout(() => {
         setShowProModal(true)
-        sessionStorage.setItem('hdp_pro_modal_seen', 'true')
+        sessionStorage.setItem('hdp_promo_seen', '1')
         triggerHaptic('light')
-      }, 750)
-      return () => clearTimeout(timer)
+      }, 900)
+      return () => clearTimeout(t)
     }
   }, [])
 
-  // Live countdown timer for Mega Quest
-  const [timeLeft, setTimeLeft] = useState({
-    hours: 4,
-    minutes: 22,
-    seconds: 15,
-  })
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 }
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
-        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 }
-        return { hours: 0, minutes: 0, seconds: 0 }
-      })
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
-
-  const formatTimer = (n: number) => n.toString().padStart(2, '0')
-
-  const categories = [
-    { label: 'Barchasi', count: '320' },
-    { label: 'Algebra', count: '110' },
-    { label: 'Geometriya', count: '85' },
-    { label: 'Analiz', count: '65' },
-    { label: 'Olimpiada', count: '60' },
-  ]
-
-  const streakDays = [
-    { day: 'D', done: true },
-    { day: 'S', done: true },
-    { day: 'CH', done: true },
-    { day: 'P', done: true },
-    { day: 'J', done: true },
-    { day: 'SH', today: true },
-    { day: 'Y', done: false },
-  ]
-
   return (
-    <div className="min-h-screen bg-[#F8F9FE] pb-28 text-[#111827] select-none font-sans overflow-x-hidden">
-      {/* Decorative top ambient mesh gradient */}
-      <div 
-        className="absolute top-0 left-0 right-0 h-64 pointer-events-none opacity-60 -z-0"
-        style={{
-          background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 108, 73, 0.15) 0%, rgba(16, 185, 129, 0.05) 50%, transparent 100%)'
-        }}
-      />
+    <div className="min-h-screen pb-24 select-none font-sans" style={{ background: '#F1F4F9' }}>
 
-      {/* 1. Ultra-clean Header */}
-      <header className="relative z-10 px-4 pt-3.5 pb-2 flex items-center justify-between">
-        {/* User Greeting & Level */}
-        <div 
-          onClick={() => { triggerHaptic('light'); navigate('/profile') }}
-          className="flex items-center gap-3 cursor-pointer group"
-        >
-          <div className="relative">
-            <div className="w-11 h-11 rounded-[18px] bg-gradient-to-tr from-[#006C49] to-[#10B981] p-[2px] shadow-[0_4px_12px_rgba(0,108,73,0.18)] transition-transform group-hover:scale-105">
-              <div className="w-full h-full bg-white rounded-[16px] flex items-center justify-center font-extrabold text-[#006C49] text-xs">
-                AS
-              </div>
-            </div>
-            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 bg-[#006C49] text-white rounded-full text-[9px] font-black tracking-tighter border-2 border-white shadow-xs">
-              Lv.4
-            </span>
+      {/* ── Header ── */}
+      <header
+        className="px-4 pt-4 pb-3 flex items-center justify-between sticky top-0 z-20"
+        style={{ background: '#F1F4F9' }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-xs"
+            style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)' }}
+          >
+            SA
           </div>
-
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold text-slate-500">Xayrli kech</span>
-              <span className="text-xs">👋</span>
-            </div>
-            <h1 className="text-sm font-black text-[#131B2E] tracking-tight leading-none mt-0.5">
-              Sardor Aliyev
-            </h1>
+            <p className="text-[11px] font-medium" style={{ color: '#94A3B8' }}>Salom,</p>
+            <p className="text-sm font-bold" style={{ color: '#0F172A' }}>Sardor Aliyev</p>
           </div>
         </div>
 
-        {/* Currency & Notification Pills */}
+        {/* Coin + Streak */}
         <div className="flex items-center gap-2">
-          {/* Coin Pill */}
-          <motion.div
-            whileTap={{ scale: 0.94 }}
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold"
+            style={{ background: '#FFFBEB', borderColor: '#FDE68A', color: '#D97706' }}
+          >
+            <span>🔥</span>
+            <span>{streak}</span>
+          </div>
+          <button
             onClick={() => { triggerHaptic('light'); navigate('/shop') }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur-md rounded-full border border-slate-200/80 shadow-2xs cursor-pointer hover:border-amber-300 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold"
+            style={{ background: '#FFFBEB', borderColor: '#FDE68A', color: '#D97706' }}
           >
-            <span className="text-xs">🪙</span>
-            <span className="text-xs font-black text-slate-800 font-mono">
-              {userCoins.toLocaleString()}
-            </span>
-          </motion.div>
-
-          {/* XP Pill */}
-          <motion.div
-            whileTap={{ scale: 0.94 }}
-            onClick={() => { triggerHaptic('light'); navigate('/profile') }}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-white/95 backdrop-blur-md rounded-full border border-slate-200/80 shadow-2xs cursor-pointer"
-          >
-            <span className="text-xs font-black text-blue-600">⚡</span>
-            <span className="text-xs font-black text-slate-800 font-mono">
-              {userXp.toLocaleString()}
-            </span>
-          </motion.div>
-
-          {/* Notification Button */}
-          <button 
-            onClick={() => triggerHaptic('light')}
-            className="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs relative hover:bg-slate-50 transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 ring-2 ring-white" />
+            <span>🪙</span>
+            <span>{coins.toLocaleString()}</span>
           </button>
         </div>
       </header>
 
-      {/* 2. Interactive Weekly Streak Bar (Duolingo Style) */}
-      <section className="px-4 py-2 relative z-10">
-        <div className="bg-white rounded-[26px] p-3.5 border border-slate-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl shadow-inner">
-              🔥
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-black text-[#131B2E]">12 Kunlik Streak!</span>
-              </div>
-              <p className="text-[10px] text-slate-500 font-medium">
-                Kunlik odat: 3/5 masala yechildi
-              </p>
-            </div>
-          </div>
-
-          {/* 7-Day Pills Row */}
-          <div className="flex items-center gap-1">
-            {streakDays.map((item, idx) => (
-              <div key={idx} className="flex flex-col items-center gap-1">
-                <span className="text-[9px] font-bold text-slate-400 font-mono">
-                  {item.day}
-                </span>
-                <div 
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                    item.today
-                      ? 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-sm ring-2 ring-amber-400/40 animate-pulse'
-                      : item.done
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-slate-100 text-slate-400'
-                  }`}
-                >
-                  {item.today ? '🔥' : item.done ? '✓' : '•'}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Featured Hero: Daily Mega Problem (Dribbble Glassmorphism Card) */}
-      <section className="px-4 py-2.5 relative z-10">
-        <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#003823] via-[#005739] to-[#006C49] text-white p-5 shadow-[0_16px_36px_rgba(0,108,73,0.28)] border border-emerald-400/20">
-          {/* Subtle math graph overlay */}
-          <div 
-            className="absolute inset-0 pointer-events-none opacity-10"
+      {/* ── Progress banner ── */}
+      <section className="px-4 mb-4">
+        <div
+          className="rounded-2xl p-5 relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #312E81 0%, #4338CA 65%, #6366F1 100%)',
+            boxShadow: '0 8px 32px rgba(67,56,202,0.28)',
+          }}
+        >
+          {/* Dot pattern overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-[0.07]"
             style={{
-              backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
-              backgroundSize: '18px 18px'
+              backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+              backgroundSize: '20px 20px',
             }}
           />
 
-          {/* Top Row: Pill Badges */}
-          <div className="relative z-10 flex items-center justify-between mb-3">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full border border-white/15 text-[10px] font-extrabold tracking-wider uppercase text-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span>KUNLIK MEGA SINOV</span>
-            </div>
+          <p className="text-indigo-200 text-xs font-semibold mb-0.5 relative z-10">DTM Matematika to'liq kursi</p>
+          <h2 className="text-lg font-extrabold text-white mb-3 relative z-10 leading-snug">
+            Bepul darslaringiz: {doneFree}/{totalFree} ta
+          </h2>
 
-            <div className="flex items-center gap-1 bg-black/30 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-mono font-bold text-emerald-100 border border-white/10">
-              <span>⏱</span>
-              <span>{formatTimer(timeLeft.hours)}:{formatTimer(timeLeft.minutes)}:{formatTimer(timeLeft.seconds)}</span>
+          {/* Progress bar */}
+          <div className="relative z-10 flex items-center gap-3 mb-4">
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.2)' }}>
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${progress}%`, background: '#FFFFFF' }}
+              />
             </div>
+            <span className="text-white text-xs font-bold">{progress}%</span>
           </div>
 
-          {/* Title & Level */}
-          <div className="relative z-10 mb-3">
-            <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest block mb-0.5">
-              DTM / IMO OLIMPIADA · #142
-            </span>
-            <h2 className="text-xl font-black text-white tracking-tight leading-snug">
-              Parametrli Kvadrat Tenglama
-            </h2>
-          </div>
-
-          {/* Formula Glass Box */}
-          <div className="relative z-10 bg-black/25 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-inner mb-4">
-            <div className="font-serif text-lg sm:text-xl font-extrabold text-emerald-300 tracking-wide text-center">
-              f(x) = x² − 2ax + a + 6 = 0
-            </div>
-            <p className="text-xs text-white/80 leading-relaxed text-center font-sans mt-1.5">
-              Tenglama ikkita har xil musbat ildizga ega bo'lsa, <span className="font-bold text-emerald-200">a</span> parametrning barcha butun qiymatlari yig'indisini toping.
-            </p>
-          </div>
-
-          {/* Rewards & 3D Tactile CTA Button */}
-          <div className="relative z-10 flex items-center justify-between pt-1">
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1.5 bg-white/15 backdrop-blur-md rounded-xl text-xs font-black text-amber-300 border border-white/10 flex items-center gap-1">
-                <span>🪙</span>
-                <span>+50</span>
-              </div>
-              <div className="px-3 py-1.5 bg-white/15 backdrop-blur-md rounded-xl text-xs font-black text-blue-200 border border-white/10 flex items-center gap-1">
-                <span>⚡</span>
-                <span>+80 XP</span>
-              </div>
-            </div>
-
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
-              className="bg-white hover:bg-emerald-50 active:bg-slate-100 text-[#006C49] font-black text-xs px-6 py-3 rounded-full flex items-center gap-2 shadow-[0_6px_20px_rgba(0,0,0,0.15)] transition-all"
+          {/* Continue CTA */}
+          {current ? (
+            <button
+              onClick={() => { triggerHaptic('medium'); navigate('/video') }}
+              className="relative z-10 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
+              style={{ background: '#FFFFFF', color: '#4338CA', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
             >
-              <span>Yechishga kirish</span>
-              <span className="text-base font-bold">→</span>
-            </motion.button>
-          </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#4338CA"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+              Davom etish — {current.title}
+            </button>
+          ) : (
+            <button
+              onClick={() => { triggerHaptic('medium'); navigate('/pro') }}
+              className="relative z-10 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
+              style={{ background: 'rgba(255,255,255,0.15)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.25)' }}
+            >
+              ✨ Pro darslarni ko'rish
+            </button>
+          )}
         </div>
       </section>
 
-      {/* 4. Interactive Quick Modes (Dribbble 3-Card Grid) */}
-      <section className="px-4 py-2.5 relative z-10">
-        <div className="flex items-center justify-between mb-2.5 px-0.5">
-          <h3 className="text-sm font-black text-[#131B2E] tracking-tight">
-            Tezkor Trenirovka Rejimlari
-          </h3>
-          <span className="text-[11px] font-bold text-[#006C49]">
-            Bugun 2x bonus
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {/* Blitz Duel Card */}
-          <motion.div
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
-            className="bg-white rounded-[26px] p-4 border border-slate-200/70 shadow-sm cursor-pointer relative overflow-hidden flex flex-col justify-between group hover:border-emerald-300 transition-all"
-          >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/20 text-[#006C49] flex items-center justify-center text-xl mb-3 border border-emerald-500/20">
-              ⚔️
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <h4 className="text-sm font-black text-[#131B2E]">Blitz Duel</h4>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                1v1 real-vaqt bellashuv. 3 daqiqada 5 ta misol.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-              <span className="text-xs font-black text-amber-700 font-mono">
-                +30 Coin
-              </span>
-              <div className="w-7 h-7 rounded-full bg-[#006C49] text-white flex items-center justify-center text-xs shadow-xs group-hover:scale-110 transition-transform">
-                ▶
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Formula Flashcards Card */}
-          <motion.div
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { triggerHaptic('medium'); navigate('/formulas') }}
-            className="bg-white rounded-[26px] p-4 border border-slate-200/70 shadow-sm cursor-pointer relative overflow-hidden flex flex-col justify-between group hover:border-blue-300 transition-all"
-          >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/20 text-blue-700 flex items-center justify-center text-xl mb-3 border border-blue-500/20">
-              🎴
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <h4 className="text-sm font-black text-[#131B2E]">Formula Express</h4>
-              </div>
-              <p className="text-[11px] text-slate-500 leading-snug">
-                140+ shporalar banki va kunlik formula testi.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-              <span className="text-xs font-black text-blue-700 font-mono">
-                +40 XP
-              </span>
-              <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs shadow-xs group-hover:scale-110 transition-transform">
-                →
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 5. Clean Category Pills */}
-      <section className="px-4 py-2 relative z-10">
-        <div className="flex items-center justify-between mb-2.5 px-0.5">
-          <h3 className="text-sm font-black text-[#131B2E] tracking-tight">
-            Mavzular Katalogi
-          </h3>
-          <span className="text-xs font-bold text-slate-400">
-            320 ta masala
-          </span>
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {categories.map((cat, idx) => {
-            const isActive = selectedCategory === idx
-            return (
-              <button
-                key={cat.label}
-                onClick={() => { triggerHaptic('selection'); setSelectedCategory(idx) }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                  isActive
-                    ? 'bg-[#006C49] text-white shadow-sm shadow-emerald-900/15'
-                    : 'bg-white border border-slate-200/80 text-slate-600 hover:border-slate-300'
-                }`}
-              >
-                <span>{cat.label}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {cat.count}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* 6. Curated Problems List (Modern Dribbble Cards) */}
-      <section className="px-4 py-2 relative z-10 space-y-3">
-        {problemsList.map((item) => (
-          <motion.div
-            key={item.id}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              if (item.status === 'locked') {
-                triggerHaptic('medium')
-                navigate('/pro')
-              } else {
-                triggerHaptic('medium')
-                navigate('/solve')
-              }
+      {/* ── Kun masalasi + Blitz Duel ── */}
+      <section className="px-4 mb-5">
+        <div className="flex gap-2.5">
+          <button
+            onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
+            className="flex-1 rounded-2xl p-4 text-left relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+              boxShadow: '0 6px 20px rgba(15,23,42,0.25)',
             }}
-            className="bg-white rounded-[26px] p-4 border border-slate-200/70 shadow-sm cursor-pointer hover:border-emerald-200 transition-all flex flex-col justify-between"
           >
-            <div className="flex items-start gap-3.5 mb-2.5">
-              {/* Math Glyphs Badge */}
-              <div className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${item.symbolBg} border flex items-center justify-center font-serif font-black text-xl shrink-0 ${item.symbolColor}`}>
-                {item.symbol}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1 mb-0.5">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    {item.category}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${item.difficultyColor}`}>
-                    {item.difficulty}
-                  </span>
-                </div>
-
-                <h4 className="text-xs font-extrabold text-[#131B2E] leading-snug line-clamp-1">
-                  {item.title}
-                </h4>
-
-                <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
-                  <span>Aniq yechim: <strong className="text-emerald-700">{item.passRate}</strong></span>
-                </div>
-              </div>
+            <div
+              className="absolute inset-0 pointer-events-none opacity-[0.07]"
+              style={{
+                backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+                backgroundSize: '18px 18px',
+              }}
+            />
+            <p className="relative z-10 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#818CF8' }}>
+              Kun masalasi · {mockDailyProblem.category}
+            </p>
+            <p className="relative z-10 text-sm font-bold text-white mt-1 leading-snug">
+              {mockDailyProblem.title}
+            </p>
+            <p className="relative z-10 font-mono text-[11px] mt-1" style={{ color: '#94A3B8' }}>
+              {mockDailyProblem.formula}
+            </p>
+            <div className="relative z-10 flex items-center gap-2 mt-2.5">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: '#FFFBEB', color: '#D97706' }}>
+                +{mockDailyProblem.rewardCoin} 🪙
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: '#EEF2FF', color: '#4338CA' }}>
+                +{mockDailyProblem.rewardXp} ⚡
+              </span>
+              <span className="text-[10px] font-bold ml-auto" style={{ color: '#A5B4FC' }}>Yechish →</span>
             </div>
-
-            {/* Bottom Actions & Rewards */}
-            <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-xs font-black">
-                <span className="text-amber-800">🪙 +{item.coin}</span>
-                <span className="text-blue-800">⚡ +{item.xp} XP</span>
-              </div>
-
-              {item.status === 'locked' ? (
-                <button className="px-3.5 py-1.5 bg-amber-50 text-amber-800 rounded-full text-xs font-bold flex items-center gap-1 border border-amber-200">
-                  <span>🔒</span>
-                  <span>Pro bilan ochish</span>
-                </button>
-              ) : item.status === 'solved' ? (
-                <button className="px-3.5 py-1.5 bg-slate-100 text-slate-700 rounded-full text-xs font-bold hover:bg-slate-200">
-                  Qayta yechish
-                </button>
-              ) : (
-                <button className="px-4 py-1.5 bg-[#006C49] hover:bg-[#00573a] text-white rounded-full text-xs font-bold shadow-xs">
-                  Yechish →
-                </button>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </section>
-
-      {/* 7. Pro Membership Highlight Banner */}
-      <section className="px-4 py-3 relative z-10">
-        <div className="relative rounded-[28px] bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 p-4 border border-emerald-200/70 shadow-sm flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#006C49] text-white flex items-center justify-center text-xl shadow-xs shrink-0">
-              💎
-            </div>
-            <div>
-              <h4 className="text-xs font-extrabold text-[#131B2E]">
-                HDP Pro · DTM 100 Ballik Kafolat
-              </h4>
-              <p className="text-[11px] text-slate-600 mt-0.5">
-                Barcha olimpiada va yopiq darslar to'liq ochiq
-              </p>
-            </div>
-          </div>
+          </button>
 
           <button
-            onClick={() => { triggerHaptic('medium'); navigate('/pro') }}
-            className="px-4 py-2 bg-[#006C49] text-white font-bold text-xs rounded-full shrink-0 shadow-xs hover:bg-[#00573a]"
+            onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
+            className="w-[104px] shrink-0 rounded-2xl flex flex-col items-center justify-center gap-1.5 p-3"
+            style={{
+              background: 'linear-gradient(135deg, #DC2626, #F97316)',
+              boxShadow: '0 6px 20px rgba(220,38,38,0.25)',
+            }}
           >
-            Ko'rish →
+            <span className="text-2xl">⚔️</span>
+            <span className="text-xs font-extrabold text-white leading-tight text-center">Blitz<br />Duel</span>
+            <span className="text-[9px] font-semibold" style={{ color: '#FECACA' }}>1v1 real-vaqt</span>
           </button>
         </div>
       </section>
 
-      {/* 8. Pro Promo Modal (Shows ONLY ONCE per session) */}
+      {/* ── Stats row ── */}
+      <section className="px-4 mb-5">
+        <div className="grid grid-cols-3 gap-2.5">
+          {[
+            { val: `${doneFree * 3}`, label: 'Masala',   sub: 'yechildi' },
+            { val: `${doneFree}`,     label: 'Dars',     sub: 'ko\'rildi' },
+            { val: `${coins}`,        label: 'Coin',     sub: 'to\'plandi' },
+          ].map((s, i) => (
+            <div
+              key={i}
+              className="rounded-xl p-3 text-center"
+              style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+            >
+              <p className="text-lg font-extrabold" style={{ color: '#0F172A' }}>{s.val}</p>
+              <p className="text-[10px] font-semibold" style={{ color: '#94A3B8' }}>{s.label} {s.sub}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Free lessons ── */}
+      <section className="px-4 mb-2">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-4 rounded-full" style={{ background: '#4338CA' }} />
+            <h3 className="text-sm font-bold" style={{ color: '#0F172A' }}>Bepul darslar</h3>
+          </div>
+          <span className="text-xs font-semibold" style={{ color: '#94A3B8' }}>10 ta</span>
+        </div>
+
+        <div className="space-y-2">
+          {ALL_LESSONS.filter(l => l.free).map(lesson => (
+            <button
+              key={lesson.id}
+              onClick={() => { triggerHaptic('light'); navigate('/video') }}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all"
+              style={{
+                background: lesson.current ? '#EEF2FF' : '#FFFFFF',
+                border: `1px solid ${lesson.current ? '#4338CA' : '#E2E8F0'}`,
+              }}
+            >
+              {/* Status indicator */}
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold"
+                style={{
+                  background: lesson.done ? '#ECFDF5' : lesson.current ? '#4338CA' : '#F8FAFC',
+                  color:      lesson.done ? '#059669' : lesson.current ? '#FFFFFF'  : '#94A3B8',
+                }}
+              >
+                {lesson.done ? '✓' : lesson.current ? '▶' : lesson.id}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-semibold truncate leading-snug"
+                  style={{
+                    color:          lesson.done ? '#94A3B8' : '#0F172A',
+                    textDecoration: lesson.done ? 'line-through' : 'none',
+                  }}
+                >
+                  {lesson.title}
+                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-[10px] font-medium" style={{ color: '#CBD5E1' }}>⏱ {lesson.dur}</span>
+                  <span style={{ color: '#E2E8F0' }}>·</span>
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${TOPIC_COLORS[lesson.topic] || 'bg-slate-50 text-slate-500'}`}>
+                    {lesson.topic}
+                  </span>
+                </div>
+              </div>
+
+              {lesson.current && (
+                <span
+                  className="text-[11px] font-bold px-2 py-1 rounded-lg shrink-0"
+                  style={{ background: '#4338CA', color: '#FFFFFF' }}
+                >
+                  Kur
+                </span>
+              )}
+              {lesson.done && (
+                <span
+                  className="text-[10px] font-bold px-2 py-1 rounded-lg shrink-0"
+                  style={{ background: '#ECFDF5', color: '#059669' }}
+                >
+                  +50🪙
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Pro lessons ── */}
+      <section className="px-4 mb-4 mt-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-4 rounded-full" style={{ background: '#D97706' }} />
+            <h3 className="text-sm font-bold" style={{ color: '#0F172A' }}>Pro darslar</h3>
+          </div>
+          <span
+            className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+            style={{ background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A' }}
+          >
+            PRO
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          {ALL_LESSONS.filter(l => !l.free).map(lesson => (
+            <button
+              key={lesson.id}
+              onClick={() => { triggerHaptic('light'); navigate('/pro') }}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left opacity-70"
+              style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+            >
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-base"
+                style={{ background: '#FFFBEB' }}
+              >
+                🔒
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate" style={{ color: '#0F172A' }}>
+                  {lesson.title}
+                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-[10px] font-medium" style={{ color: '#CBD5E1' }}>⏱ {lesson.dur}</span>
+                  <span style={{ color: '#E2E8F0' }}>·</span>
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${TOPIC_COLORS[lesson.topic] || 'bg-slate-50 text-slate-500'}`}>
+                    {lesson.topic}
+                  </span>
+                </div>
+              </div>
+
+              <span
+                className="text-[10px] font-black px-2 py-1 rounded-lg shrink-0"
+                style={{ background: '#FEF3C7', color: '#D97706', border: '1px solid #FDE68A' }}
+              >
+                PRO
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Upgrade CTA */}
+        <button
+          onClick={() => { triggerHaptic('medium'); navigate('/pro') }}
+          className="w-full mt-4 py-4 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2"
+          style={{
+            background: 'linear-gradient(135deg, #D97706, #F59E0B)',
+            boxShadow: '0 4px 16px rgba(217,119,6,0.3)',
+          }}
+        >
+          ✨ Pro obunani olish — 79,000 so'm/oy
+        </button>
+      </section>
+
+      {/* ── Pro promo modal ── */}
       <AnimatePresence>
         {showProModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop Blur */}
+          <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => { triggerHaptic('light'); setShowProModal(false) }}
-              className="absolute inset-0 bg-black/45 backdrop-blur-xs"
+              onClick={() => setShowProModal(false)}
+              className="fixed inset-0 z-50"
+              style={{ background: 'rgba(15,23,42,0.55)' }}
             />
-
-            {/* Modal Card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-              className="relative w-full max-w-[330px] bg-white rounded-[32px] p-5 shadow-2xl border border-emerald-50 overflow-hidden text-center z-10"
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 360 }}
+              className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto"
+              style={{ background: '#FFFFFF', borderRadius: '24px 24px 0 0', padding: '24px' }}
             >
-              {/* Close Button */}
-              <button
-                onClick={() => { triggerHaptic('light'); setShowProModal(false) }}
-                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-xs font-bold transition-colors"
-              >
-                ✕
-              </button>
+              <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E2E8F0' }} />
 
-              {/* Glowing Top Emblem */}
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#006C49] to-emerald-400 text-white flex items-center justify-center mx-auto mb-3 shadow-md shadow-emerald-700/20 text-2xl">
+              <div
+                className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl"
+                style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)' }}
+              >
                 💎
               </div>
 
-              {/* Promo Badge */}
-              <span className="inline-block px-3 py-0.5 bg-emerald-50 border border-emerald-200 text-[#006C49] font-bold text-[10px] rounded-full uppercase tracking-wider mb-2">
-                HDP PRO · MAXSUS TAKLIF
-              </span>
-
-              {/* Title */}
-              <h3 className="text-base font-extrabold text-[#131B2E] leading-snug mb-1">
-                Matematikani 2x Tezroq va Chuqurroq Egallang!
+              <h3 className="text-xl font-extrabold text-center mb-2" style={{ color: '#0F172A' }}>
+                Pro obunaga o'ting
               </h3>
-
-              <p className="text-xs text-slate-500 leading-relaxed mb-3.5 px-1">
-                100+ yopiq video darslar, AI qadam-baqadam yechim va IMO olimpiada tahlillariga to'liq cheksiz kirish.
+              <p className="text-sm text-center leading-relaxed mb-5" style={{ color: '#64748B' }}>
+                16+ yopiq dars, DTM strategiyasi, jonli master-klasslar va AI yordamchi — hammasi bir joyda.
               </p>
 
-              {/* Discount Box */}
-              <div className="bg-[#F0FDF4] border border-emerald-200/80 rounded-2xl p-3 mb-4">
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-900">
-                  <span>🔥</span>
-                  <span>12 Oylik Reja: -50% Chegirma</span>
-                </div>
-                <div className="text-[11px] text-emerald-700 mt-0.5">
-                  Oyiga bor-yo'g'i <span className="font-extrabold text-sm text-[#006C49]">26,500 so'm</span>
-                </div>
-              </div>
-
-              {/* Action Button */}
               <button
-                onClick={() => {
-                  triggerHaptic('medium')
-                  setShowProModal(false)
-                  navigate('/pro')
+                onClick={() => { triggerHaptic('medium'); setShowProModal(false); navigate('/pro') }}
+                className="w-full py-3.5 rounded-xl font-bold text-white mb-3 text-sm"
+                style={{
+                  background: 'linear-gradient(135deg, #4338CA, #6366F1)',
+                  boxShadow: '0 4px 16px rgba(67,56,202,0.28)',
                 }}
-                className="w-full bg-[#006C49] hover:bg-[#00573a] text-white py-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 shadow-[0_6px_16px_rgba(0,108,73,0.25)] transition-all"
               >
-                <span>Pro Obunani Ko'rish</span>
-                <span className="text-sm">→</span>
+                Pro imkoniyatlarni ko'rish
               </button>
-
-              {/* Skip / Later */}
               <button
-                onClick={() => { triggerHaptic('light'); setShowProModal(false) }}
-                className="mt-2.5 text-[11px] font-semibold text-slate-400 hover:text-slate-600 block mx-auto"
+                onClick={() => setShowProModal(false)}
+                className="w-full py-3 text-sm font-medium"
+                style={{ color: '#94A3B8' }}
               >
-                Keyinroq ko'rish
+                Keyinroq
               </button>
             </motion.div>
-          </div>
+          </>
         )}
       </AnimatePresence>
     </div>

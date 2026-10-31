@@ -1,96 +1,91 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { triggerHaptic } from '../lib/telegram'
 
 const SplashScreen = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Soft haptic feedback on launch
-    triggerHaptic('light')
-
-    // Smooth transition to /home after animation completes
-    const timer = setTimeout(() => {
-      triggerHaptic('medium')
-      navigate('/home')
-    }, 2400)
-
-    return () => clearTimeout(timer)
-  }, [navigate])
+    const t = setTimeout(() => navigate('/login', { replace: true }), 2600)
+    return () => clearTimeout(t)
+  }, [])
 
   return (
-    <div className="fixed inset-0 bg-[#FFFFFF] flex items-center justify-center overflow-hidden select-none z-50">
-      {/* Subtle, luxurious radial ambient gradient glow in the center */}
-      <div 
-        className="absolute w-[420px] h-[420px] rounded-full pointer-events-none opacity-40 blur-3xl"
+    <motion.div
+      className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #1E1B4B 0%, #312E81 60%, #3730A3 100%)' }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Subtle dot pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.06]"
         style={{
-          background: 'radial-gradient(circle, rgba(0, 108, 73, 0.12) 0%, rgba(16, 185, 129, 0.04) 45%, transparent 70%)'
+          backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
         }}
       />
 
-      {/* Main Brand Container */}
+      {/* Center content */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.94, filter: 'blur(10px)' }}
-        animate={{ 
-          opacity: [0, 1, 1, 0],
-          scale: [0.94, 1, 1, 1.04],
-          filter: ['blur(10px)', 'blur(0px)', 'blur(0px)', 'blur(8px)']
-        }}
-        transition={{ 
-          duration: 2.3,
-          times: [0, 0.35, 0.78, 1],
-          ease: [0.22, 1, 0.36, 1]
-        }}
-        className="relative flex flex-col items-center justify-center text-center"
+        initial={{ opacity: 0, y: 24, scale: 0.88 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+        className="text-center relative z-10"
       >
-        {/* Subtle Geometric Emblem Accent */}
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-4 flex items-center justify-center"
+        {/* Logo mark */}
+        <div
+          className="w-24 h-24 rounded-[28px] mx-auto mb-7 flex items-center justify-center relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+            boxShadow: '0 20px 60px rgba(99,102,241,0.4), 0 0 0 1px rgba(255,255,255,0.08)',
+          }}
         >
-          <div className="w-8 h-8 rounded-2xl bg-gradient-to-tr from-[#006C49] to-[#10B981] p-[1.5px] shadow-[0_6px_20px_rgba(0,108,73,0.18)]">
-            <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-              <span className="font-serif font-black text-xs text-[#006C49]">
-                Σ
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Sophisticated HDP Monogram */}
-        <div className="relative">
-          <h1 
-            className="text-[44px] sm:text-[52px] font-black tracking-[0.28em] pl-[0.28em] font-sans leading-none select-none bg-gradient-to-br from-[#003823] via-[#006C49] to-[#059669] bg-clip-text text-transparent"
+          {/* Diagonal stripe texture */}
+          <div
+            className="absolute inset-0"
             style={{
-              textShadow: '0 8px 30px rgba(0, 108, 73, 0.12)'
+              backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,0.06) 8px, rgba(255,255,255,0.06) 9px)',
             }}
-          >
-            HDP
-          </h1>
-
-          {/* Elegant Shimmer Light Sweep Effect across the text */}
-          <motion.div
-            initial={{ x: '-120%' }}
-            animate={{ x: '120%' }}
-            transition={{ duration: 1.4, delay: 0.45, ease: 'easeInOut' }}
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent pointer-events-none mix-blend-overlay"
           />
+          <span className="text-white font-black text-5xl relative z-10 select-none" style={{ fontFamily: 'serif' }}>
+            Σ
+          </span>
         </div>
 
-        {/* Minimalist Subtitle */}
-        <motion.div
-          initial={{ opacity: 0, letterSpacing: '0.35em' }}
-          animate={{ opacity: 1, letterSpacing: '0.45em' }}
-          transition={{ duration: 1, delay: 0.35 }}
-          className="mt-3.5 pl-[0.45em] text-[10px] font-extrabold uppercase text-[#006C49]/60 tracking-[0.45em]"
+        {/* Brand name */}
+        <h1
+          className="text-[52px] font-black text-white leading-none tracking-[-3px] mb-2"
+          style={{ letterSpacing: '-3px' }}
         >
-          ACADEMY
-        </motion.div>
+          HDP
+        </h1>
+        <p className="text-indigo-300 text-xs font-semibold tracking-[5px] uppercase">
+          Math Academy
+        </p>
       </motion.div>
-    </div>
+
+      {/* Bottom tagline */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4, duration: 0.8 }}
+        className="absolute bottom-14 text-indigo-400/50 text-[11px] font-medium tracking-[3px] uppercase"
+      >
+        Matematikada ustoz bo'l
+      </motion.p>
+
+      {/* Loading indicator */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.5, duration: 1.8, ease: 'linear' }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-indigo-400/40 rounded-full overflow-hidden"
+        style={{ transformOrigin: 'left' }}
+      >
+        <div className="h-full bg-indigo-300 rounded-full" />
+      </motion.div>
+    </motion.div>
   )
 }
 

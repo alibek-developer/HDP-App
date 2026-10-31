@@ -3,348 +3,287 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 
+const QUESTIONS = [
+  {
+    q:       'sin(30°) ning qiymatini toping:',
+    opts:    ['√3/2', '1/2', '1', '0'],
+    correct: 1,
+    hint:    'sin(30°) = 1/2 — bu asosiy qiymat, yodlang!',
+  },
+  {
+    q:       'cos(0°) ning qiymatini toping:',
+    opts:    ['0', '√2/2', '1', '−1'],
+    correct: 2,
+    hint:    'cos(0°) = 1 — nol burchakda kosinus maksimal.',
+  },
+  {
+    q:       "Quyidagi tenglik noto\u02BCg\u02BCri:",
+    opts:    ['sin²x + cos²x = 1', 'tg(x) = sin(x)/cos(x)', 'cos(2x) = cos²x \u2212 sin²x', 'sin(2x) = 2sin(x)'],
+    correct: 3,
+    hint:    "To\u02BCg\u02BCri formula: sin(2x) = 2sin(x)\u00B7cos(x)",
+  },
+]
+
 const SolveScreen = () => {
   const navigate = useNavigate()
-  const [selectedOption, setSelectedOption] = useState<number | null>(null)
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [qIdx, setQIdx]           = useState(0)
+  const [selected, setSelected]   = useState<number | null>(null)
+  const [submitted, setSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
-  const [showExplanation, setShowExplanation] = useState(false)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const [secondsLeft, setSecondsLeft] = useState(165) // 02:45
+  const [score, setScore]         = useState(0)
+  const [finished, setFinished]   = useState(false)
+  const [secondsLeft, setSecondsLeft] = useState(120)
+
+  const q = QUESTIONS[qIdx]
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0))
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
+    if (finished) return
+    const t = setInterval(() => setSecondsLeft(p => (p > 0 ? p - 1 : 0)), 1000)
+    return () => clearInterval(t)
+  }, [finished])
 
-  const formatTimer = (secs: number) => {
-    const m = Math.floor(secs / 60).toString().padStart(2, '0')
-    const s = (secs % 60).toString().padStart(2, '0')
-    return `${m}:${s}`
-  }
+  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`
 
-  const handleSelect = (val: number) => {
-    if (isSubmitted) return
+  const handleSelect = (i: number) => {
+    if (submitted) return
     triggerHaptic('selection')
-    setSelectedOption(val)
+    setSelected(i)
   }
 
   const handleCheck = () => {
-    if (selectedOption === null) return
-    setIsSubmitted(true)
-    const correct = selectedOption === 18
-    setIsCorrect(correct)
-    if (correct) {
-      triggerHaptic('success')
-    } else {
-      triggerHaptic('error')
-    }
+    if (selected === null) return
+    setSubmitted(true)
+    const ok = selected === q.correct
+    setIsCorrect(ok)
+    ok ? triggerHaptic('success') : triggerHaptic('error')
+    if (ok) setScore(s => s + 10)
   }
 
   const handleNext = () => {
-    triggerHaptic('medium')
-    navigate('/home')
+    triggerHaptic('light')
+    if (qIdx < QUESTIONS.length - 1) {
+      setQIdx(i => i + 1)
+      setSelected(null)
+      setSubmitted(false)
+      setIsCorrect(false)
+    } else {
+      setFinished(true)
+    }
   }
 
-  const handleWatchVideo = () => {
-    triggerHaptic('medium')
-    navigate('/video')
-  }
+  /* ── Finished / Result screen ── */
+  if (finished) {
+    const earned = score
+    const coins  = earned * 5
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 pb-10 select-none font-sans" style={{ background: '#F1F4F9' }}>
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+          className="w-full rounded-2xl p-6 text-center"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 8px 32px rgba(0,0,0,0.06)' }}
+        >
+          <div className="text-5xl mb-4">{score === QUESTIONS.length * 10 ? '🏆' : score > 10 ? '⭐' : '📚'}</div>
+          <h2 className="text-2xl font-extrabold mb-1" style={{ color: '#0F172A' }}>
+            Natija: {score}/{QUESTIONS.length * 10}
+          </h2>
+          <p className="text-sm mb-6" style={{ color: '#64748B' }}>
+            {score === QUESTIONS.length * 10 ? 'Mukammal natija! Barcha savollar to\'g\'ri.' : 'Yaxshi urinish! Xato bo\'lgan mavzularni takrorlang.'}
+          </p>
 
-  return (
-    <div className="min-h-screen bg-[#F8F9FE] pb-32 text-[#111827] select-none font-sans relative">
-      {/* 1. Header */}
-      <header className="px-4 pt-4 pb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => { triggerHaptic('light'); navigate('/home') }}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs hover:bg-slate-50 transition-colors"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
-              MASALA #142 · ALGEBRA
-            </span>
-            <h1 className="text-sm font-black text-[#131B2E]">Parametrli Tenglamalar</h1>
+          {/* Reward row */}
+          <div className="flex gap-3 mb-6">
+            <div
+              className="flex-1 rounded-xl p-3 text-center"
+              style={{ background: '#FFFBEB', border: '1px solid #FDE68A' }}
+            >
+              <p className="text-xl font-extrabold" style={{ color: '#D97706' }}>🪙 +{coins}</p>
+              <p className="text-xs font-medium mt-0.5" style={{ color: '#D97706' }}>coin</p>
+            </div>
+            <div
+              className="flex-1 rounded-xl p-3 text-center"
+              style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}
+            >
+              <p className="text-xl font-extrabold" style={{ color: '#4338CA' }}>⚡ +{score}</p>
+              <p className="text-xs font-medium mt-0.5" style={{ color: '#4338CA' }}>XP</p>
+            </div>
           </div>
+
+          <button
+            onClick={() => { triggerHaptic('medium'); navigate('/pro') }}
+            className="w-full py-3.5 rounded-xl font-bold text-white text-sm mb-3 flex items-center justify-center gap-2"
+            style={{
+              background: 'linear-gradient(135deg, #D97706, #F59E0B)',
+              boxShadow: '0 4px 16px rgba(217,119,6,0.3)',
+            }}
+          >
+            ✨ Pro'ga o'ting — barcha masalalar ochiq
+          </button>
+          <button
+            onClick={() => { triggerHaptic('medium'); navigate('/home') }}
+            className="w-full py-3.5 rounded-xl font-bold text-white text-sm mb-3"
+            style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)', boxShadow: '0 4px 16px rgba(67,56,202,0.28)' }}
+          >
+            Bosh sahifaga qaytish
+          </button>
+          <button
+            onClick={() => { triggerHaptic('light'); navigate('/video') }}
+            className="w-full py-3 text-sm font-medium rounded-xl"
+            style={{ background: '#F1F4F9', color: '#64748B' }}
+          >
+            Darsni qayta ko'rish
+          </button>
+        </motion.div>
+      </div>
+    )
+  }
+
+  /* ── Quiz ── */
+  return (
+    <div className="min-h-screen pb-8 select-none font-sans" style={{ background: '#F1F4F9' }}>
+
+      {/* Header */}
+      <header className="flex items-center justify-between px-4 pt-4 pb-3" style={{ background: '#F1F4F9' }}>
+        <button
+          onClick={() => { triggerHaptic('light'); navigate('/home') }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="#334155" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
+        <div className="text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>Dars Masalalari</p>
+          <p className="text-sm font-bold" style={{ color: '#0F172A' }}>Savol {qIdx + 1} / {QUESTIONS.length}</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Live Timer */}
-          <div className="flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-full font-mono font-bold text-xs text-slate-700 shadow-2xs">
-            <span>⏱</span>
-            <span>{formatTimer(secondsLeft)}</span>
-          </div>
-
-          {/* Bookmark */}
-          <button
-            onClick={() => { triggerHaptic('light'); setIsBookmarked(!isBookmarked) }}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill={isBookmarked ? "#006C49" : "none"} stroke={isBookmarked ? "#006C49" : "currentColor"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-          </button>
+        {/* Timer */}
+        <div
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono font-bold text-xs"
+          style={{
+            background: secondsLeft < 30 ? '#FEF2F2' : '#EEF2FF',
+            color:      secondsLeft < 30 ? '#DC2626'  : '#4338CA',
+            border:    `1px solid ${secondsLeft < 30 ? '#FECACA' : '#C7D2FE'}`,
+          }}
+        >
+          ⏱ {fmt(secondsLeft)}
         </div>
       </header>
 
-      {/* 2. Top Progress & Bounty Pill */}
-      <div className="px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-[10px] font-extrabold flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span>DTM / IMO QIYIN</span>
-          </span>
-          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold">
-            💡 Maslahat (1/2)
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-50 to-emerald-50 border border-emerald-200 rounded-full text-xs font-black text-[#006C49] shadow-2xs">
-          <span>🪙 +50</span>
-          <span>•</span>
-          <span>⚡ +80 XP</span>
+      {/* Progress bar */}
+      <div className="px-4 mb-5">
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#E2E8F0' }}>
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: 'linear-gradient(90deg, #4338CA, #6366F1)' }}
+            initial={{ width: `${(qIdx / QUESTIONS.length) * 100}%` }}
+            animate={{ width: `${((qIdx + (submitted ? 1 : 0)) / QUESTIONS.length) * 100}%` }}
+            transition={{ duration: 0.4 }}
+          />
         </div>
       </div>
 
-      {/* 3. Main Question Card */}
-      <section className="px-4 py-2">
-        <div className="bg-white rounded-[32px] p-5 border border-slate-200/80 shadow-[0_8px_24px_rgba(0,0,0,0.03)] relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
-              KANONIK KO'RINISH
-            </span>
-            <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
-              <span>✓</span> HDP Ekspert Tanlovi
-            </span>
-          </div>
-
-          {/* Formula Presentation Box */}
-          <div className="bg-gradient-to-br from-emerald-50/70 via-teal-50/50 to-slate-50 border border-emerald-100 rounded-2xl p-4 text-center mb-3.5 shadow-inner">
-            <div className="font-serif text-xl sm:text-2xl font-black text-[#003B26] tracking-wide">
-              f(x) = x² − 2ax + a + 6 = 0
-            </div>
-          </div>
-
-          {/* Statement */}
-          <p className="text-xs text-slate-700 leading-relaxed font-sans mb-4">
-            Ushbu kvadrat tenglama <span className="font-bold text-emerald-800">ikkita har xil musbat haqiqiy ildizga</span> ega bo'lsa, <span className="font-bold text-[#131B2E]">a</span> parametrning barcha butun qiymatlari yig'indisini toping.
+      {/* Question card */}
+      <section className="px-4 mb-5">
+        <div
+          className="rounded-2xl p-5"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: '#4338CA' }}>
+            Savol {qIdx + 1}
           </p>
-
-          {/* Theoretical Condition Chips */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-2.5 text-center">
-              <div className="font-mono text-xs font-bold text-[#131B2E] mb-0.5">D &gt; 0</div>
-              <div className="text-[10px] text-slate-500">2 xil ildiz</div>
-            </div>
-            <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-2.5 text-center">
-              <div className="font-mono text-xs font-bold text-[#131B2E] mb-0.5">x₁ + x₂ &gt; 0</div>
-              <div className="text-[10px] text-slate-500">Ildizlar yig'indisi</div>
-            </div>
-            <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-2.5 text-center">
-              <div className="font-mono text-xs font-bold text-[#131B2E] mb-0.5">x₁ · x₂ &gt; 0</div>
-              <div className="text-[10px] text-slate-500">Ko'paytmasi</div>
-            </div>
-          </div>
+          <p className="text-base font-semibold leading-snug" style={{ color: '#0F172A' }}>{q.q}</p>
         </div>
       </section>
 
-      {/* 4. Options Grid (Duolingo 3D Tactile Buttons) */}
-      <section className="px-4 py-3">
-        <div className="flex items-center justify-between mb-2.5 px-0.5">
-          <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider">
-            JAVOBNI TANLANG
-          </span>
-          <span className="text-[11px] font-bold text-slate-400">
-            1 ta urinish
-          </span>
-        </div>
+      {/* Options */}
+      <section className="px-4 mb-5 space-y-2.5">
+        {q.opts.map((opt, i) => {
+          let bg = '#FFFFFF', border = '#E2E8F0', color = '#334155'
+          if (submitted) {
+            if (i === q.correct) { bg = '#ECFDF5'; border = '#6EE7B7'; color = '#059669' }
+            else if (i === selected) { bg = '#FEF2F2'; border = '#FECACA'; color = '#DC2626' }
+          } else if (selected === i) {
+            bg = '#EEF2FF'; border = '#4338CA'; color = '#4338CA'
+          }
 
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'A', val: 14 },
-            { label: 'B', val: 18, isAnswer: true },
-            { label: 'C', val: 21 },
-            { label: 'D', val: 12 },
-          ].map((opt) => {
-            const isSelected = selectedOption === opt.val
-            const showSuccess = isSubmitted && opt.isAnswer
-            const showError = isSubmitted && isSelected && !opt.isAnswer
-
-            let btnTheme = 'bg-white border-slate-200 text-[#131B2E] border-b-4 hover:border-slate-300'
-            let badgeTheme = 'bg-slate-100 text-slate-700'
-
-            if (showSuccess) {
-              btnTheme = 'bg-[#006C49] border-[#00472F] text-white border-b-4 shadow-md'
-              badgeTheme = 'bg-white/20 text-white'
-            } else if (showError) {
-              btnTheme = 'bg-rose-50 border-rose-400 text-rose-800 border-b-4'
-              badgeTheme = 'bg-rose-200 text-rose-900'
-            } else if (isSelected) {
-              btnTheme = 'bg-emerald-50 border-emerald-600 text-[#006C49] border-b-4 shadow-sm'
-              badgeTheme = 'bg-[#006C49] text-white'
-            }
-
-            return (
-              <motion.button
-                key={opt.val}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => handleSelect(opt.val)}
-                className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all select-none ${btnTheme}`}
-              >
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${badgeTheme}`}>
-                  {opt.label}
-                </div>
-                <div className="font-mono text-xl font-black mr-2">
-                  {opt.val}
-                </div>
-                {showSuccess && <span className="text-white font-bold text-base">✓</span>}
-              </motion.button>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* 5. Pre-submit Bottom Bar */}
-      {!isSubmitted && (
-        <div className="fixed bottom-0 left-0 right-0 max-w-[440px] mx-auto p-4 bg-white/95 backdrop-blur-md border-t border-slate-200/80 z-30 flex items-center justify-between">
-          <button
-            onClick={() => triggerHaptic('light')}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 px-4 py-2.5 rounded-full hover:bg-slate-100"
-          >
-            <span>✏️</span>
-            <span>Qoralama</span>
-          </button>
-
-          <button
-            onClick={handleCheck}
-            disabled={selectedOption === null}
-            className={`px-8 py-3.5 rounded-full text-xs font-black flex items-center gap-2 shadow-md transition-all ${
-              selectedOption !== null
-                ? 'bg-[#006C49] hover:bg-[#00573a] active:bg-[#00472f] text-white shadow-emerald-900/20'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-            }`}
-          >
-            <span>Tekshirish</span>
-            <span>→</span>
-          </button>
-        </div>
-      )}
-
-      {/* 6. Post-submit Duolingo Bottom Sheet Result */}
-      <AnimatePresence>
-        {isSubmitted && (
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-            className={`fixed bottom-0 left-0 right-0 max-w-[440px] mx-auto rounded-t-[36px] p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.15)] z-40 border-t ${
-              isCorrect
-                ? 'bg-gradient-to-b from-emerald-50 to-white border-emerald-200'
-                : 'bg-gradient-to-b from-rose-50 to-white border-rose-200'
-            }`}
-          >
-            {/* Top result title */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm ${
-                  isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
-                }`}>
-                  {isCorrect ? '✓' : '✕'}
-                </div>
-                <div>
-                  <h3 className={`text-base font-black ${isCorrect ? 'text-emerald-900' : 'text-rose-900'}`}>
-                    {isCorrect ? 'Barakalla! To\'g\'ri javob!' : 'Afsuski, xato javob!'}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {isCorrect ? '+50 Coin va +80 XP hisobingizga o\'tdi' : 'To\'g\'ri javob: 18'}
-                  </p>
-                </div>
-              </div>
-
-              {isCorrect && (
-                <div className="text-right">
-                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-black text-xs block">
-                    🪙 +50
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-700 block mt-0.5">
-                    ⚡ +80 XP
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Explanation Toggle */}
-            <button
-              onClick={() => setShowExplanation(!showExplanation)}
-              className="w-full text-left py-2 px-3 bg-white/80 rounded-xl border border-slate-200/80 mb-3 text-xs font-bold text-[#006C49] flex items-center justify-between"
+          return (
+            <motion.button
+              key={i}
+              onClick={() => handleSelect(i)}
+              whileTap={!submitted ? { scale: 0.98 } : {}}
+              className="w-full p-4 rounded-xl text-sm font-semibold text-left flex items-center gap-3 transition-all"
+              style={{ background: bg, border: `1.5px solid ${border}`, color }}
             >
-              <span className="flex items-center gap-1.5">
-                <span>💬</span>
-                <span>Bosqichma-bosqich yechimni ko'rish</span>
+              <span
+                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black"
+                style={{
+                  background: selected === i && !submitted ? '#4338CA' : submitted && i === q.correct ? '#059669' : submitted && i === selected ? '#DC2626' : '#F1F4F9',
+                  color:      selected === i || (submitted && (i === q.correct || i === selected)) ? '#FFFFFF' : '#94A3B8',
+                }}
+              >
+                {['A','B','C','D'][i]}
               </span>
-              <span>{showExplanation ? '▲' : '▼'}</span>
-            </button>
+              {opt}
+            </motion.button>
+          )
+        })}
+      </section>
 
-            {/* Expanded Math Solution */}
-            {showExplanation && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="bg-white rounded-2xl p-3 border border-slate-200/80 text-xs text-slate-700 space-y-2 mb-3 max-h-56 overflow-y-auto"
-              >
-                <div>
-                  <span className="font-bold text-emerald-800">1. Diskriminant:</span>
-                  <div className="font-mono text-[11px] bg-slate-50 p-2 rounded-lg mt-0.5">
-                    D = (-2a)² - 4·1·(a+6) = 4(a² - a - 6) &gt; 0<br/>
-                    ⇒ a ∈ (-∞, -2) ∪ (3, +∞)
-                  </div>
-                </div>
-
-                <div>
-                  <span className="font-bold text-emerald-800">2. Viyet alomatlari:</span>
-                  <div className="font-mono text-[11px] bg-slate-50 p-2 rounded-lg mt-0.5">
-                    x₁ + x₂ = 2a &gt; 0 ⇒ a &gt; 0<br/>
-                    x₁ · x₂ = a + 6 &gt; 0 ⇒ a &gt; -6
-                  </div>
-                </div>
-
-                <div>
-                  <span className="font-bold text-emerald-800">3. Xulosa & Yig'indi:</span>
-                  <div className="font-mono text-[11px] bg-slate-50 p-2 rounded-lg mt-0.5">
-                    a ∈ (3, +∞). Oraliqdagi qiymatlar yig'indisi: 18.
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Actions: Next and Video Solution */}
-            <div className="space-y-2">
-              <button
-                onClick={handleNext}
-                className="w-full bg-[#006C49] hover:bg-[#00573a] text-white py-3.5 rounded-full font-black text-xs shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-1.5"
-              >
-                <span>Davom etish</span>
-                <span className="text-sm">→</span>
-              </button>
-
-              <button
-                onClick={handleWatchVideo}
-                className="w-full bg-white hover:bg-slate-50 text-slate-700 py-2.5 rounded-full font-bold text-xs border border-slate-200 flex items-center justify-center gap-2"
-              >
-                <span className="text-emerald-700">▶</span>
-                <span>Yechim videosi (1:45) • Ustoz Azamat</span>
-              </button>
+      {/* Hint after submission */}
+      <AnimatePresence>
+        {submitted && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="px-4 mb-5"
+          >
+            <div
+              className="p-4 rounded-xl text-sm leading-relaxed"
+              style={{
+                background: isCorrect ? '#ECFDF5' : '#FFF7ED',
+                border:     `1px solid ${isCorrect ? '#A7F3D0' : '#FED7AA'}`,
+                color:      isCorrect ? '#065F46' : '#92400E',
+              }}
+            >
+              <p className="font-bold mb-1">{isCorrect ? '✓ To\'g\'ri!' : '✗ Noto\'g\'ri'}</p>
+              <p>{q.hint}</p>
             </div>
-          </motion.div>
+          </motion.section>
         )}
       </AnimatePresence>
+
+      {/* Action button */}
+      <section className="px-4">
+        {!submitted ? (
+          <button
+            onClick={handleCheck}
+            disabled={selected === null}
+            className="w-full py-4 rounded-xl font-bold text-white text-sm transition-all"
+            style={{
+              background: selected === null
+                ? '#E2E8F0'
+                : 'linear-gradient(135deg, #4338CA, #6366F1)',
+              color:      selected === null ? '#94A3B8' : '#FFFFFF',
+              boxShadow:  selected === null ? 'none' : '0 4px 16px rgba(67,56,202,0.28)',
+            }}
+          >
+            Tekshirish
+          </button>
+        ) : (
+          <button
+            onClick={handleNext}
+            className="w-full py-4 rounded-xl font-bold text-white text-sm"
+            style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)', boxShadow: '0 4px 16px rgba(67,56,202,0.28)' }}
+          >
+            {qIdx < QUESTIONS.length - 1 ? 'Keyingi savol →' : 'Natijani ko\'rish 🏆'}
+          </button>
+        )}
+      </section>
     </div>
   )
 }

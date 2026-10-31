@@ -3,274 +3,264 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 
+const QUESTIONS = [
+  { q: '2x² − 8 = 0  →  x = ?',         opts: ['±2', '±4', '2', '4'],       correct: 0 },
+  { q: 'log₂(32) = ?',                    opts: ['4', '5', '6', '8'],         correct: 1 },
+  { q: 'sin(90°) = ?',                    opts: ['0', '√2/2', '1', '−1'],     correct: 2 },
+  { q: '√196 = ?',                        opts: ['12', '13', '14', '16'],     correct: 2 },
+  { q: 'f(x) = x³  →  f′(x) = ?',        opts: ['3x²', '2x', '3x', 'x²'],   correct: 0 },
+]
+
 const BlitzScreen = () => {
   const navigate = useNavigate()
-  const [isStarted, setIsStarted] = useState(false)
+  const [phase, setPhase]       = useState<'lobby' | 'game' | 'result'>('lobby')
+  const [qIdx, setQIdx]         = useState(0)
   const [timeLeft, setTimeLeft] = useState(30)
-  const [score, setScore] = useState(0)
-  const [opponentScore, setOpponentScore] = useState(0)
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [isFinished, setIsFinished] = useState(false)
-
-  const questions = [
-    { question: '2x² − 8 = 0 tenglamaning musbat ildizini toping:', options: ['2', '4', '8', '16'], correct: 0 },
-    { question: 'log₂32 = ?', options: ['4', '5', '6', '8'], correct: 1 },
-    { question: 'sin(30°) = ?', options: ['√3/2', '1/2', '1', '0'], correct: 1 },
-    { question: '√196 = ?', options: ['12', '13', '14', '16'], correct: 2 },
-    { question: 'f(x) = x³ hosilasini toping:', options: ['3x²', '2x', '3x', 'x²'], correct: 0 },
-  ]
+  const [myScore, setMyScore]   = useState(0)
+  const [oppScore, setOppScore] = useState(0)
+  const [answered, setAnswered] = useState(false)
 
   useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (isStarted && !isFinished && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            setIsFinished(true)
-            triggerHaptic('warning')
-            return 0
-          }
-          return prev - 1
-        })
+    if (phase !== 'game') return
+    const t = setInterval(() => {
+      setTimeLeft(p => {
+        if (p <= 1) { clearInterval(t); setPhase('result'); return 0 }
+        return p - 1
+      })
+      if (Math.random() > 0.65) setOppScore(s => s + 10)
+    }, 1000)
+    return () => clearInterval(t)
+  }, [phase])
 
-        // Opponent live simulation
-        if (Math.random() > 0.65) {
-          setOpponentScore((s) => s + 10)
-        }
-      }, 1000)
-    }
-    return () => clearInterval(timer)
-  }, [isStarted, isFinished, timeLeft])
-
-  const handleStart = () => {
-    triggerHaptic('medium')
-    setIsStarted(true)
+  const handleAnswer = (i: number) => {
+    if (answered) return
+    setAnswered(true)
+    const ok = i === QUESTIONS[qIdx].correct
+    ok ? triggerHaptic('success') : triggerHaptic('error')
+    if (ok) setMyScore(s => s + 10)
+    setTimeout(() => {
+      if (qIdx < QUESTIONS.length - 1) { setQIdx(q => q + 1); setAnswered(false) }
+      else setPhase('result')
+    }, 700)
   }
 
-  const handleAnswer = (index: number) => {
-    const isCorrect = index === questions[currentQuestion].correct
-    if (isCorrect) {
-      triggerHaptic('success')
-      setScore((s) => s + 10)
-    } else {
-      triggerHaptic('error')
-    }
+  /* ── Lobby ── */
+  if (phase === 'lobby') return (
+    <div className="min-h-screen flex flex-col pb-10 select-none font-sans" style={{ background: '#F1F4F9' }}>
+      <header className="flex items-center justify-between px-4 pt-4 pb-3">
+        <button
+          onClick={() => { triggerHaptic('light'); navigate('/home') }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="#334155" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <p className="text-sm font-bold" style={{ color: '#0F172A' }}>Blitz Duel</p>
+        <div style={{ width: 36 }} />
+      </header>
 
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((q) => q + 1)
-    } else {
-      setIsFinished(true)
-      triggerHaptic('success')
-    }
-  }
-
-  // Pre-game Lobby
-  if (!isStarted) {
-    return (
-      <div className="min-h-screen bg-[#F8F9FE] pb-8 text-[#111827] select-none font-sans flex flex-col justify-between p-4">
-        <div>
-          {/* Header */}
-          <div className="flex items-center justify-between py-2">
-            <button
-              onClick={() => { triggerHaptic('light'); navigate('/home') }}
-              className="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs hover:bg-slate-50"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-            </button>
-
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-bold text-amber-800">
-              <span>🔥</span>
-              <span>12 kunlik streak</span>
-            </div>
-          </div>
-
-          {/* Hero Icon */}
-          <div className="text-center my-6">
-            <div className="w-16 h-16 rounded-[24px] bg-gradient-to-tr from-[#006C49] to-emerald-400 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-700/20 text-3xl">
-              ⚔️
-            </div>
-
-            <h1 className="text-2xl font-black text-[#131B2E]">BLITZ DUEL · 1v1</h1>
-            <p className="text-xs text-slate-500 mt-1 max-w-[280px] mx-auto">
-              30 soniya ichida raqibingizdan ko'proq savolga to'g'ri javob bering!
-            </p>
-          </div>
-
-          {/* Opponent Card Preview */}
-          <div className="bg-white rounded-[28px] p-4 border border-slate-200/80 shadow-sm mb-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-              TOPILGAN RAQIB
-            </span>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-bold text-indigo-700">
-                  JM
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#131B2E]">Jasur_math</h4>
-                  <p className="text-[11px] text-slate-500">1,240 XP • Toshkent</p>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[10px] font-bold rounded-full">
-                Online ●
-              </span>
-            </div>
-          </div>
-
-          {/* Rules / Bounty */}
-          <div className="grid grid-cols-3 gap-2.5 mb-4">
-            <div className="bg-white rounded-2xl p-3 text-center border border-slate-200/80 shadow-2xs">
-              <div className="text-sm font-black text-[#131B2E]">30s</div>
-              <div className="text-[10px] text-slate-400">Vaqt</div>
-            </div>
-            <div className="bg-white rounded-2xl p-3 text-center border border-slate-200/80 shadow-2xs">
-              <div className="text-sm font-black text-[#006C49] font-mono">+30 🪙</div>
-              <div className="text-[10px] text-slate-400">Yutuq Coin</div>
-            </div>
-            <div className="bg-white rounded-2xl p-3 text-center border border-slate-200/80 shadow-2xs">
-              <div className="text-sm font-black text-blue-600 font-mono">+50 XP</div>
-              <div className="text-[10px] text-slate-400">Tajriba</div>
-            </div>
-          </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+        <div
+          className="w-24 h-24 rounded-[28px] flex items-center justify-center text-5xl mb-6"
+          style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)', boxShadow: '0 12px 40px rgba(67,56,202,0.3)' }}
+        >
+          ⚔️
         </div>
 
-        {/* Start Button */}
-        <div>
-          <button
-            onClick={handleStart}
-            className="w-full bg-[#006C49] hover:bg-[#00573a] text-white py-4 rounded-full font-black text-sm shadow-[0_8px_20px_rgba(0,108,73,0.3)] flex items-center justify-center gap-2"
+        <h1 className="text-3xl font-extrabold mb-2" style={{ color: '#0F172A' }}>1v1 Blitz</h1>
+        <p className="text-sm mb-8 max-w-xs" style={{ color: '#64748B' }}>
+          30 soniya ichida raqibdan ko'proq savolga to'g'ri javob bering!
+        </p>
+
+        {/* Opponent preview */}
+        <div
+          className="w-full rounded-2xl p-4 mb-8 flex items-center gap-4"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+        >
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #DC2626, #F97316)' }}
           >
-            <span>Duelni Boshlash</span>
-            <span>⚡</span>
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // Result View
-  if (isFinished) {
-    const isWinner = score >= opponentScore
-    return (
-      <div className="min-h-screen bg-[#F8F9FE] flex flex-col justify-between p-5 text-center select-none font-sans">
-        <div className="my-auto">
-          <div className="w-20 h-20 rounded-[28px] bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-4 text-4xl shadow-md">
-            {isWinner ? '🏆' : '🤝'}
+            R
           </div>
-
-          <h2 className="text-2xl font-black text-[#131B2E] mb-1">
-            {isWinner ? 'G\'alaba!' : 'Yaxshi bellashuv!'}
-          </h2>
-          <p className="text-xs text-slate-500 mb-6">
-            {isWinner ? 'Siz Jasur_math ustidan g\'alaba qozondingiz!' : 'Keyingi safar albatta yutasiz!'}
-          </p>
-
-          <div className="bg-white rounded-[32px] p-5 border border-slate-200/80 shadow-sm flex items-center justify-around mb-6">
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Siz</span>
-              <div className="text-3xl font-black text-[#006C49] font-mono">{score}</div>
-            </div>
-            <div className="text-xl font-black text-slate-300">:</div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Jasur_math</span>
-              <div className="text-3xl font-black text-slate-600 font-mono">{opponentScore}</div>
-            </div>
+          <div className="text-left">
+            <p className="text-sm font-bold" style={{ color: '#0F172A' }}>Raqib Topildi</p>
+            <p className="text-xs" style={{ color: '#94A3B8' }}>Matematika Daraja 3 · 🔥 8 streak</p>
           </div>
-
-          {isWinner && (
-            <div className="inline-flex items-center gap-3 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full font-black text-xs text-emerald-800">
-              <span>🪙 +30 Coin</span>
-              <span>•</span>
-              <span>⚡ +50 XP</span>
-            </div>
-          )}
+          <div
+            className="ml-auto px-2.5 py-1 rounded-lg text-xs font-bold"
+            style={{ background: '#ECFDF5', color: '#059669' }}
+          >
+            Tayyor
+          </div>
         </div>
 
         <button
-          onClick={() => { triggerHaptic('medium'); navigate('/home') }}
-          className="w-full bg-[#006C49] text-white py-4 rounded-full font-bold text-xs shadow-md"
+          onClick={() => { triggerHaptic('medium'); setPhase('game') }}
+          className="w-full py-4 rounded-xl font-extrabold text-white text-base mb-2.5"
+          style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)', boxShadow: '0 4px 20px rgba(67,56,202,0.3)' }}
         >
-          Bosh sahifaga qaytish →
+          ⚔️ Boshlash
         </button>
+        <button
+          onClick={() => { triggerHaptic('light'); navigate('/formulas') }}
+          className="w-full py-3 text-sm font-medium rounded-xl"
+          style={{ background: '#FFFFFF', color: '#64748B', border: '1px solid #E2E8F0' }}
+        >
+          📐 Formulalarni takrorlash
+        </button>
+      </div>
+    </div>
+  )
+
+  /* ── Result ── */
+  if (phase === 'result') {
+    const win = myScore > oppScore
+    const draw = myScore === oppScore
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 pb-10 select-none font-sans" style={{ background: '#F1F4F9' }}>
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', damping: 22 }}
+          className="w-full rounded-2xl p-6 text-center"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 8px 32px rgba(0,0,0,0.06)' }}
+        >
+          <div className="text-5xl mb-4">{win ? '🏆' : draw ? '🤝' : '😔'}</div>
+          <h2 className="text-2xl font-extrabold mb-1" style={{ color: '#0F172A' }}>
+            {win ? 'G\'alaba!' : draw ? 'Durrang!' : 'Yutqazdingiz'}
+          </h2>
+          <p className="text-sm mb-6" style={{ color: '#64748B' }}>
+            {win ? 'Ajoyib o\'yin! Raqibni yengillatdingiz.' : draw ? 'Tengma-teng o\'yin!' : 'Keyingi safar harakat qiling!'}
+          </p>
+
+          <div className="flex gap-4 mb-6">
+            <div className="flex-1 rounded-xl p-3 text-center" style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}>
+              <p className="text-2xl font-extrabold" style={{ color: '#4338CA' }}>{myScore}</p>
+              <p className="text-xs font-medium" style={{ color: '#6366F1' }}>Siz</p>
+            </div>
+            <div className="flex-1 rounded-xl p-3 text-center" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+              <p className="text-2xl font-extrabold" style={{ color: '#DC2626' }}>{oppScore}</p>
+              <p className="text-xs font-medium" style={{ color: '#EF4444' }}>Raqib</p>
+            </div>
+          </div>
+
+          {win && (
+            <div className="p-3 rounded-xl mb-5 text-sm font-bold" style={{ background: '#FFFBEB', color: '#D97706' }}>
+              🪙 +{myScore / 10 * 5} coin qo'shildi!
+            </div>
+          )}
+
+          <button
+            onClick={() => { triggerHaptic('medium'); setPhase('lobby'); setMyScore(0); setOppScore(0); setQIdx(0); setTimeLeft(30); setAnswered(false) }}
+            className="w-full py-3.5 rounded-xl font-bold text-white text-sm mb-2.5"
+            style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)' }}
+          >
+            ⚔️ Qayta o'ynash
+          </button>
+          <button
+            onClick={() => { triggerHaptic('light'); navigate('/home') }}
+            className="w-full py-3 text-sm font-medium rounded-xl"
+            style={{ background: '#F1F4F9', color: '#64748B' }}
+          >
+            Asosiyga qaytish
+          </button>
+        </motion.div>
       </div>
     )
   }
 
-  // Active Game Play
+  /* ── Game ── */
+  const q = QUESTIONS[qIdx]
+  const timeColor = timeLeft <= 10 ? '#DC2626' : '#4338CA'
+
   return (
-    <div className="min-h-screen bg-[#F8F9FE] pb-8 text-[#111827] select-none font-sans flex flex-col justify-between p-4">
-      <div>
-        {/* Battle status */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#006C49] text-white font-black text-xs flex items-center justify-center">
-              Siz
-            </div>
-            <span className="font-mono font-black text-base text-[#006C49]">{score}</span>
+    <div className="min-h-screen pb-8 select-none font-sans" style={{ background: '#F1F4F9' }}>
+
+      {/* Score + Timer header */}
+      <div className="px-4 pt-4 pb-3">
+        <div className="flex items-center justify-between mb-3">
+          {/* My score */}
+          <div className="text-center">
+            <p className="text-xs font-medium" style={{ color: '#94A3B8' }}>Siz</p>
+            <p className="text-2xl font-extrabold" style={{ color: '#4338CA' }}>{myScore}</p>
           </div>
 
-          <div className={`px-4 py-1.5 rounded-full font-mono font-black text-sm flex items-center gap-1 shadow-xs ${
-            timeLeft <= 5 ? 'bg-rose-500 text-white animate-pulse' : 'bg-white border border-slate-200 text-[#131B2E]'
-          }`}>
-            <span>⏱</span>
-            <span>{timeLeft}s</span>
+          {/* Timer circle */}
+          <div
+            className="flex flex-col items-center justify-center w-16 h-16 rounded-full font-extrabold text-2xl"
+            style={{
+              background: `linear-gradient(135deg, ${timeColor}22, ${timeColor}11)`,
+              border:     `3px solid ${timeColor}`,
+              color:       timeColor,
+            }}
+          >
+            {timeLeft}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-black text-base text-slate-600">{opponentScore}</span>
-            <div className="w-8 h-8 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">
-              JM
-            </div>
+          {/* Opp score */}
+          <div className="text-center">
+            <p className="text-xs font-medium" style={{ color: '#94A3B8' }}>Raqib</p>
+            <p className="text-2xl font-extrabold" style={{ color: '#DC2626' }}>{oppScore}</p>
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="w-full bg-slate-200 rounded-full h-1.5 mb-6 overflow-hidden">
+        {/* Progress */}
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#E2E8F0' }}>
           <div
-            className="h-full bg-[#006C49] transition-all"
-            style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+            className="h-full rounded-full transition-all"
+            style={{ width: `${(timeLeft / 30) * 100}%`, background: `linear-gradient(90deg, ${timeColor}, ${timeColor}aa)` }}
           />
         </div>
+      </div>
 
-        {/* Question */}
+      {/* Question */}
+      <section className="px-4 mb-5">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentQuestion}
+            key={qIdx}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-white rounded-[32px] p-6 border border-slate-200/80 shadow-sm text-center mb-6"
+            className="rounded-2xl p-5"
+            style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
           >
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
-              BLITZ SAVOL #{currentQuestion + 1}
-            </span>
-            <h2 className="text-lg font-bold text-[#131B2E] font-serif leading-snug">
-              {questions[currentQuestion].question}
-            </h2>
+            <p className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: '#4338CA' }}>
+              Savol {qIdx + 1} / {QUESTIONS.length}
+            </p>
+            <p className="text-base font-semibold leading-snug" style={{ color: '#0F172A' }}>{q.q}</p>
           </motion.div>
         </AnimatePresence>
+      </section>
 
-        {/* Answer buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          {questions[currentQuestion].options.map((opt, i) => (
-            <motion.button
-              key={opt}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleAnswer(i)}
-              className="p-4 bg-white hover:bg-emerald-50 active:bg-emerald-100 border-2 border-slate-200/80 rounded-2xl font-mono text-base font-black text-[#131B2E] shadow-2xs border-b-4 transition-all"
+      {/* Options */}
+      <section className="px-4 grid grid-cols-2 gap-2.5">
+        {q.opts.map((opt, i) => (
+          <motion.button
+            key={i}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => handleAnswer(i)}
+            disabled={answered}
+            className="p-4 rounded-xl font-bold text-sm transition-all"
+            style={{
+              background: '#FFFFFF',
+              border:     '1.5px solid #E2E8F0',
+              color:      '#0F172A',
+            }}
+          >
+            <span
+              className="block text-[10px] font-extrabold mb-1"
+              style={{ color: '#94A3B8' }}
             >
-              {opt}
-            </motion.button>
-          ))}
-        </div>
-      </div>
-
-      <div className="text-center text-[10px] text-slate-400">
-        To'g'ri javoblar hisoblanmoqda...
-      </div>
+              {['A','B','C','D'][i]}
+            </span>
+            {opt}
+          </motion.button>
+        ))}
+      </section>
     </div>
   )
 }

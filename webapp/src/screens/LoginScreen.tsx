@@ -14,12 +14,12 @@ const LoginScreen = () => {
 
   const handleStart = () => {
     triggerHaptic('medium')
-    navigate('/home')
+    navigate('/home', { state: { from: '/login' } })
   }
 
   const handleSkip = () => {
     triggerHaptic('light')
-    navigate('/home')
+    navigate('/home', { state: { from: '/login' } })
   }
 
   return (

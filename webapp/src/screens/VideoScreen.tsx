@@ -1,194 +1,273 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 
 const VideoScreen = () => {
   const navigate = useNavigate()
   const [isPlaying, setIsPlaying] = useState(false)
-  const [activeTab, setActiveTab] = useState<'timestamps' | 'notes' | 'qa'>('timestamps')
-  const [currentTime, setCurrentTime] = useState('06:42')
-  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [tab, setTab] = useState<'chapters' | 'notes'>('chapters')
+  const [isDone, setIsDone] = useState(false)
 
-  const handleTogglePlay = () => {
-    triggerHaptic('light')
-    setIsPlaying(!isPlaying)
-  }
+  const chapters = [
+    { time: '00:00', title: 'Kirish va mavzu taqdimoti' },
+    { time: '03:14', title: 'Asosiy formula va uning isboti' },
+    { time: '09:40', title: 'Misol 1 — oddiy holat yechimi' },
+    { time: '16:22', title: 'Misol 2 — murakkab holat' },
+    { time: '22:05', title: 'DTM misollar tahlili' },
+    { time: '28:30', title: 'Xulosa va takrorlash' },
+  ]
 
-  const handleJumpTime = (time: string) => {
-    triggerHaptic('selection')
-    setCurrentTime(time)
-    setIsPlaying(true)
+  const handleDone = () => {
+    triggerHaptic('success')
+    setIsDone(true)
+    setTimeout(() => navigate('/courses'), 1200)
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FE] pb-28 text-[#111827] select-none font-sans overflow-x-hidden">
-      {/* 1. Top Header */}
-      <header className="px-4 pt-4 pb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { triggerHaptic('light'); navigate(-1) }}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs hover:bg-slate-50"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">#142-DARS</span>
-            <h1 className="text-sm font-black text-[#131B2E]">Parametrli Tenglamalar</h1>
-          </div>
+    <div className="min-h-screen pb-6 select-none font-sans" style={{ background: '#F1F4F9' }}>
+
+      {/* Header */}
+      <header
+        className="flex items-center justify-between px-4 pt-4 pb-3"
+        style={{ background: '#F1F4F9' }}
+      >
+        <button
+          onClick={() => { triggerHaptic('light'); navigate(-1) }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="#334155" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
+        <div className="text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>
+            Dars #4 · Trigonometriya
+          </p>
+          <p className="text-sm font-bold" style={{ color: '#0F172A' }}>
+            Trigonometrik funksiyalar
+          </p>
         </div>
 
         <button
-          onClick={() => { triggerHaptic('light'); setIsBookmarked(!isBookmarked) }}
-          className="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs"
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+          onClick={() => triggerHaptic('light')}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={isBookmarked ? "#006C49" : "none"} stroke={isBookmarked ? "#006C49" : "currentColor"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="#334155" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
         </button>
       </header>
 
-      {/* 2. Mock Video Player 16:9 Aspect */}
-      <section className="px-4 py-2">
-        <div className="relative rounded-[32px] bg-[#07131B] text-white aspect-[16/10] overflow-hidden shadow-2xl flex flex-col justify-between p-4 border border-slate-800">
-          {/* Top badges */}
-          <div className="flex items-center justify-between z-10">
-            <span className="px-2.5 py-1 bg-black/50 backdrop-blur-md rounded-full text-[10px] font-bold text-emerald-300 border border-white/10 flex items-center gap-1">
-              <span>🎓</span> Ustoz Azamat
-            </span>
-            <span className="px-2.5 py-1 bg-rose-500/20 text-rose-300 rounded-full text-[10px] font-bold border border-rose-500/30 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-              <span>348 o'quvchi</span>
+      {/* Video player */}
+      <section className="px-4 mb-4">
+        <div
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            background: 'linear-gradient(160deg, #0F0E2A 0%, #1A1748 100%)',
+            aspectRatio: '16/9',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}
+        >
+          {/* Pattern overlay */}
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 16px, rgba(99,102,241,0.3) 16px, rgba(99,102,241,0.3) 17px)',
+            }}
+          />
+
+          {/* Live badge */}
+          <div className="absolute top-3 left-3 flex items-center gap-1.5">
+            <span
+              className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg"
+              style={{ background: 'rgba(99,102,241,0.25)', color: '#A5B4FC', border: '1px solid rgba(99,102,241,0.3)' }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+              USTOZ AZAMAT
             </span>
           </div>
 
-          {/* Center whiteboard math & controls */}
-          <div className="flex flex-col items-center justify-center my-auto z-10 text-center">
-            <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-mono font-bold mb-2">
-              ● JONLI TAHLIL
+          {/* Viewer count */}
+          <div className="absolute top-3 right-3">
+            <span
+              className="text-[10px] font-bold px-2 py-1 rounded-lg"
+              style={{ background: 'rgba(0,0,0,0.4)', color: '#94A3B8' }}
+            >
+              👁 218 ta
             </span>
-            <div className="font-serif text-lg font-bold text-emerald-100 tracking-wide mb-1">
-              f(x) = x² − 2ax + a + 6 = 0
-            </div>
-            <div className="font-mono text-[10px] text-slate-400 mb-3">
-              x₀ = −b/(2a) • D ≥ 0 • x₁ + x₂ = 2a
+          </div>
+
+          {/* Center formula + play */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div
+              className="font-mono text-base font-bold mb-4 px-4 py-2.5 rounded-xl text-center"
+              style={{
+                color: '#A5B4FC',
+                background: 'rgba(99,102,241,0.15)',
+                border: '1px solid rgba(99,102,241,0.2)',
+              }}
+            >
+              sin²(x) + cos²(x) = 1
             </div>
 
-            <div className="flex items-center gap-6">
-              <button onClick={() => triggerHaptic('light')} className="text-slate-300 hover:text-white text-xs font-mono">
-                ↺ 10s
-              </button>
+            <button
+              onClick={() => { triggerHaptic('light'); setIsPlaying(!isPlaying) }}
+              className="w-14 h-14 rounded-full flex items-center justify-center"
+              style={{
+                background: isPlaying
+                  ? 'rgba(255,255,255,0.15)'
+                  : 'linear-gradient(135deg, #4338CA, #6366F1)',
+                boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+              }}
+            >
+              {isPlaying ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF">
+                  <rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              )}
+            </button>
+          </div>
 
+          {/* Progress bar */}
+          <div className="absolute bottom-0 left-0 right-0">
+            <div style={{ height: '3px', background: 'rgba(255,255,255,0.1)' }}>
+              <div style={{ height: '100%', width: '38%', background: 'linear-gradient(90deg, #4338CA, #6366F1)' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Time row */}
+        <div className="flex items-center justify-between mt-2 px-1">
+          <span className="text-xs font-mono font-medium" style={{ color: '#94A3B8' }}>10:14</span>
+          <span className="text-xs font-mono font-medium" style={{ color: '#94A3B8' }}>25:00</span>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <section className="px-4 mb-4">
+        <div
+          className="flex rounded-xl p-1"
+          style={{ background: '#E2E8F0' }}
+        >
+          {(['chapters', 'notes'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => { triggerHaptic('selection'); setTab(t) }}
+              className="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
+              style={{
+                background: tab === t ? '#FFFFFF' : 'transparent',
+                color:      tab === t ? '#0F172A'  : '#94A3B8',
+                boxShadow:  tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              }}
+            >
+              {t === 'chapters' ? '📑 Boblar' : '📝 Eslatmalar'}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Tab content */}
+      <section className="px-4 mb-6">
+        {tab === 'chapters' ? (
+          <div className="space-y-2">
+            {chapters.map((ch, i) => (
               <button
-                onClick={handleTogglePlay}
-                className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/30 transition-all"
+                key={i}
+                onClick={() => triggerHaptic('selection')}
+                className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
+                style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
               >
-                {isPlaying ? (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="6" y="4" width="4" height="16"/>
-                    <rect x="14" y="4" width="4" height="16"/>
-                  </svg>
-                ) : (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="ml-1">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                )}
+                <span
+                  className="font-mono text-xs font-bold px-2 py-1 rounded-lg shrink-0"
+                  style={{ background: '#EEF2FF', color: '#4338CA' }}
+                >
+                  {ch.time}
+                </span>
+                <span className="text-sm font-medium flex-1" style={{ color: '#334155' }}>
+                  {ch.title}
+                </span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
               </button>
-
-              <button onClick={() => triggerHaptic('light')} className="text-slate-300 hover:text-white text-xs font-mono">
-                10s ↻
-              </button>
-            </div>
+            ))}
           </div>
-
-          {/* Bottom Scrub Bar */}
-          <div className="w-full z-10 pt-2">
-            <div className="w-full bg-white/20 rounded-full h-1 relative overflow-hidden mb-2">
-              <div className="h-full bg-emerald-400 rounded-full w-[47%]" />
-            </div>
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-300">
-              <span>{currentTime} / 14:18</span>
-              <div className="flex items-center gap-2.5">
-                <span className="px-1.5 py-0.2 bg-white/10 rounded text-[10px]">1.25x</span>
-                <span className="px-1.5 py-0.2 bg-white/10 rounded text-[10px]">1080p</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Teacher Info & QA */}
-      <section className="px-4 py-2">
-        <div className="bg-white rounded-[26px] p-3.5 border border-slate-200/80 shadow-2xs flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#006C49] text-white flex items-center justify-center font-bold text-sm shadow-xs">
-              AQ
-            </div>
-            <div>
-              <h4 className="text-xs font-black text-[#131B2E]">Azamat Qodirov</h4>
-              <p className="text-[11px] text-slate-500">HDP Bosh O'qituvchisi • DTM Ekspert</p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => triggerHaptic('light')}
-            className="px-3.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold"
+        ) : (
+          <div
+            className="p-4 rounded-xl text-sm leading-relaxed"
+            style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', color: '#64748B' }}
           >
-            💬 Savol berish
-          </button>
-        </div>
+            <p className="font-semibold mb-2" style={{ color: '#0F172A' }}>Dars eslatmalari:</p>
+            <p>• sin²α + cos²α = 1 — asosiy trigonometrik tenglik</p>
+            <p>• 1 + tg²α = 1/cos²α</p>
+            <p>• 1 + ctg²α = 1/sin²α</p>
+            <p className="mt-2">DTM testida bu formulalardan 2-3 ta savol albatta chiqadi.</p>
+          </div>
+        )}
       </section>
 
-      {/* 4. Independent Quiz Launcher Card */}
-      <section className="px-4 py-2">
-        <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/90 rounded-[28px] p-4 border border-blue-100/90 shadow-sm flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-700 text-white flex items-center justify-center font-black text-lg">
-              ?
-            </div>
-            <div>
-              <h4 className="text-xs font-black text-[#131B2E]">Mustaqil Sinov Testi</h4>
-              <span className="text-[11px] text-slate-500">3 ta test savoli bilan o'zlashtirish</span>
+      {/* Mustaqil sinov (test) kartasi */}
+      <section className="px-4 mb-4">
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-bold" style={{ color: '#0F172A' }}>📋 Mustaqil Sinov</p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: '#FFFBEB', color: '#D97706' }}>+30 🪙</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: '#EEF2FF', color: '#4338CA' }}>+50 ⚡</span>
             </div>
           </div>
-
+          <p className="text-xs mb-3" style={{ color: '#94A3B8' }}>
+            3 ta test savoli bilan bu mavzudagi o'zlashtirishingni tekshir.
+          </p>
           <button
             onClick={() => { triggerHaptic('medium'); navigate('/solve') }}
-            className="px-4 py-2 bg-[#006C49] hover:bg-[#00573a] text-white rounded-full text-xs font-black shadow-sm"
+            className="w-full py-3 rounded-xl font-bold text-sm"
+            style={{ background: '#EEF2FF', color: '#4338CA', border: '1px solid #C7D2FE' }}
           >
-            Testni Boshlash →
+            Testni boshlash →
           </button>
         </div>
       </section>
 
-      {/* 5. Timestamps Tab List */}
-      <section className="px-4 py-2 space-y-2">
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-2 text-xs font-bold text-[#006C49]">
-          <span>≡ Dars Taymkodlari</span>
-        </div>
-
-        {[
-          { time: '00:00', title: 'Masala shartini tahlil qilish va qoidalar', status: 'done' },
-          { time: '04:15', title: 'Parabola uchining xossasi: f(0) > 0', status: 'current' },
-          { time: '09:20', title: 'Diskriminant oraliqlarini kesishtirish', status: 'locked' },
-          { time: '12:40', title: 'IMO usulidagi 30 soniyalik tezkor layfxak', status: 'star' },
-        ].map((item) => (
-          <div
-            key={item.time}
-            onClick={() => handleJumpTime(item.time)}
-            className="bg-white rounded-2xl p-3 border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:border-emerald-300"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg">
-                {item.time}
-              </span>
-              <span className="text-xs font-bold text-[#131B2E]">{item.title}</span>
-            </div>
-            <span className="text-slate-400 text-xs">▶</span>
-          </div>
-        ))}
+      {/* Complete button */}
+      <section className="px-4">
+        <AnimatePresence>
+          {isDone ? (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-full py-4 rounded-xl flex items-center justify-center gap-2 font-bold text-sm"
+              style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }}
+            >
+              ✓ Dars tugallandi! Amaliy qismga o'tilmoqda...
+            </motion.div>
+          ) : (
+            <button
+              onClick={handleDone}
+              className="w-full py-4 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2"
+              style={{
+                background: 'linear-gradient(135deg, #4338CA, #6366F1)',
+                boxShadow: '0 4px 16px rgba(67,56,202,0.3)',
+              }}
+            >
+              ✓ Darsni tugatdim — Amaliy qismga o'tish
+            </button>
+          )}
+        </AnimatePresence>
       </section>
     </div>
   )
