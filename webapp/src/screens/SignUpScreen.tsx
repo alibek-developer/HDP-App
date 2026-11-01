@@ -34,6 +34,7 @@ const socialStyle = { background: '#FFFFFF', border: '1px solid #E4E9DD', boxSha
 const SignUpScreen = () => {
   const navigate = useNavigate()
   const signIn = useApp(s => s.signInWithTelegram)
+  const setOnboarded = useApp(s => s.setOnboarded)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -44,6 +45,7 @@ const SignUpScreen = () => {
 
   const submit = () => {
     triggerHaptic('success')
+    setOnboarded()
     navigate('/home', { replace: true })
   }
 

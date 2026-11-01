@@ -18,6 +18,7 @@ import ShopScreen from './screens/ShopScreen'
 import ProductScreen from './screens/ProductScreen'
 import BlitzScreen from './screens/BlitzScreen'
 import BottomNav from './components/BottomNav'
+import { useApp } from './store/useStore'
 
 /**
  * Oqim xaritasi (majburiy ketma-ketlik):
@@ -45,14 +46,16 @@ const TAB_ROUTES = ['/home', '/problems', '/shop', '/profile']
 
 const AppContent = () => {
   const location = useLocation()
+  const onboarded = useApp(s => s.onboarded)
   const showNav = TAB_ROUTES.includes(location.pathname)
 
   return (
     <>
       <Routes>
-        <Route path="/" element={<SplashScreen />} />
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/signup" element={<SignUpScreen />} />
+        {/* Hisobga kirilgan bo'lsa, splash va login ko'rsatilmaydi */}
+        <Route path="/" element={onboarded ? <Navigate to="/home" replace /> : <SplashScreen />} />
+        <Route path="/login" element={onboarded ? <Navigate to="/home" replace /> : <LoginScreen />} />
+        <Route path="/signup" element={onboarded ? <Navigate to="/home" replace /> : <SignUpScreen />} />
         <Route path="/forgot" element={<ForgotPasswordScreen />} />
         <Route path="/home" element={<HomeScreen />} />
 

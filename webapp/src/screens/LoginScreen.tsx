@@ -35,6 +35,7 @@ const inputCls = 'flex-1 bg-transparent outline-none text-[15px] font-semibold t
 const LoginScreen = () => {
   const navigate = useNavigate()
   const signIn = useApp(s => s.signInWithTelegram)
+  const setOnboarded = useApp(s => s.setOnboarded)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -44,6 +45,7 @@ const LoginScreen = () => {
 
   const enter = () => {
     triggerHaptic('success')
+    setOnboarded()
     navigate('/home', { replace: true })
   }
 

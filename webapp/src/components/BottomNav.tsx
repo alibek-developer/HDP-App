@@ -1,16 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, Home, ShoppingBag, Target, User } from 'lucide-react'
+import { Home, ShoppingBag, Target, User } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
-import { useApp } from '../store/useStore'
 
 /**
  * Tab navigatsiya — suzuvchi to'q pill (#0F1A10, radius 100).
  * Faol tab: oq doira ichida qora ikonka + yonida nom.
- * O'ng uchida: yashil doira ichida oltin ◇ + coin soni.
  */
 const TABS = [
-  { path: '/blitz', label: 'Keyingi', icon: ChevronRight },
   { path: '/home', label: 'Asosiy', icon: Home },
   { path: '/problems', label: 'Masalalar', icon: Target },
   { path: '/shop', label: "Do'kon", icon: ShoppingBag },
@@ -22,7 +19,6 @@ const spring = { type: 'spring', stiffness: 420, damping: 34, mass: 0.7 } as con
 const BottomNav = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const coin = useApp(s => s.coin)
 
   return (
     <div
@@ -98,23 +94,6 @@ const BottomNav = () => {
               </motion.button>
             )
           })}
-
-          {/* coin ko'rsatkichi — yashil doira ichida oltin ◇ */}
-          <button
-            onClick={() => { triggerHaptic('light'); navigate('/shop') }}
-            className="shrink-0 flex items-center gap-1 h-[40px] pl-2 pr-2.5 ml-1 rounded-full"
-            style={{ background: '#00422B', border: '1px solid rgba(0,201,107,0.35)' }}
-            aria-label="Hamyon"
-          >
-            <span className="relative z-10" style={{ color: '#F6B93B' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round">
-                <path d="M6 3h12l4 6-10 12L2 9z" />
-              </svg>
-            </span>
-            <span className="num text-[12px] font-extrabold" style={{ color: '#F6B93B' }}>
-              {coin >= 1000 ? (coin / 1000).toFixed(1) + 'k' : coin}
-            </span>
-          </button>
         </motion.nav>
       </div>
     </div>
