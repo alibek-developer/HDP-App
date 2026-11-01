@@ -6,6 +6,7 @@ import {
   Star, Timer, Truck, X,
 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import ProductArt from '../components/ProductArt'
 import Sheet from '../components/Sheet'
@@ -59,6 +60,7 @@ const Stars = ({ value, size = 12 }: { value: number; size?: number }) => (
 const ProductScreen = () => {
   const { id = '' } = useParams()
   const navigate = useNavigate()
+  const exit = useBack('/shop')
   const product = findProduct(id)
 
   const coin = useApp(s => s.coin)
@@ -160,7 +162,7 @@ const ProductScreen = () => {
       <div className="sticky top-0 z-30" style={{ background: 'rgba(243,247,238,0.92)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${HAIR}` }}>
         <div className="flex items-center gap-3 px-4" style={{ height: 54 }}>
           <button
-            onClick={() => { triggerHaptic('light'); navigate('/shop') }}
+            onClick={exit}
             aria-label="Orqaga"
             className="w-[38px] h-[38px] flex items-center justify-center shrink-0 active:scale-[0.94] transition-transform"
             style={{ background: '#FFFFFF', border: `1px solid ${HAIR}`, borderRadius: 100, color: INK }}
@@ -485,7 +487,7 @@ const ProductScreen = () => {
               </p>
               <div className="mt-5 flex gap-2.5">
                 <button
-                  onClick={() => { triggerHaptic('light'); setDone(false); navigate('/shop') }}
+                  onClick={() => { triggerHaptic('light'); setDone(false); exit() }}
                   className="flex-1 h-[48px] text-[13px] font-extrabold"
                   style={{ background: '#F1F4F0', color: INK, borderRadius: 100 }}
                 >

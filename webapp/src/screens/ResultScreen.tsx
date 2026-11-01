@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Check, X, RotateCcw, Home, BookOpen } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import { BODY, CARD, LIME_BTN, OUT_BTN, TICK } from '../styles/solver'
 
@@ -13,6 +14,13 @@ const ResultScreen = () => {
   const navigate = useNavigate()
   const result = useApp(s => s.lastResult)
   const coin = useApp(s => s.coin)
+  const backTo = useApp(s =>
+    !s.lastResult ? '/home'
+    : s.lastResult.kind === 'problem-set' ? '/problems'
+    : s.lastResult.kind === 'topic-test' ? '/topic/1'
+    : `/lesson/${s.lastResult.refId}`)
+  /** Natijaga kelish yo'li test/to'plam ekrani edi — ular tarixda qolmasin */
+  const exit = useBack(backTo)
 
   if (!result) {
     return (
@@ -43,7 +51,6 @@ const ResultScreen = () => {
   const skipped = result.answers.filter(a => a.skipped)
   const wrong = result.answers.filter(a => !a.ok && !a.skipped)
   const percent = total === 0 ? 0 : Math.round((correct / total) * 100)
-  const backTo = result.kind === 'problem-set' ? '/problems' : `/lesson/${result.refId}`
   const tone = percent >= 80 ? TICK.ok : percent >= 50 ? '#E8A33D' : TICK.bad
 
   return (
@@ -262,7 +269,7 @@ const ResultScreen = () => {
           style={{ background: 'rgba(243,247,238,0.92)', backdropFilter: 'blur(14px)', borderTop: '1px solid #E1E7DA' }}>
           <div className="flex gap-2.5">
             <button
-              onClick={() => { triggerHaptic('light'); navigate('/home') }}
+              onClick={() => { triggerHaptic('light'); navigate('/home', { replace: true }) }}
               className="flex-1 h-[50px] text-[13.5px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
               style={OUT_BTN}
             >
@@ -270,7 +277,7 @@ const ResultScreen = () => {
             </button>
             {result.kind === 'lesson-test' ? (
               <button
-                onClick={() => { triggerHaptic('medium'); navigate(`/lesson/${result.refId}`) }}
+                onClick={() => { triggerHaptic('medium'); exit() }}
                 className="flex-1 h-[50px] text-[13.5px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
                 style={LIME_BTN}
               >
@@ -278,7 +285,7 @@ const ResultScreen = () => {
               </button>
             ) : (
               <button
-                onClick={() => { triggerHaptic('medium'); navigate(backTo) }}
+                onClick={() => { triggerHaptic('medium'); exit() }}
                 className="flex-1 h-[50px] text-[13.5px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
                 style={LIME_BTN}
               >

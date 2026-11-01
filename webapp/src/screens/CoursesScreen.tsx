@@ -2,7 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Check, ChevronRight, Crown, Lock, Play, Coins } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { LESSONS } from '../data/content'
+import { SUBJECTS, topicLessonIds } from '../data/subjects'
 import { useApp, freeLessonCount } from '../store/useStore'
 import type { Stage } from '../store/useStore'
 import { BODY, CARD, TICK } from '../styles/solver'
@@ -22,9 +24,11 @@ const STAGE_LABEL: Record<Stage, string> = {
  */
 const CoursesScreen = () => {
   const navigate = useNavigate()
+  const exit = useBack('/home')
   const isPro = useApp(s => s.isPro)
   const lessonsState = useApp(s => s.lessons)
   const coin = useApp(s => s.coin)
+  const topicLessons = useApp(s => s.topicLessons)
 
   const stageOf = (id: number): Stage => {
     const p = lessonsState[id]
@@ -61,7 +65,7 @@ const CoursesScreen = () => {
       {/* ── Header ── */}
       <header className="flex items-center justify-between px-4 pt-5 pb-3">
         <button
-          onClick={() => { triggerHaptic('light'); navigate(-1) }}
+          onClick={exit}
           aria-label="Orqaga"
           className="w-[38px] h-[38px] flex items-center justify-center active:scale-[0.96] transition-transform"
           style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}
@@ -82,6 +86,51 @@ const CoursesScreen = () => {
           <span className="num text-[9.5px] font-extrabold leading-none mt-0.5" style={{ color: '#B87A22' }}>{coin}</span>
         </button>
       </header>
+
+      {/* ── Fanlar ── */}
+      <section className="px-4 mb-4">
+        <div className="flex items-baseline justify-between px-1 mb-2">
+          <h2 className="text-[15.5px] font-extrabold text-ink">Fanlar</h2>
+          <span className="num text-[11px] font-bold" style={{ color: '#9AA995' }}>{SUBJECTS.length} ta</span>
+        </div>
+        <div className="space-y-2.5">
+          {SUBJECTS.map(sub => {
+            const loaded = sub.topics.filter(t => topicLessonIds(t.num).length > 0)
+            const doneTopics = loaded.filter(t => topicLessonIds(t.num).every(id => topicLessons[id]?.done)).length
+            return (
+              <button
+                key={sub.id}
+                onClick={() => { triggerHaptic('medium'); navigate(`/subject/${sub.id}`) }}
+                className="w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left active:scale-[0.99] transition-transform"
+                style={{ ...CARD, borderRadius: 16, boxShadow: '0 6px 18px rgba(14,26,18,0.06)' }}
+              >
+                <span
+                  className="num w-[36px] h-[36px] flex items-center justify-center shrink-0 text-[14px] font-extrabold"
+                  style={loaded.length > 0
+                    ? { background: '#0E1A12', color: '#9BE04B', borderRadius: 12 }
+                    : { background: '#F1F4EE', color: '#9AA995', borderRadius: 12 }}
+                >
+                  {sub.badge}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] font-extrabold truncate leading-tight text-ink">{sub.name}</p>
+                  <p className="num mt-1 text-[10.5px] font-bold uppercase tracking-[0.04em]" style={{ color: '#9AA995' }}>
+                    {loaded.length > 0
+                      ? `${loaded.length} ta mavzu · ${doneTopics}/${loaded.length} tugadi`
+                      : 'Mavzular hali yuklanmagan'}
+                  </p>
+                </div>
+                <span className="shrink-0 text-right">
+                  <span className="block text-[10px] font-extrabold uppercase" style={{ color: loaded.length > 0 ? '#0B6E4F' : '#9AA995' }}>
+                    {loaded.length > 0 ? 'Nazariya' : 'Tez orada'}
+                  </span>
+                  <ChevronRight size={15} className="inline-block mt-1" style={{ color: '#9AA995' }} />
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
 
       {/* ── Bepul darslar: kvantli progress ── */}
       <section className="px-4 mb-4">

@@ -5,6 +5,9 @@ import {
   CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_BONUS, findProduct,
   type ConsumableKind,
 } from '../data/content'
+import {
+  findTopicLesson, topicLessonIds, TOPIC_1_TEST, TOPIC_1_PASS,
+} from '../data/topic1'
 
 /**
  * Ilovaning yagona holat manbai.
@@ -32,8 +35,8 @@ const emptyProgress = (): LessonProgress => ({
 })
 
 export interface SessionResult {
-  /** 'lesson-test' | 'problem-set' | 'daily' */
-  kind: 'lesson-test' | 'problem-set' | 'daily'
+  /** 'lesson-test' | 'problem-set' | 'daily' | 'topic-test' */
+  kind: 'lesson-test' | 'problem-set' | 'daily' | 'topic-test'
   refId: string
   title: string
   /** foydalanuvchi javoblari, tartib saqlanadi. `skipped` — o'tkazilgan, xato emas */
@@ -65,6 +68,25 @@ export interface ReviewEntry {
   name: string
   rating: number
   text: string
+  at: string
+}
+
+/** Mavzu bo'limini yakunlash mukofoti */
+export const TOPIC_LESSON_REWARD = { coin: 5, xp: 20 }
+
+/** Bitta mavzu bo'limi holati */
+export interface TopicLessonState {
+  /** video dars ochilgan (bosilgan) */
+  videoSeen: boolean
+  /** bo'lim yakunlangan */
+  done: boolean
+}
+
+/** Mavzu yakuniy testi yozuvi */
+export interface TopicTestEntry {
+  score: number
+  total: number
+  /** ISO sana */
   at: string
 }
 
@@ -116,6 +138,10 @@ interface AppState {
   /** zanjir davomida ochib turadigan dars id'si */
   activeLessonId: number | null
   onboarded: boolean
+  /** mavzu bo'limi: '1.1'…'1.10' -> yakunlangan */
+  topicLessons: Record<string, TopicLessonState>
+  /** mavzu yakuniy testi natijasi (eng yaxshi urinish) */
+  topicTest: TopicTestEntry | null
 
   /* ── Do'kon ── */
   /** sotib olingan, hali ishlatilmagan buyumlar: buyum id -> soni */
@@ -157,6 +183,12 @@ interface AppState {
   finishLessonTest: (lessonId: number, result: SessionResult) => void
   finishProblemSet: (setId: string, result: SessionResult) => void
   finishDaily: (result: SessionResult) => void
+  /** Mavzu bo'limida video dars ochildi */
+  markTopicVideoSeen: (id: string) => void
+  /** Mavzu bo'limini yakunlash — bir marta mukofot beradi */
+  completeTopicLesson: (id: string) => void
+  /** Mavzu yakuniy testini yozish (eng yaxshi urinish saqlanadi) */
+  finishTopicTest: (result: SessionResult) => void
   subscribePro: (months: number) => void
   cancelPro: () => void
   spendCoins: (amount: number) => boolean
@@ -201,6 +233,14 @@ interface AppState {
   canEnterTest: (id: number) => boolean
   canOpenSet: (id: string) => boolean
   xpForNext: () => number
+  /** mavzu bo'limi holati */
+  topicLessonState: (id: string) => TopicLessonState
+  /** necha bo'lim yakunlangan */
+  topicLessonsDone: () => number
+  /** yakuniy test ochilganmi — barcha bo'limlar tugasa */
+  canEnterTopicTest: () => boolean
+  /** mavzu to'liq yopilmiganmi (test o'tish chegarasi bilan) */
+  topicFinished: () => boolean
 }
 
 /** Kun kaliti — foydalanuvchining mahalliy vaqti bo'yicha (YYYY-MM-DD) */
@@ -306,6 +346,8 @@ export const useApp = create<AppState>()(
       lastResult: null,
       activeLessonId: null,
       onboarded: false,
+      topicLessons: {},
+      topicTest: null,
 
       inventory: {},
       txLog: [],
@@ -434,6 +476,54 @@ export const useApp = create<AppState>()(
             ...bumpStreak(s, day),
             ...creditMinutes(s, day),
             ...creditAnswers(s, result),
+          }
+        }),
+
+      /** Mavzu bo'limining videolari 95% ko'rildi — videosi bor bo'lim faqat shundagina yakunlanadi */
+      markTopicVideoSeen: (id) =>
+        set((s) => ({
+          topicLessons: {
+            ...s.topicLessons,
+            [id]: { videoSeen: true, done: s.topicLessons[id]?.done ?? false },
+          },
+        })),
+
+      /** Bo'lim yakunlandi: coin/XP bir marta, keyingi urinishda berilmaydi */
+      completeTopicLesson: (id) =>
+        set((s) => {
+          const lesson = findTopicLesson(id)
+          if (!lesson) return {}
+          const prev = s.topicLessons[id] ?? { videoSeen: false, done: false }
+          if (prev.done) return {}
+          const day = todayKey()
+          return {
+            topicLessons: { ...s.topicLessons, [id]: { ...prev, done: true } },
+            coin: s.coin + TOPIC_LESSON_REWARD.coin,
+            xp: s.xp + TOPIC_LESSON_REWARD.xp,
+            level: levelFromXp(s.xp + TOPIC_LESSON_REWARD.xp),
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+          }
+        }),
+
+      /** Yakuniy test — eng yaxshi urinish natijasi saqlanadi, har to'g'ri javob to'lanadi */
+      finishTopicTest: (result) =>
+        set((s) => {
+          const day = todayKey()
+          const ok = result.answers.filter((a) => a.ok).length
+          const prev = s.topicTest
+          const credited = applyBoost(s, result)
+          return {
+            topicTest: !prev || ok > prev.score ? { score: ok, total: result.answers.length, at: new Date().toISOString() } : prev,
+            coin: s.coin + credited.coinsEarned,
+            xp: s.xp + result.xpEarned,
+            level: levelFromXp(s.xp + result.xpEarned),
+            solvedCount: s.solvedCount + ok,
+            lastResult: credited,
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+            ...creditAnswers(s, result),
+            ...boostConsume(s),
           }
         }),
 
@@ -628,6 +718,8 @@ export const useApp = create<AppState>()(
           lastResult: null,
           activeLessonId: null,
           onboarded: false,
+          topicLessons: {},
+          topicTest: null,
           inventory: {},
           txLog: [],
           goalId: null,
@@ -671,6 +763,19 @@ export const useApp = create<AppState>()(
         const { xp } = get()
         return (Math.floor(xp / XP_STEP) + 1) * XP_STEP - xp
       },
+
+      topicLessonState: (id) => get().topicLessons[id] ?? { videoSeen: false, done: false },
+
+      topicLessonsDone: () => topicLessonIds.filter(id => get().topicLessons[id]?.done).length,
+
+      /** Zanjir qoidasi: barcha bo'limlar tugamagan bo'lsa yakuniy test yopiq */
+      canEnterTopicTest: () =>
+        topicLessonIds.every(id => !!get().topicLessons[id]?.done),
+
+      topicFinished: () => {
+        const t = get().topicTest
+        return !!t && t.score >= TOPIC_1_PASS && t.total === TOPIC_1_TEST.total
+      },
     }),
     {
       name: 'hdp_progress_v1',
@@ -704,6 +809,8 @@ export const useApp = create<AppState>()(
         claimedMissions: s.claimedMissions,
         dailyBonusOn: s.dailyBonusOn,
         onboarded: s.onboarded,
+        topicLessons: s.topicLessons,
+        topicTest: s.topicTest,
         inventory: s.inventory,
         txLog: s.txLog,
         goalId: s.goalId,

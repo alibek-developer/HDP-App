@@ -12,6 +12,7 @@ import {
   type AchIcon, type AchStats,
 } from '../data/content'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackRoot } from '../lib/nav'
 import { useApp, freeLessonCount } from '../store/useStore'
 import Sheet from '../components/Sheet'
 
@@ -80,6 +81,7 @@ const fmtUz = (iso: string) => {
 
 const ProfileScreen = () => {
   const navigate = useNavigate()
+  useBackRoot()
   const [editOpen, setEditOpen] = useState(false)
   const [bellOpen, setBellOpen] = useState(false)
   const [certOpen, setCertOpen] = useState(false)

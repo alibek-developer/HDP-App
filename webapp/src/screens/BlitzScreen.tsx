@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, Clock, Coins, Sigma, Swords, Trophy } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackToSource } from '../lib/nav'
 import { BODY, CARD, LIME_BTN, OUT_BTN, TICK } from '../styles/solver'
 
 const QUESTIONS = [
@@ -17,6 +18,7 @@ const TIME_LIMIT = 30
 
 const BlitzScreen = () => {
   const navigate = useNavigate()
+  const exit = useBackToSource()
   const [phase, setPhase]       = useState<'lobby' | 'game' | 'result'>('lobby')
   const [qIdx, setQIdx]         = useState(0)
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT)
@@ -57,7 +59,7 @@ const BlitzScreen = () => {
       <div className="px-4 pt-5">
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => { triggerHaptic('light'); navigate(-1) }}
+            onClick={exit}
             aria-label="Orqaga"
             className="w-[38px] h-[38px] flex items-center justify-center active:scale-[0.96] transition-transform"
             style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}

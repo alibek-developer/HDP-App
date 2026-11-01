@@ -72,18 +72,3 @@ export const triggerHaptic = (
     // ignore
   }
 }
-
-export const showBack = (cb: () => void) => {
-  const tg = getTelegram()
-  if (tg?.BackButton) {
-    tg.BackButton.show()
-    tg.BackButton.onClick(cb)
-  }
-}
-
-export const hideBack = () => {
-  const tg = getTelegram()
-  if (tg?.BackButton) {
-    tg.BackButton.hide()
-  }
-}

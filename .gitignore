@@ -45,3 +45,7 @@ coverage/
 .vercel/
 .netlify/
 *.tsbuildinfo
+
+# Dars videolari (1.4 GB) — GitHub 100 MB chegarasidan oshadi.
+# Dev server `vite.config.ts`dagi `/videos` orqali uzatadi, production'da CDN.
+1-mavzu/

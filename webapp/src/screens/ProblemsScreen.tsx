@@ -5,6 +5,7 @@ import {
   Infinity as InfinityIcon, Sigma, Triangle, Trophy, Zap,
 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackRoot } from '../lib/nav'
 import { EXAM_SET, MISSION_REWARDS, PROBLEM_SETS, dailyProblem, DAILY_BONUS, type ProblemSet } from '../data/content'
 import { useApp } from '../store/useStore'
 import { AMBER_BTN, BODY, CARD, INK_BTN, LIME_BTN, OUT_BTN } from '../styles/solver'
@@ -56,6 +57,7 @@ const TIERS = [
 
 const ProblemsScreen = () => {
   const navigate = useNavigate()
+  useBackRoot()
 
   const coin = useApp(s => s.coin)
   const streak = useApp(s => s.streak)

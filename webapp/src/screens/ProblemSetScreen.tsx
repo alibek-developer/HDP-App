@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ChevronRight, Coins, X } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { findProblemSet } from '../data/content'
 import { SessionResult, useApp } from '../store/useStore'
 import { BODY, CARD, INK_BTN, LIME_BTN, TICK } from '../styles/solver'
@@ -14,6 +15,7 @@ import { BODY, CARD, INK_BTN, LIME_BTN, TICK } from '../styles/solver'
 
 const ProblemSetScreen = () => {
   const navigate = useNavigate()
+  const exit = useBack('/problems')
   const { setId } = useParams()
   const set = findProblemSet(String(setId))
 
@@ -33,7 +35,7 @@ const ProblemSetScreen = () => {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: BODY }}>
         <button
-          onClick={() => navigate('/problems')}
+          onClick={exit}
           className="h-[44px] px-5 text-[13px] font-extrabold"
           style={{ ...CARD, color: '#0E1A12' }}
         >
@@ -127,8 +129,16 @@ const ProblemSetScreen = () => {
   return (
     <div className="min-h-screen pb-10 select-none font-sans" style={{ background: BODY }}>
 
-      {/* ── Juda ixcham holat chizig'i: hisob + davotar chiziqlari + mukofot ── */}
+      {/* ── Juda ixcham holat chizig'i: chiqish + hisob + davotar chiziqlari + mukofot ── */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-1">
+        <button
+          onClick={exit}
+          aria-label="Chiqish"
+          className="w-[30px] h-[30px] flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+          style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 9, color: '#6B7C66' }}
+        >
+          <X size={14} />
+        </button>
         <span className="num text-[12px] font-extrabold shrink-0" style={{ color: '#33452F' }}>
           {cursor + 1}/{total}
         </span>

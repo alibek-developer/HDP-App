@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronRight, Lightbulb, Lock } from 'lucide-react'
+import { Check, ChevronRight, Lightbulb, Lock, X } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { findLesson } from '../data/content'
 import { useApp } from '../store/useStore'
 import { BODY, CARD, LIME_BTN, TICK } from '../styles/solver'
@@ -14,6 +15,7 @@ import { BODY, CARD, LIME_BTN, TICK } from '../styles/solver'
 const ExampleScreen = () => {
   const navigate = useNavigate()
   const { id } = useParams()
+  const exit = useBack(`/lesson/${id}`)
   const lesson = findLesson(Number(id))
 
   const exampleDone = useApp(s => !!s.lessons[Number(id)]?.exampleDone)
@@ -26,7 +28,7 @@ const ExampleScreen = () => {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: BODY }}>
         <button
-          onClick={() => navigate('/courses')}
+          onClick={exit}
           className="h-[44px] px-5 text-[13px] font-extrabold"
           style={{ ...CARD, color: '#0E1A12' }}
         >
@@ -78,8 +80,16 @@ const ExampleScreen = () => {
   return (
     <div className="min-h-screen pb-10 select-none font-sans" style={{ background: BODY }}>
 
-      {/* Holat chizig'i: qadam hisobi + davotar chiziqlari */}
+      {/* Holat chizig'i: chiqish + qadam hisobi + davotar chiziqlari */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-1">
+        <button
+          onClick={exit}
+          aria-label="Chiqish"
+          className="w-[30px] h-[30px] flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+          style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 9, color: '#6B7C66' }}
+        >
+          <X size={14} />
+        </button>
         <span className="num text-[12px] font-extrabold shrink-0" style={{ color: '#33452F' }}>
           {Math.min(revealed, steps.length)}/{steps.length}
         </span>

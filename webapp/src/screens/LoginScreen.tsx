@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Eye, EyeOff, Lock, Mail, Check, Loader2 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { signInWithTelegram } from '../lib/auth'
 import { useApp } from '../store/useStore'
 
@@ -34,6 +35,7 @@ const inputCls = 'flex-1 bg-transparent outline-none text-[15px] font-semibold t
  */
 const LoginScreen = () => {
   const navigate = useNavigate()
+  const exit = useBack('/')
   const signIn = useApp(s => s.signInWithTelegram)
   const setOnboarded = useApp(s => s.setOnboarded)
 
@@ -71,7 +73,7 @@ const LoginScreen = () => {
       {/* Orqaga */}
       <header className="relative z-10 safe-top pt-4 px-5">
         <button
-          onClick={() => { triggerHaptic('light'); navigate('/', { replace: true }) }}
+          onClick={exit}
           className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-transform"
           style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(28,50,20,0.08)' }}
           aria-label="Orqaga"

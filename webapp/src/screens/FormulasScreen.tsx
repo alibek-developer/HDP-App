@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ChevronRight, Copy, Search, Sigma, Swords, X } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackToSource } from '../lib/nav'
 import { PROBLEM_SETS } from '../data/content'
 import { BODY, CARD, INK_BTN, LIME_BTN, OUT_BTN } from '../styles/solver'
 
@@ -52,6 +53,7 @@ const FORMULAS: Group[] = [
 
 const FormulasScreen = () => {
   const navigate = useNavigate()
+  const exit = useBackToSource()
   const [search, setSearch] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [activeCat, setActiveCat] = useState<string | null>(null)
@@ -83,7 +85,7 @@ const FormulasScreen = () => {
       {/* ── Header ── */}
       <header className="flex items-center justify-between px-4 pt-5 pb-3">
         <button
-          onClick={() => { triggerHaptic('light'); navigate(-1) }}
+          onClick={exit}
           aria-label="Orqaga"
           className="w-[38px] h-[38px] flex items-center justify-center shrink-0 active:scale-[0.96] transition-transform"
           style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import SplashScreen from './screens/SplashScreen'
 import LoginScreen from './screens/LoginScreen'
@@ -5,6 +6,7 @@ import SignUpScreen from './screens/SignUpScreen'
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen'
 import HomeScreen from './screens/HomeScreen'
 import CoursesScreen from './screens/CoursesScreen'
+import SubjectScreen from './screens/SubjectScreen'
 import LessonScreen from './screens/LessonScreen'
 import ExampleScreen from './screens/ExampleScreen'
 import TestScreen from './screens/TestScreen'
@@ -17,8 +19,13 @@ import ProScreen from './screens/ProScreen'
 import ShopScreen from './screens/ShopScreen'
 import ProductScreen from './screens/ProductScreen'
 import BlitzScreen from './screens/BlitzScreen'
+import TopicScreen from './screens/TopicScreen'
+import TopicLessonScreen from './screens/TopicLessonScreen'
+import TopicTestScreen from './screens/TopicTestScreen'
 import BottomNav from './components/BottomNav'
 import { useApp } from './store/useStore'
+import { initTelegram } from './lib/telegram'
+import { useNavTracker, useTelegramBackSync } from './lib/nav'
 
 /**
  * Oqim xaritasi (majburiy ketma-ketlik):
@@ -35,6 +42,9 @@ import { useApp } from './store/useStore'
  *  /result                Natija      — xatolar + to'g'rilash + qopgan coin
  *  /problems              Masalalar   — to'plamlar, har yechim coin keltiradi
  *  /problems/:setId       To'plam ichida yechish
+ *  /topic/1               Mavzu 1     — 10 bo'lim + yakuniy 30 savol
+ *  /topic/1/:lessonId     Bo'lim      — video dars → nazariya → amaliyot
+ *  /topic/1/test          Yakuniy test — barcha bo'limlar tugasa ochiladi
  *  /formulas              Formulalar
  *  /pro                   Pro obuna
  *  /shop                  Do'kon
@@ -48,6 +58,8 @@ const AppContent = () => {
   const location = useLocation()
   const onboarded = useApp(s => s.onboarded)
   const showNav = TAB_ROUTES.includes(location.pathname)
+  useNavTracker()
+  useTelegramBackSync()
 
   return (
     <>
@@ -60,6 +72,7 @@ const AppContent = () => {
         <Route path="/home" element={<HomeScreen />} />
 
         <Route path="/courses" element={<CoursesScreen />} />
+        <Route path="/subject/:subjectId" element={<SubjectScreen />} />
         <Route path="/lesson/:id" element={<LessonScreen />} />
         <Route path="/lesson/:id/example" element={<ExampleScreen />} />
         <Route path="/lesson/:id/test" element={<TestScreen />} />
@@ -67,6 +80,11 @@ const AppContent = () => {
 
         <Route path="/problems" element={<ProblemsScreen />} />
         <Route path="/problems/:setId" element={<ProblemSetScreen />} />
+
+        <Route path="/topic/1" element={<TopicScreen />} />
+        <Route path="/topic/1/test" element={<TopicTestScreen />} />
+        <Route path="/topic/1/:lessonId" element={<TopicLessonScreen />} />
+
         <Route path="/formulas" element={<FormulasScreen />} />
 
         <Route path="/pro" element={<ProScreen />} />
@@ -83,6 +101,10 @@ const AppContent = () => {
 }
 
 function App() {
+  useEffect(() => {
+    initTelegram()
+  }, [])
+
   return (
     <Router>
       <AppContent />

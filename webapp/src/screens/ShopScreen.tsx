@@ -6,6 +6,7 @@ import {
   Star, X,
 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackRoot } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import ProductArt from '../components/ProductArt'
 import StudyAids from '../components/StudyAids'
@@ -43,6 +44,7 @@ const fmtDate = (iso: string) => {
 
 const ShopScreen = () => {
   const navigate = useNavigate()
+  useBackRoot()
   const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)

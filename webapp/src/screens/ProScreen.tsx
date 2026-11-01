@@ -5,6 +5,7 @@ import {
   Award, Check, ChevronRight, Crown, Diamond, FileText, GraduationCap, Play, Sparkles,
 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackToSource } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import { BODY, CARD, INK_BTN, LIME_BTN, OUT_BTN } from '../styles/solver'
 
@@ -52,6 +53,7 @@ const GATEWAYS = [
 
 const ProScreen = () => {
   const navigate = useNavigate()
+  const exit = useBackToSource()
   const [selected, setSelected] = useState<'1m' | '3m' | '1y'>('3m')
   const [gateway, setGateway] = useState('Payme')
   const [showSuccess, setShowSuccess] = useState(false)
@@ -77,7 +79,7 @@ const ProScreen = () => {
       {/* ── Header ── */}
       <header className="flex items-center justify-between px-4 pt-5 pb-3">
         <button
-          onClick={() => { triggerHaptic('light'); navigate(-1) }}
+          onClick={exit}
           aria-label="Orqaga"
           className="w-[38px] h-[38px] flex items-center justify-center shrink-0 active:scale-[0.96] transition-transform"
           style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}

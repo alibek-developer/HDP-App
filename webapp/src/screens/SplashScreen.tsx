@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackRoot } from '../lib/nav'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -16,6 +17,7 @@ const PHOTOS = [
  */
 const SplashScreen = () => {
   const navigate = useNavigate()
+  useBackRoot()
 
   const go = (path: '/signup' | '/login') => {
     triggerHaptic('medium')

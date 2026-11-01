@@ -5,6 +5,7 @@ import {
   Bell, ChevronRight, Coins, Flame, Lock, Play, Sigma, Swords, Triangle, Zap,
 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBackRoot } from '../lib/nav'
 import { useApp } from '../store/useStore'
 
 const ease = [0.22, 1, 0.36, 1] as const
@@ -164,6 +165,7 @@ const clock = (ms: number) => {
 
 const HomeScreen = () => {
   const navigate = useNavigate()
+  useBackRoot()
 
   const name = useApp(s => s.name)
   const coin = useApp(s => s.coin)

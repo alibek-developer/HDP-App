@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ChevronRight, Lock, MessageCircle, Pause, Play, Send } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { findLesson } from '../data/content'
 import { useApp } from '../store/useStore'
 import { AMBER_BTN, BODY, CARD, INK_BTN, LIME_BTN, OUT_BTN, TICK } from '../styles/solver'
@@ -17,6 +18,7 @@ const DEMO_MS = 10000
  */
 const LessonScreen = () => {
   const navigate = useNavigate()
+  const exit = useBack('/courses')
   const { id } = useParams()
   const lesson = findLesson(Number(id))
 
@@ -86,7 +88,7 @@ const LessonScreen = () => {
       {/* ── Header ── */}
       <header className="flex items-start justify-between px-4 pt-5 pb-3">
         <button
-          onClick={() => { triggerHaptic('light'); navigate(-1) }}
+          onClick={exit}
           aria-label="Orqaga"
           className="w-[38px] h-[38px] flex items-center justify-center shrink-0 active:scale-[0.96] transition-transform"
           style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}

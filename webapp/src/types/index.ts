@@ -89,8 +89,10 @@ export interface TelegramWebApp {
     start_param?: string
   }
   BackButton: {
+    visible: boolean
     show: () => void
     hide: () => void
     onClick: (callback: () => void) => void
+    offClick: (callback: () => void) => void
   }
 }

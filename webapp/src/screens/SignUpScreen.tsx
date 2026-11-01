@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Eye, EyeOff, Lock, Mail, User, Check, Loader2 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { useBack } from '../lib/nav'
 import { signInWithTelegram } from '../lib/auth'
 import { useApp } from '../store/useStore'
 
@@ -33,6 +34,7 @@ const socialStyle = { background: '#FFFFFF', border: '1px solid #E4E9DD', boxSha
  */
 const SignUpScreen = () => {
   const navigate = useNavigate()
+  const exit = useBack('/')
   const signIn = useApp(s => s.signInWithTelegram)
   const setOnboarded = useApp(s => s.setOnboarded)
 
@@ -70,7 +72,7 @@ const SignUpScreen = () => {
 
       <header className="relative z-10 safe-top pt-4 px-5">
         <button
-          onClick={() => { triggerHaptic('light'); navigate('/', { replace: true }) }}
+          onClick={exit}
           className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-transform"
           style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(28,50,20,0.08)' }}
           aria-label="Orqaga"
@@ -218,7 +220,7 @@ const SignUpScreen = () => {
         <p className="text-body-md text-ink-3 text-center mt-7 pb-8">
           Hisobingiz bormi?{' '}
           <button
-            onClick={() => { triggerHaptic('light'); navigate('/login', { replace: true }) }}
+            onClick={exit}
             className="font-extrabold text-brand underline underline-offset-2"
           >
             Kirish
