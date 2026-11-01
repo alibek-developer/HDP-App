@@ -291,15 +291,18 @@ const LessonScreen = () => {
       {/* ── Savol yuborish modali — faqat bosish orqali ochiladi ── */}
       <AnimatePresence>
         {askOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setAskOpen(false)}
-              className="fixed inset-0 z-50"
-              style={{ background: 'rgba(14,26,18,0.55)' }}
-            />
-            <motion.div
-              initial={{ y: 70, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 70, opacity: 0 }}
+          <motion.div
+            key="ask-backdrop"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setAskOpen(false)}
+            className="fixed inset-0 z-50"
+            style={{ background: 'rgba(14,26,18,0.55)' }}
+          />
+        )}
+        {askOpen && (
+          <motion.div
+            key="ask-panel"
+            initial={{ y: 70, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 70, opacity: 0 }}
               transition={{ type: 'spring', damping: 28, stiffness: 360 }}
               className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto px-5 pt-3 pb-6"
               style={{ background: '#FFFFFF', borderRadius: '18px 18px 0 0', boxShadow: '0 -12px 32px rgba(14,26,18,0.18)' }}
@@ -351,8 +354,7 @@ const LessonScreen = () => {
               >
                 Yopish
               </button>
-            </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

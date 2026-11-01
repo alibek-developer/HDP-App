@@ -15,7 +15,8 @@ const config: Config = {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         serif: ['"Instrument Serif"', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        /** Yuklanadigan monospace yo'q — tizim monosidan tabular raqamlar foydalaniladi */
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       fontSize: {
         'display':  ['34px', { lineHeight: '1.06', letterSpacing: '-0.035em', fontWeight: '800' }],

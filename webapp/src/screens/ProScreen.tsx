@@ -317,15 +317,18 @@ const ProScreen = () => {
       {/* ── Muvaffaqiyat modali ── */}
       <AnimatePresence>
         {showSuccess && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowSuccess(false)}
-              className="fixed inset-0 z-50"
-              style={{ background: 'rgba(14,26,18,0.6)' }}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
+          <motion.div
+            key="success-backdrop"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowSuccess(false)}
+            className="fixed inset-0 z-50"
+            style={{ background: 'rgba(14,26,18,0.6)' }}
+          />
+        )}
+        {showSuccess && (
+          <motion.div
+            key="success-card"
+            initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 18 }}
               transition={{ type: 'spring', damping: 24, stiffness: 320 }}
@@ -358,8 +361,7 @@ const ProScreen = () => {
                   </button>
                 </div>
               </div>
-            </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

@@ -702,22 +702,26 @@ const Row = ({ icon, tint, title, sub, right, onClick, last, titleColor, subColo
   last?: boolean
   titleColor?: string
   subColor?: string
-}) => (
-  <button
-    onClick={onClick}
-    className="w-full flex items-center gap-3 text-left active:bg-[#FAFCF8] transition-colors"
-    style={{ padding: '14px 16px', borderBottom: last ? undefined : `1px solid ${ROW_HAIR}` }}
-  >
-    <span className="w-[36px] h-[36px] rounded-full flex items-center justify-center shrink-0" style={{ background: tint }}>
-      {icon}
-    </span>
-    <span className="min-w-0 flex-1">
-      <span className="block text-[13.5px] font-extrabold truncate" style={{ color: titleColor ?? INK }}>{title}</span>
-      <span className="block text-[11px] font-bold mt-0.5 truncate" style={{ color: subColor ?? GRAY }}>{sub}</span>
-    </span>
-    {right && <span className="shrink-0 flex items-center">{right}</span>}
-  </button>
-)
+}) => {
+  const inner = (
+    <>
+      <span className="w-[36px] h-[36px] rounded-full flex items-center justify-center shrink-0" style={{ background: tint }}>
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13.5px] font-extrabold truncate" style={{ color: titleColor ?? INK }}>{title}</span>
+        <span className="block text-[11px] font-bold mt-0.5 truncate" style={{ color: subColor ?? GRAY }}>{sub}</span>
+      </span>
+      {right && <span className="shrink-0 flex items-center">{right}</span>}
+    </>
+  )
+  const box = { padding: '14px 16px', borderBottom: last ? undefined : `1px solid ${ROW_HAIR}` }
+  const cls = 'w-full flex items-center gap-3 text-left active:bg-[#FAFCF8] transition-colors'
+  // onClick bo'lmagan qator statik: ichida switch tugmasi bor, tugma ichida tugma bo'lmaydi
+  return onClick
+    ? <button onClick={onClick} className={cls} style={box}>{inner}</button>
+    : <div className={cls} style={box}>{inner}</div>
+}
 
 const Note = ({ label, value }: { label: string; value: string }) => (
   <div className="flex items-center justify-between" style={{ padding: '11px 2px', borderBottom: `1px solid ${ROW_HAIR}` }}>

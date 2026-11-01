@@ -6,9 +6,9 @@ import { useBackRoot } from '../lib/nav'
 const ease = [0.22, 1, 0.36, 1] as const
 
 const PHOTOS = [
-  { src: '/splash/student-left.png', alt: 'Talaba' },
-  { src: '/splash/student-center.png', alt: 'Masala yechayotgan talaba' },
-  { src: '/splash/student-right.png', alt: 'Dars tayyorlayotgan talaba' },
+  { src: '/splash/student-left.webp', alt: 'Talaba' },
+  { src: '/splash/student-center.webp', alt: 'Masala yechayotgan talaba' },
+  { src: '/splash/student-right.webp', alt: 'Dars tayyorlayotgan talaba' },
 ]
 
 /**

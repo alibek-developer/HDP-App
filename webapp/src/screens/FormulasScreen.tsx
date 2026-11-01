@@ -251,15 +251,18 @@ const FormulasScreen = () => {
       {/* ── Formula tafsilotlari ── */}
       <AnimatePresence>
         {detail && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setDetail(null)}
-              className="fixed inset-0 z-50"
-              style={{ background: 'rgba(14,26,18,0.55)' }}
-            />
-            <motion.div
-              initial={{ y: 70, opacity: 0 }}
+          <motion.div
+            key="formula-backdrop"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setDetail(null)}
+            className="fixed inset-0 z-50"
+            style={{ background: 'rgba(14,26,18,0.55)' }}
+          />
+        )}
+        {detail && (
+          <motion.div
+            key="formula-panel"
+            initial={{ y: 70, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 70, opacity: 0 }}
               transition={{ type: 'spring', damping: 28, stiffness: 360 }}
@@ -310,8 +313,7 @@ const FormulasScreen = () => {
               >
                 Yopish
               </button>
-            </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
