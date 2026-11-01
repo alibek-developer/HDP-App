@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, Play, Pause, MessageCircle, Check, Lock, Send } from 'lucide-react'
+import { Check, ChevronRight, Lock, MessageCircle, Pause, Play, Send } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
 import { findLesson } from '../data/content'
 import { useApp } from '../store/useStore'
+import { AMBER_BTN, BODY, CARD, INK_BTN, LIME_BTN, OUT_BTN, TICK } from '../styles/solver'
 
 /** Demo tezligi: real dars davomiyligi ~10 soniyada tugadi hisoblanadi */
 const DEMO_MS = 10000
@@ -23,6 +24,7 @@ const LessonScreen = () => {
   const canOpenLesson = useApp(s => s.canOpenLesson)
   const markVideoWatched = useApp(s => s.markVideoWatched)
   const startLesson = useApp(s => s.startLesson)
+  const beginSession = useApp(s => s.beginSession)
 
   const [playing, setPlaying] = useState(videoWatched)
   const [progress, setProgress] = useState(videoWatched ? 100 : 0)
@@ -32,7 +34,10 @@ const LessonScreen = () => {
   const raf = useRef<number | null>(null)
 
   useEffect(() => {
-    if (lesson) startLesson(lesson.id)
+    if (lesson) {
+      startLesson(lesson.id)
+      beginSession()
+    }
   }, [lesson?.id])
 
   /* Simulyatsiya: play holatida progress oldinga suriladi */
@@ -76,156 +81,212 @@ const LessonScreen = () => {
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
   return (
-    <div className="min-h-screen pb-8 select-none font-sans" style={{ background: '#F1F4F9' }}>
+    <div className="min-h-screen pb-8 select-none font-sans" style={{ background: BODY }}>
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 pt-4 pb-3">
+      {/* ── Header ── */}
+      <header className="flex items-start justify-between px-4 pt-5 pb-3">
         <button
           onClick={() => { triggerHaptic('light'); navigate(-1) }}
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+          aria-label="Orqaga"
+          className="w-[38px] h-[38px] flex items-center justify-center shrink-0 active:scale-[0.96] transition-transform"
+          style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}
         >
-          <ChevronRight size={18} style={{ color: '#334155', transform: 'rotate(180deg)' }} />
+          <ChevronRight size={17} style={{ transform: 'rotate(180deg)' }} />
         </button>
-        <div className="text-center min-w-0 px-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>
-            Dars #{lesson.id} · {lesson.topic}
+        <div className="flex-1 min-w-0 px-3 pt-0.5">
+          <p className="num text-tiny uppercase tracking-[0.16em] font-extrabold text-center" style={{ color: '#6B7C66' }}>
+            Dars {String(lesson.id).padStart(2, '0')} · {lesson.topic}
           </p>
-          <p className="text-sm font-bold truncate" style={{ color: '#0F172A' }}>{lesson.title}</p>
+          <p className="mt-1 text-[15px] font-extrabold leading-tight text-center text-ink truncate">
+            {lesson.title}
+          </p>
         </div>
-        <div style={{ width: 36 }} />
+        <span
+          className="num w-[38px] h-[38px] flex items-center justify-center shrink-0 text-[13px] font-extrabold"
+          style={{ background: '#F6F8F3', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}
+        >
+          {String(lesson.id).padStart(2, '0')}
+        </span>
       </header>
 
-      {/* Player */}
-      <section className="px-4 mb-4">
+      {/* ── Player: siyoh varaq ── */}
+      <section className="px-4 mb-3">
         <div
-          className="relative rounded-2xl overflow-hidden"
+          className="relative overflow-hidden"
           style={{
-            background: 'linear-gradient(160deg, #0F0E2A 0%, #1A1748 100%)',
+            background: 'linear-gradient(165deg, #0E1A12 0%, #123B24 72%, #164A2C 100%)',
+            borderRadius: 18,
             aspectRatio: '16/9',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            boxShadow: '0 12px 26px rgba(14,26,18,0.22)',
           }}
         >
           <div
-            className="absolute inset-0 opacity-10"
+            className="absolute inset-0 opacity-[0.07]"
             style={{
-              backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 16px, rgba(99,102,241,0.3) 16px, rgba(99,102,241,0.3) 17px)',
+              backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 22px, rgba(205,233,174,0.5) 22px, rgba(205,233,174,0.5) 23px)',
             }}
           />
 
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 z-10">
             <span
-              className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-lg"
-              style={{ background: 'rgba(99,102,241,0.25)', color: '#A5B4FC', border: '1px solid rgba(99,102,241,0.3)' }}
+              className="num flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em] px-2 py-1.5"
+              style={{ background: 'rgba(155,224,75,0.14)', border: '1px solid rgba(155,224,75,0.32)', borderRadius: 8, color: '#CDE9AE' }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-              USTOZ AZAMAT
+              <span
+                className={`w-[6px] h-[6px] ${playing ? 'animate-pulse' : ''}`}
+                style={{ background: watched ? '#9BE04B' : '#E8A33D', borderRadius: 2 }}
+              />
+              Ustoz Azamat
             </span>
           </div>
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
+          <div className="absolute top-3 right-3 z-10">
+            <span
+              className="num text-[10px] font-extrabold uppercase px-2 py-1.5"
+              style={{ background: 'rgba(205,233,174,0.10)', borderRadius: 8, color: 'rgba(205,233,174,0.65)' }}
+            >
+              {lesson.questions.length} savol
+            </span>
+          </div>
+
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4">
             <div
-              className="font-mono text-sm font-bold mb-4 px-3 py-2 rounded-xl text-center"
-              style={{ color: '#A5B4FC', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.2)' }}
+              className="font-mono text-[11.5px] font-bold mb-4 px-3 py-2 w-full max-w-[300px] text-center leading-snug break-words"
+              style={{ color: '#CDE9AE', background: 'rgba(14,26,18,0.45)', border: '1px solid rgba(205,233,174,0.18)', borderRadius: 10 }}
             >
               {lesson.example.steps[0] ?? lesson.summary}
             </div>
 
             <button
               onClick={() => { if (watched) return; triggerHaptic('light'); setPlaying(p => !p) }}
-              className="w-14 h-14 rounded-full flex items-center justify-center"
-              style={{
-                background: watched
-                  ? 'rgba(255,255,255,0.12)'
-                  : 'linear-gradient(135deg, #4338CA, #6366F1)',
-                boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
-              }}
+              aria-label={watched ? 'Ko\'rildi' : playing ? 'Pauza' : 'Boshlash'}
+              className="w-[58px] h-[58px] flex items-center justify-center active:scale-[0.95] transition-transform"
+              style={watched
+                ? { background: 'rgba(155,224,75,0.16)', border: '1px solid rgba(155,224,75,0.4)', borderRadius: 18, color: '#9BE04B' }
+                : { ...LIME_BTN, borderRadius: 18, width: 58, height: 58 }}
             >
               {watched
-                ? <Check size={22} color="#6EE7B7" />
+                ? <Check size={24} />
                 : playing
-                  ? <Pause size={20} color="#fff" />
-                  : <Play size={20} color="#fff" style={{ marginLeft: 2 }} />}
+                  ? <Pause size={22} />
+                  : <Play size={22} style={{ marginLeft: 2 }} />}
             </button>
 
             {watched && (
-              <p className="text-emerald-300 text-[11px] font-bold mt-3">✓ Video ko'rildi</p>
+              <p className="num text-[10.5px] font-extrabold uppercase tracking-[0.1em] mt-3" style={{ color: '#9BE04B' }}>
+                Video ko'rilgan
+              </p>
             )}
           </div>
 
           {/* Scrubber */}
-          <div className="absolute bottom-0 left-0 right-0">
-            <div style={{ height: '3px', background: 'rgba(255,255,255,0.12)' }}>
+          <div className="absolute bottom-0 left-0 right-0 z-10">
+            <div style={{ height: 4, background: 'rgba(205,233,174,0.12)' }}>
               <div
-                style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, #4338CA, #6366F1)' }}
+                style={{
+                  height: '100%',
+                  width: `${progress}%`,
+                  background: 'linear-gradient(90deg, #9BE04B 0%, #5FAF22 100%)',
+                  transition: playing ? 'none' : 'width 0.3s',
+                }}
               />
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between mt-2 px-1">
-          <span className="text-xs font-mono" style={{ color: '#94A3B8' }}>{fmt(cur)}</span>
-          <span className="text-[10px] font-semibold" style={{ color: '#CBD5E1' }}>
-            {lesson.duration} daqikalik dars · demo tezlashtirilgan
+          <span className="num text-[11.5px] font-extrabold" style={{ color: '#33452F' }}>{fmt(cur)}</span>
+          <span className="text-[10.5px] font-bold uppercase tracking-[0.06em]" style={{ color: '#9AA995' }}>
+            {lesson.duration} daq · demo tezlashtirilgan
           </span>
-          <span className="text-xs font-mono" style={{ color: '#94A3B8' }}>{fmt(totalSec)}</span>
+          <span className="num text-[11.5px] font-extrabold" style={{ color: '#9AA995' }}>{fmt(totalSec)}</span>
         </div>
       </section>
 
-      {/* Summary */}
+      {/* ── Zanjir holati: Video → Misol → Test ── */}
       <section className="px-4 mb-4">
-        <div className="rounded-xl p-4" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-          <p className="text-sm font-bold mb-1" style={{ color: '#0F172A' }}>Mavzu haqida</p>
-          <p className="text-xs leading-relaxed" style={{ color: '#64748B' }}>{lesson.summary}</p>
+        <div style={{ ...CARD, borderRadius: 14 }}>
+          <div className="flex items-stretch px-2 py-2.5">
+            {[
+              { u: 'Video', on: watched },
+              { u: 'Misol', on: false },
+              { u: 'Test', on: false },
+            ].map((cell, i) => (
+              <div key={cell.u} className="flex-1 flex items-center">
+                {i > 0 && <span className="w-px self-stretch" style={{ background: '#EDF1E7' }} />}
+                <div className="flex-1 px-2">
+                  <span
+                    className="block h-[5px]"
+                    style={{ borderRadius: 3, background: cell.on ? TICK.ok : '#EAEEE3' }}
+                  />
+                  <p
+                    className="mt-2 text-[10px] font-extrabold uppercase text-center"
+                    style={{ color: cell.on ? '#0B6E4F' : '#9AA995' }}
+                  >
+                    {cell.u}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Ustozga savol */}
+      {/* ── Mavzu haqida ── */}
+      <section className="px-4 mb-4">
+        <div className="relative" style={{ ...CARD, borderRadius: 16 }}>
+          <span className="absolute left-0 top-0 bottom-0" style={{ width: 4, borderRadius: '16px 0 0 16px', background: '#5FAF22' }} />
+          <div className="pl-5 pr-4 py-4">
+            <p className="text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: '#6B7C66' }}>
+              Mavzu haqida
+            </p>
+            <p className="mt-2 text-[13.5px] font-medium leading-relaxed" style={{ color: '#33452F' }}>
+              {lesson.summary}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Ustozga savol ── */}
       <section className="px-4 mb-4">
         <button
           onClick={() => { triggerHaptic('light'); setAskOpen(true) }}
-          className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+          className="w-full flex items-center gap-3 pl-3.5 pr-3.5 py-3.5 text-left active:scale-[0.99] transition-transform"
+          style={CARD}
         >
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#EEF2FF', color: '#4338CA' }}>
+          <span
+            className="w-[38px] h-[38px] flex items-center justify-center shrink-0"
+            style={{ background: '#EDF7DE', borderRadius: 12, color: '#0B6E4F' }}
+          >
             <MessageCircle size={17} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13.5px] font-extrabold text-ink leading-tight">Ustozga savol berish</p>
+            <p className="mt-0.5 text-[11.5px] font-semibold" style={{ color: '#6B7C66' }}>
+              Tushunmagan joyingizni yozing — javob qaytaramiz
+            </p>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold" style={{ color: '#0F172A' }}>Ustozga savol berish</p>
-            <p className="text-[11px]" style={{ color: '#94A3B8' }}>Tushunmagan joyingizni yozing — javob qaytaramiz</p>
-          </div>
-          <ChevronRight size={16} style={{ color: '#CBD5E1' }} />
+          <ChevronRight size={16} style={{ color: '#9AA995' }} />
         </button>
       </section>
 
-      {/* Gated CTA — video tugagachina aktiv */}
+      {/* ── Gated CTA — video tugagachina aktiv ── */}
       <section className="px-4">
         <button
           disabled={!watched}
           onClick={() => { triggerHaptic('medium'); navigate(`/lesson/${lesson.id}/example`) }}
-          className="w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
+          className="w-full h-[52px] text-[14.5px] font-extrabold flex items-center justify-center gap-2 active:scale-[0.985] transition-transform"
           style={watched
-            ? {
-                background: 'linear-gradient(135deg, #4338CA, #6366F1)',
-                color: '#FFFFFF',
-                boxShadow: '0 4px 16px rgba(67,56,202,0.28)',
-              }
-            : { background: '#E2E8F0', color: '#94A3B8' }}
+            ? LIME_BTN
+            : { background: '#EAEEE3', color: '#9AA995', borderRadius: 12 }}
         >
           {!watched && <Lock size={15} />}
-          {watched ? 'Misolga o\'tish →' : 'Avval videoni oxirigacha ko\'ring'}
+          {watched ? 'Misolga o\'tish' : 'Avval videoni oxirigacha ko\'ring'}
+          {watched && <ChevronRight size={16} />}
         </button>
-
-        <div className="flex items-center gap-2 mt-3 px-1">
-          <StepDot on={watched} label="Video" />
-          <StepLine on={watched} />
-          <StepDot on={false} label="Misol" />
-          <StepLine on={false} />
-          <StepDot on={false} label="Test" />
-        </div>
       </section>
 
-      {/* Savol yuborish modali — faqat bosish orqali ochiladi */}
+      {/* ── Savol yuborish modali — faqat bosish orqali ochiladi ── */}
       <AnimatePresence>
         {askOpen && (
           <>
@@ -233,24 +294,32 @@ const LessonScreen = () => {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setAskOpen(false)}
               className="fixed inset-0 z-50"
-              style={{ background: 'rgba(15,23,42,0.55)' }}
+              style={{ background: 'rgba(14,26,18,0.55)' }}
             />
             <motion.div
               initial={{ y: 70, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 70, opacity: 0 }}
               transition={{ type: 'spring', damping: 28, stiffness: 360 }}
-              className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto p-6"
-              style={{ background: '#FFFFFF', borderRadius: '24px 24px 0 0' }}
+              className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto px-5 pt-3 pb-6"
+              style={{ background: '#FFFFFF', borderRadius: '18px 18px 0 0', boxShadow: '0 -12px 32px rgba(14,26,18,0.18)' }}
             >
-              <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E2E8F0' }} />
-              <h3 className="text-lg font-extrabold mb-1" style={{ color: '#0F172A' }}>Ustozga savol</h3>
-              <p className="text-xs mb-4" style={{ color: '#94A3B8' }}>
-                {lesson.title} · {lesson.topic}
+              <div className="w-10 h-[5px] rounded-full mx-auto mb-4" style={{ background: '#E1E7DA' }} />
+              <p className="text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: '#6B7C66' }}>
+                Ustozga savol
+              </p>
+              <p className="mt-1.5 text-[14px] font-extrabold text-ink leading-tight">{lesson.title}</p>
+              <p className="num mt-0.5 text-[11px] font-bold uppercase" style={{ color: '#9AA995' }}>
+                {lesson.topic} · dars {String(lesson.id).padStart(2, '0')}
               </p>
 
               {sent ? (
-                <div className="p-4 rounded-xl text-center" style={{ background: '#ECFDF5', border: '1px solid #A7F3D0' }}>
-                  <p className="text-sm font-bold" style={{ color: '#059669' }}>✓ Savolingiz yuborildi</p>
-                  <p className="text-xs mt-1" style={{ color: '#64748B' }}>Ustoz 24 soat ichida javob beradi.</p>
+                <div className="relative mt-4 overflow-hidden" style={{ background: '#DDF3DC', border: '1px solid #A7D8A0', borderRadius: 14 }}>
+                  <span className="absolute left-0 top-0 bottom-0" style={{ width: 4, background: '#5FAF22' }} />
+                  <div className="pl-5 pr-4 py-4">
+                    <p className="text-[13.5px] font-extrabold" style={{ color: '#0B4A34' }}>Savolingiz yuborildi</p>
+                    <p className="mt-1 text-[12px] font-medium" style={{ color: '#0B6E4F' }}>
+                      Ustoz 24 soat ichida javob beradi.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <textarea
@@ -258,8 +327,8 @@ const LessonScreen = () => {
                   onChange={e => setDraft(e.target.value)}
                   rows={4}
                   placeholder="Masalan: diskriminant nima uchun manfiy bo'lsa ildiz chiqmaydi?"
-                  className="w-full p-3 rounded-xl text-sm outline-none resize-none"
-                  style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#0F172A' }}
+                  className="w-full mt-4 p-3.5 text-[13.5px] font-medium outline-none resize-none"
+                  style={{ background: '#FBFCF8', border: '1px solid #E1E7DA', borderRadius: 14, color: '#0E1A12' }}
                 />
               )}
 
@@ -267,16 +336,16 @@ const LessonScreen = () => {
                 <button
                   disabled={!draft.trim()}
                   onClick={() => { triggerHaptic('success'); setSent(true) }}
-                  className="w-full mt-3 py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40"
-                  style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)' }}
+                  className="mt-3 w-full h-[50px] text-[14px] font-extrabold flex items-center justify-center gap-2 active:scale-[0.985] transition-transform"
+                  style={draft.trim() ? LIME_BTN : { background: '#EAEEE3', color: '#9AA995', borderRadius: 12 }}
                 >
                   <Send size={15} /> Yuborish
                 </button>
               )}
               <button
                 onClick={() => { setAskOpen(false); setSent(false); setDraft('') }}
-                className="w-full mt-2 py-3 text-sm font-medium rounded-xl"
-                style={{ background: '#F1F4F9', color: '#64748B' }}
+                className="mt-2.5 w-full h-[46px] text-[13.5px] font-extrabold active:scale-[0.985] transition-transform"
+                style={OUT_BTN}
               >
                 Yopish
               </button>
@@ -288,38 +357,36 @@ const LessonScreen = () => {
   )
 }
 
-const StepDot = ({ on, label }: { on: boolean; label: string }) => (
-  <div className="flex flex-col items-center gap-1">
-    <span
-      className="w-2.5 h-2.5 rounded-full"
-      style={{ background: on ? '#059669' : '#CBD5E1' }}
-    />
-    <span className="text-[9px] font-bold" style={{ color: on ? '#059669' : '#94A3B8' }}>{label}</span>
-  </div>
-)
-
-const StepLine = ({ on }: { on: boolean }) => (
-  <span className="flex-1 h-0.5 rounded-full -mt-3.5" style={{ background: on ? '#059669' : '#E2E8F0' }} />
-)
-
 const NotFound = ({ onBack }: { onBack: () => void }) => (
-  <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#F1F4F9' }}>
-    <p className="text-4xl mb-3">🧭</p>
-    <p className="text-sm font-bold mb-4" style={{ color: '#0F172A' }}>Bunday dars topilmadi</p>
-    <button onClick={onBack} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white" style={{ background: '#4338CA' }}>
+  <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: BODY }}>
+    <span
+      className="w-[54px] h-[54px] flex items-center justify-center text-[22px] font-extrabold"
+      style={{ background: '#EDF7DE', borderRadius: 16, color: '#0B6E4F', fontFamily: 'serif' }}
+    >
+      ?
+    </span>
+    <p className="text-[15px] font-extrabold text-ink">Bunday dars topilmadi</p>
+    <button onClick={onBack} className="mt-1 w-full max-w-[240px] h-[48px] text-[13.5px] font-extrabold" style={INK_BTN}>
       Kurslarga qaytish
     </button>
   </div>
 )
 
 const GateScreen = ({ onBack, title, sub, cta }: { onBack: () => void; title: string; sub: string; cta: string }) => (
-  <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: '#F1F4F9' }}>
-    <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#FFF7E6' }}>
-      <Lock size={22} style={{ color: '#B45309' }} />
-    </div>
-    <p className="text-base font-bold text-center" style={{ color: '#0F172A' }}>{title}</p>
-    <p className="text-xs text-center" style={{ color: '#64748B' }}>{sub}</p>
-    <button onClick={onBack} className="mt-2 px-6 py-3 rounded-xl font-bold text-sm text-white" style={{ background: '#4338CA' }}>
+  <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: BODY }}>
+    <span
+      className="w-[54px] h-[54px] flex items-center justify-center"
+      style={{ background: '#FCF1DC', border: '1px solid #E8A33D', borderRadius: 16, color: '#B87A22' }}
+    >
+      <Lock size={22} />
+    </span>
+    <p className="mt-1 text-[16px] font-extrabold text-center text-ink">{title}</p>
+    <p className="text-[12.5px] text-center leading-snug max-w-[260px]" style={{ color: '#6B7C66' }}>{sub}</p>
+    <button
+      onClick={onBack}
+      className="mt-2 w-full max-w-[240px] h-[50px] text-[14px] font-extrabold"
+      style={AMBER_BTN}
+    >
       {cta}
     </button>
   </div>

@@ -1,56 +1,61 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Check, ChevronRight, Copy, Search, Sigma, Swords, X } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
 import { PROBLEM_SETS } from '../data/content'
+import { BODY, CARD, INK_BTN, LIME_BTN, OUT_BTN } from '../styles/solver'
 
-const FORMULAS = [
+interface Formula { title: string; formula: string; desc: string }
+interface Group { cat: string; rail: string; tint: string; ink: string; items: Formula[] }
+
+/**
+ * Formulalar qo'llanmasi — "davotar" varaq tilida.
+ * Har mavzu o'z rengi (chap reys + tint) bilan belgilanadi.
+ */
+const FORMULAS: Group[] = [
   {
-    cat:   'Algebra',
-    color: '#4338CA',
-    tint:  '#EEF2FF',
+    cat: 'Algebra',
+    rail: '#5FAF22', tint: '#DDF3DC', ink: '#0B4A34',
     items: [
-      { title: 'Viyet Teoremasi',           formula: 'x₁ + x₂ = −b/a  ·  x₁ · x₂ = c/a',         desc: 'Kvadrat tenglama ildizlari xossasi' },
-      { title: 'Qisqa ko\'paytirish (kub)',  formula: 'a³ ± b³ = (a ± b)(a² ∓ ab + b²)',           desc: 'Kublar yig\'indisi va ayirmasi' },
-      { title: 'Arifmetik progressiya',     formula: 'Sₙ = n(a₁ + aₙ)/2 = n(2a₁ + d(n−1))/2',    desc: 'n ta hadning yig\'indisi' },
+      { title: 'Viyet Teoremasi', formula: 'x₁ + x₂ = −b/a  ·  x₁ · x₂ = c/a', desc: 'Kvadrat tenglama ildizlari xossasi' },
+      { title: 'Qisqa ko\'paytirish (kub)', formula: 'a³ ± b³ = (a ± b)(a² ∓ ab + b²)', desc: 'Kublar yig\'indisi va ayirmasi' },
+      { title: 'Arifmetik progressiya', formula: 'Sₙ = n(a₁ + aₙ)/2 = n(2a₁ + d(n−1))/2', desc: 'n ta hadning yig\'indisi' },
     ],
   },
   {
-    cat:   'Trigonometriya',
-    color: '#7C3AED',
-    tint:  '#F5F3FF',
+    cat: 'Trigonometriya',
+    rail: '#4C7DF0', tint: '#E5ECFE', ink: '#3560C4',
     items: [
-      { title: 'Asosiy tenglik',            formula: 'sin²α + cos²α = 1',                          desc: 'Pythagorean identichlik' },
-      { title: 'Ikkilangan burchak (sin)',  formula: 'sin(2α) = 2 sin α · cos α',                  desc: 'Ikkilangan burchak formulasi' },
-      { title: 'Keltirish formulasi',       formula: 'sin(π/2 − α) = cos α  ·  cos(π/2 − α) = sin α', desc: 'π/2 bo\'yicha reduksiya' },
+      { title: 'Asosiy tenglik', formula: 'sin²α + cos²α = 1', desc: 'Pythagorean identichlik' },
+      { title: 'Ikkilangan burchak (sin)', formula: 'sin(2α) = 2 sin α · cos α', desc: 'Ikkilangan burchak formulasi' },
+      { title: 'Keltirish formulasi', formula: 'sin(π/2 − α) = cos α  ·  cos(π/2 − α) = sin α', desc: 'π/2 bo\'yicha reduksiya' },
     ],
   },
   {
-    cat:   'Analiz',
-    color: '#059669',
-    tint:  '#ECFDF5',
+    cat: 'Analiz',
+    rail: '#E8A33D', tint: '#FCF1DC', ink: '#B87A22',
     items: [
-      { title: 'Zanjir qoidasi',            formula: '(f(g(x)))′ = f′(g(x)) · g′(x)',             desc: 'Murakkab funksiya hosilasi' },
-      { title: 'Integratsiya qoidasi',      formula: '∫xⁿ dx = xⁿ⁺¹/(n+1) + C, (n ≠ −1)',       desc: 'Daraja funksiyasi integrali' },
+      { title: 'Zanjir qoidasi', formula: '(f(g(x)))′ = f′(g(x)) · g′(x)', desc: 'Murakkab funksiya hosilasi' },
+      { title: 'Integratsiya qoidasi', formula: '∫xⁿ dx = xⁿ⁺¹/(n+1) + C, (n ≠ −1)', desc: 'Daraja funksiyasi integrali' },
     ],
   },
   {
-    cat:   'Geometriya',
-    color: '#D97706',
-    tint:  '#FFFBEB',
+    cat: 'Geometriya',
+    rail: '#D9534F', tint: '#FBE9E7', ink: '#8C2F2C',
     items: [
-      { title: 'Kosinuslar teoremasi',      formula: 'a² = b² + c² − 2bc · cos(α)',               desc: 'Ixtiyoriy uchburchak uchun' },
-      { title: 'Aylana uzunligi / yuza',    formula: 'C = 2πr  ·  S = πr²',                        desc: 'Radius orqali' },
+      { title: 'Kosinuslar teoremasi', formula: 'a² = b² + c² − 2bc · cos(α)', desc: 'Ixtiyoriy uchburchak uchun' },
+      { title: 'Aylana uzunligi / yuza', formula: 'C = 2πr  ·  S = πr²', desc: 'Radius orqali' },
     ],
   },
 ]
 
 const FormulasScreen = () => {
   const navigate = useNavigate()
-  const [search, setSearch]     = useState('')
+  const [search, setSearch] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [activeCat, setActiveCat] = useState<string | null>(null)
-  const [detail, setDetail] = useState<{ cat: string; color: string; title: string; formula: string; desc: string } | null>(null)
+  const [detail, setDetail] = useState<{ cat: string; rail: string; tint: string; ink: string; title: string; formula: string; desc: string } | null>(null)
 
   const handleCopy = (text: string, id: string) => {
     triggerHaptic('success')
@@ -70,127 +75,155 @@ const FormulasScreen = () => {
     }))
     .filter(g => g.items.length > 0)
 
+  const total = FORMULAS.reduce((n, g) => n + g.items.length, 0)
+
   return (
-    <div className="min-h-screen pb-24 select-none font-sans" style={{ background: '#F1F4F9' }}>
+    <div className="min-h-screen pb-24 select-none font-sans" style={{ background: BODY }}>
 
-      {/* Header */}
-      <header className="px-4 pt-4 pb-3" style={{ background: '#F1F4F9' }}>
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-extrabold" style={{ color: '#0F172A' }}>Formulalar</h1>
-          <button
-            onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
-            style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}
-          >
-            ⚔️ Blitz Duel
-          </button>
-        </div>
-
-        {/* Search */}
-        <div
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+      {/* ── Header ── */}
+      <header className="flex items-center justify-between px-4 pt-5 pb-3">
+        <button
+          onClick={() => { triggerHaptic('light'); navigate(-1) }}
+          aria-label="Orqaga"
+          className="w-[38px] h-[38px] flex items-center justify-center shrink-0 active:scale-[0.96] transition-transform"
+          style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="#94A3B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          <ChevronRight size={17} style={{ transform: 'rotate(180deg)' }} />
+        </button>
+        <div className="flex-1 min-w-0 px-3 text-center">
+          <p className="text-tiny uppercase tracking-[0.16em] font-extrabold" style={{ color: '#6B7C66' }}>
+            Qo'llanma
+          </p>
+          <p className="mt-0.5 text-[15px] font-extrabold leading-none text-ink">Formulalar</p>
+        </div>
+        <button
+          onClick={() => { triggerHaptic('medium'); navigate('/blitz') }}
+          className="flex items-center gap-1.5 h-[38px] px-2.5 shrink-0 active:scale-[0.96] transition-transform"
+          style={{ background: '#FCF1DC', border: '1px solid #E8A33D', borderRadius: 12, color: '#B87A22' }}
+          aria-label="Blitz Duel"
+        >
+          <Swords size={15} />
+          <span className="num text-[11px] font-extrabold uppercase">Blitz</span>
+        </button>
+      </header>
+
+      {/* ── Qidiruv ── */}
+      <section className="px-4 mb-3">
+        <div className="flex items-center gap-2.5 px-3.5 h-[48px]" style={CARD}>
+          <Search size={16} style={{ color: '#9AA995' }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Formula qidirish..."
-            className="flex-1 text-sm outline-none bg-transparent"
-            style={{ color: '#0F172A' }}
+            placeholder="Formula yoki mavzu qidirish..."
+            className="flex-1 text-[13.5px] font-semibold outline-none bg-transparent"
+            style={{ color: '#0E1A12' }}
           />
           {search && (
-            <button onClick={() => setSearch('')} style={{ color: '#94A3B8', fontSize: '18px', lineHeight: 1 }}>×</button>
-          )}
-        </div>
-      </header>
-
-      {/* Category chips */}
-      <section className="px-4 mb-4">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => { triggerHaptic('selection'); setActiveCat(null) }}
-            className="flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-bold"
-            style={{
-              background: !activeCat ? '#4338CA' : '#FFFFFF',
-              color:      !activeCat ? '#FFFFFF'  : '#94A3B8',
-              border:     '1px solid',
-              borderColor: !activeCat ? '#4338CA' : '#E2E8F0',
-            }}
-          >
-            Barchasi
-          </button>
-          {FORMULAS.map(g => (
-            <button
-              key={g.cat}
-              onClick={() => { triggerHaptic('selection'); setActiveCat(activeCat === g.cat ? null : g.cat) }}
-              className="flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-bold"
-              style={{
-                background: activeCat === g.cat ? g.color : '#FFFFFF',
-                color:      activeCat === g.cat ? '#FFFFFF' : '#334155',
-                border:     '1px solid',
-                borderColor: activeCat === g.cat ? g.color : '#E2E8F0',
-              }}
-            >
-              {g.cat}
+            <button onClick={() => setSearch('')} aria-label="Tozalash" style={{ color: '#9AA995', lineHeight: 1 }}>
+              <X size={16} />
             </button>
-          ))}
+          )}
         </div>
       </section>
 
-      {/* Formula groups */}
+      {/* ── Mavzu chiplari ── */}
+      <section className="px-4 mb-4">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => { triggerHaptic('selection'); setActiveCat(null) }}
+            className="num flex-shrink-0 h-[34px] px-3 text-[11px] font-extrabold uppercase tracking-[0.06em] active:scale-[0.97] transition-transform"
+            style={!activeCat
+              ? INK_BTN
+              : { background: '#FFFFFF', border: '1px solid #E1E7DA', color: '#6B7C66', borderRadius: 10 }}
+          >
+            Barchasi · {total}
+          </button>
+          {FORMULAS.map(g => {
+            const on = activeCat === g.cat
+            return (
+              <button
+                key={g.cat}
+                onClick={() => { triggerHaptic('selection'); setActiveCat(on ? null : g.cat) }}
+                className="flex-shrink-0 h-[34px] pl-2 pr-3 flex items-center gap-2 active:scale-[0.97] transition-transform"
+                style={{
+                  background: on ? g.tint : '#FFFFFF',
+                  border: `1px solid ${on ? g.rail : '#E1E7DA'}`,
+                  borderRadius: 10,
+                  color: on ? g.ink : '#6B7C66',
+                }}
+              >
+                <span className="w-[5px] h-[16px]" style={{ background: g.rail, borderRadius: 3 }} />
+                <span className="text-[11.5px] font-extrabold uppercase">{g.cat}</span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* ── Formulalar varaqlari ── */}
       <section className="px-4 space-y-5">
         {filtered.map(group => (
           <div key={group.cat}>
-            <div className="flex items-center gap-2 mb-2.5">
+            <div className="flex items-center gap-2.5 mb-2 px-1">
+              <p className="num text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: '#33452F' }}>
+                {group.cat}
+              </p>
+              <span className="flex-1 h-px" style={{ background: '#CFD9C6' }} />
               <span
-                className="w-1.5 h-4 rounded-full"
-                style={{ background: group.color }}
-              />
-              <h3 className="text-sm font-bold" style={{ color: '#0F172A' }}>{group.cat}</h3>
+                className="num text-[10px] font-extrabold px-1.5 py-0.5"
+                style={{ background: group.tint, color: group.ink, borderRadius: 6 }}
+              >
+                {group.items.length}
+              </span>
             </div>
 
-            <div className="space-y-2">
+            <div style={{ ...CARD, borderRadius: 16 }}>
               {group.items.map((f, i) => {
                 const id = `${group.cat}-${i}`
                 const copied = copiedId === id
                 return (
-                  <div
+                  <button
                     key={i}
-                    onClick={() => { triggerHaptic('light'); setDetail({ cat: group.cat, color: group.color, title: f.title, formula: f.formula, desc: f.desc }) }}
-                    className="rounded-xl overflow-hidden cursor-pointer active:scale-[0.99] transition-transform"
-                    style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+                    onClick={() => {
+                      triggerHaptic('light')
+                      setDetail({ cat: group.cat, rail: group.rail, tint: group.tint, ink: group.ink, title: f.title, formula: f.formula, desc: f.desc })
+                    }}
+                    className="relative w-full overflow-hidden text-left active:scale-[0.995] transition-transform"
+                    style={{
+                      borderTop: i === 0 ? 'none' : '1px solid #EDF1E7',
+                      borderRadius: i === 0 ? '16px 16px 0 0' : i === group.items.length - 1 ? '0 0 16px 16px' : 0,
+                      background: '#FFFFFF',
+                    }}
                   >
-                    {/* Title row */}
-                    <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
-                      <div>
-                        <p className="text-sm font-bold" style={{ color: '#0F172A' }}>{f.title}</p>
-                        <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{f.desc}</p>
+                    <span className="absolute left-0 top-0 bottom-0" style={{ width: 4, background: group.rail }} />
+                    <div className="pl-4 pr-3.5 py-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13.5px] font-extrabold leading-tight text-ink">{f.title}</p>
+                          <p className="mt-1 text-[11.5px] font-semibold leading-snug" style={{ color: '#6B7C66' }}>{f.desc}</p>
+                        </div>
+                        <span
+                          onClick={e => { e.stopPropagation(); handleCopy(f.formula, id) }}
+                          className="w-[30px] h-[30px] flex items-center justify-center shrink-0"
+                          style={{
+                            background: copied ? '#DDF3DC' : group.tint,
+                            color: copied ? '#0B6E4F' : group.ink,
+                            borderRadius: 9,
+                          }}
+                          aria-label="Nusxa olish"
+                        >
+                          {copied ? <Check size={14} /> : <Copy size={13} />}
+                        </span>
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleCopy(f.formula, id) }}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all"
-                        style={{
-                          background: copied ? '#ECFDF5'  : group.tint,
-                          color:      copied ? '#059669'  : group.color,
-                          border:     `1px solid ${copied ? '#A7F3D0' : 'transparent'}`,
-                        }}
-                      >
-                        {copied ? '✓ Nusxa' : 'Nusxa'}
-                      </button>
-                    </div>
 
-                    {/* Formula */}
-                    <div
-                      className="mx-3 mb-3 p-3 rounded-lg font-mono text-sm text-center leading-relaxed"
-                      style={{ background: group.tint, color: group.color, fontWeight: 700 }}
-                    >
-                      {f.formula}
+                      <div
+                        className="mt-3 px-3 py-2.5 font-mono text-[12.5px] text-center leading-relaxed font-bold"
+                        style={{ background: '#FBFCF8', border: '1px solid #E1E7DA', borderRadius: 10, color: group.ink }}
+                      >
+                        {f.formula}
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -198,14 +231,22 @@ const FormulasScreen = () => {
         ))}
 
         {filtered.length === 0 && (
-          <div className="text-center py-16" style={{ color: '#94A3B8' }}>
-            <p className="text-4xl mb-3">🔍</p>
-            <p className="text-sm font-medium">Hech narsa topilmadi</p>
+          <div className="py-14 text-center">
+            <span
+              className="inline-flex w-[52px] h-[52px] items-center justify-center mb-3"
+              style={{ background: '#EDF7DE', border: '1px solid #CFD9C6', borderRadius: 16, color: '#9AA995' }}
+            >
+              <Search size={20} />
+            </span>
+            <p className="text-[14px] font-extrabold text-ink">Hech narsa topilmadi</p>
+            <p className="mt-1 text-[12px] font-medium" style={{ color: '#6B7C66' }}>
+              Boshqa mavzu yoki formula belgisini sinab ko'ring.
+            </p>
           </div>
         )}
       </section>
 
-      {/* Formula detail modal */}
+      {/* ── Formula tafsilotlari ── */}
       <AnimatePresence>
         {detail && (
           <>
@@ -213,31 +254,41 @@ const FormulasScreen = () => {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setDetail(null)}
               className="fixed inset-0 z-50"
-              style={{ background: 'rgba(15,23,42,0.55)' }}
+              style={{ background: 'rgba(14,26,18,0.55)' }}
             />
             <motion.div
               initial={{ y: 70, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 70, opacity: 0 }}
               transition={{ type: 'spring', damping: 28, stiffness: 360 }}
-              className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto p-6"
-              style={{ background: '#FFFFFF', borderRadius: '24px 24px 0 0' }}
+              className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto px-5 pt-3 pb-6"
+              style={{ background: '#FFFFFF', borderRadius: '18px 18px 0 0', boxShadow: '0 -12px 32px rgba(14,26,18,0.18)' }}
             >
-              <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E2E8F0' }} />
+              <div className="w-10 h-[5px] rounded-full mx-auto mb-4" style={{ background: '#E1E7DA' }} />
               <span
-                className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mb-2"
-                style={{ background: '#F1F4F9', color: detail.color }}
+                className="num inline-block text-[10px] font-extrabold uppercase tracking-[0.1em] px-2 py-1 mb-2"
+                style={{ background: detail.tint, color: detail.ink, borderRadius: 7 }}
               >
                 {detail.cat}
               </span>
-              <h3 className="text-lg font-extrabold mb-1" style={{ color: '#0F172A' }}>{detail.title}</h3>
-              <p className="text-xs mb-4" style={{ color: '#94A3B8' }}>{detail.desc}</p>
+              <h3 className="text-[18px] font-extrabold leading-tight text-ink">{detail.title}</h3>
+              <p className="mt-1.5 text-[12.5px] font-semibold" style={{ color: '#6B7C66' }}>{detail.desc}</p>
+
               <div
-                className="p-4 rounded-xl font-mono text-sm text-center leading-relaxed mb-5"
-                style={{ background: '#F1F4F9', color: detail.color, fontWeight: 700 }}
+                className="relative mt-4 overflow-hidden"
+                style={{ background: 'linear-gradient(165deg, #0E1A12 0%, #123B24 72%, #164A2C 100%)', borderRadius: 16 }}
               >
-                {detail.formula}
+                <span className="absolute left-0 top-0 bottom-0" style={{ width: 5, background: detail.rail }} />
+                <div className="pl-5 pr-4 py-5">
+                  <p className="num text-[10px] font-extrabold uppercase tracking-[0.14em]" style={{ color: 'rgba(205,233,174,0.5)' }}>
+                    Formula
+                  </p>
+                  <p className="mt-2.5 font-mono text-[15px] font-bold leading-relaxed text-center" style={{ color: '#F7FCED' }}>
+                    {detail.formula}
+                  </p>
+                </div>
               </div>
+
               <button
                 onClick={() => {
                   triggerHaptic('medium')
@@ -245,15 +296,15 @@ const FormulasScreen = () => {
                   setDetail(null)
                   navigate(setId ? `/problems/${setId}` : '/problems')
                 }}
-                className="w-full py-3.5 rounded-xl font-bold text-white text-sm mb-2.5"
-                style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)', boxShadow: '0 4px 16px rgba(67,56,202,0.28)' }}
+                className="mt-4 w-full h-[52px] text-[14.5px] font-extrabold flex items-center justify-center gap-2 active:scale-[0.985] transition-transform"
+                style={LIME_BTN}
               >
-                📝 Formula bo'yicha testni boshlash →
+                <Sigma size={16} /> Bu mavzuda masala yechish
               </button>
               <button
                 onClick={() => setDetail(null)}
-                className="w-full py-3 text-sm font-medium rounded-xl"
-                style={{ background: '#F1F4F9', color: '#64748B' }}
+                className="mt-2.5 w-full h-[46px] text-[13.5px] font-extrabold active:scale-[0.985] transition-transform"
+                style={OUT_BTN}
               >
                 Yopish
               </button>
@@ -262,17 +313,18 @@ const FormulasScreen = () => {
         )}
       </AnimatePresence>
 
-      {/* Toast */}
+      {/* ── Toast ── */}
       <AnimatePresence>
         {copiedId && (
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 30, opacity: 0 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white z-50"
-            style={{ background: '#059669', boxShadow: '0 4px 16px rgba(5,150,105,0.3)' }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3.5 py-2.5 z-50"
+            style={{ background: '#0E1A12', borderRadius: 12, boxShadow: '0 10px 24px rgba(14,26,18,0.28)' }}
           >
-            ✓ Formula nusxalandi
+            <Check size={14} style={{ color: '#9BE04B' }} />
+            <span className="text-[12.5px] font-extrabold" style={{ color: '#CDE9AE' }}>Formula nusxalandi</span>
           </motion.div>
         )}
       </AnimatePresence>

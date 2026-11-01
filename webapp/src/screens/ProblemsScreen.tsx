@@ -1,45 +1,31 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Check, ChevronLeft, ChevronRight, ClipboardList, Coins, Compass, Flame, Infinity as InfinityIcon,
-  ListFilter, Lock, Play, Sigma, Trophy, Triangle, Zap,
+  ArrowRight, Check, ChevronRight, ClipboardList, Clock, Coins, Compass, Flame,
+  Infinity as InfinityIcon, Sigma, Triangle, Trophy, Zap,
 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
-import { PROBLEM_SETS, EXAM_SET, dailyProblem, type ProblemSet } from '../data/content'
-import { useApp, DAILY_BONUS } from '../store/useStore'
+import { EXAM_SET, MISSION_REWARDS, PROBLEM_SETS, dailyProblem, DAILY_BONUS, type ProblemSet } from '../data/content'
+import { useApp } from '../store/useStore'
+import { AMBER_BTN, BODY, CARD, INK_BTN, LIME_BTN, OUT_BTN } from '../styles/solver'
 
-const WHITE_CARD = {
-  background: '#FFFFFF',
-  border: '1px solid #E3E8DE',
-  boxShadow: '0 2px 10px rgba(28,50,20,0.04)',
-}
+/**
+ * Masalalar — mintaqaviy "davotar" tili.
+ * Home doira/pill morfologiyasida ishlaydi; bu ekran ataylab burchakli:
+ * kvadrat chip, chap reysli qatorlar, ledger ustunlari va ticket-karta.
+ */
 
-const sectionTitle = 'text-[17px] font-extrabold text-ink'
-const limeBtn = {
-  background: 'linear-gradient(150deg, #9BE04B 0%, #7ED321 100%)',
-  color: '#1C3214',
-  boxShadow: '0 6px 14px rgba(95,175,34,0.34), inset 0 1px 0 rgba(255,255,255,0.55)',
+const DIFF_RAIL: Record<string, string> = {
+  oson: '#7ED321',
+  "o'rta": '#E8A33D',
+  qiyin: '#D9534F',
 }
-const ghostBtn = { background: '#FFFFFF', color: '#33452F', border: '1px solid #E4E9DD' }
-const lockedBtn = {
-  background: 'linear-gradient(150deg, #F6D8A6 0%, #E8A33D 100%)',
-  color: '#0E1A12',
-  boxShadow: '0 6px 14px rgba(232,163,61,0.28), inset 0 1px 0 rgba(255,255,255,0.5)',
-}
-
-const TOPIC_ICON: Record<string, React.ReactNode> = {
-  Algebra: <Sigma size={17} />,
-  Geometriya: <Triangle size={17} />,
-  Trigonometriya: <Compass size={17} />,
-  Analiz: <InfinityIcon size={17} />,
-  Olimpiada: <Trophy size={17} />,
-}
-const TOPIC_TINT: Record<string, { bg: string; fg: string }> = {
-  Algebra: { bg: '#DDF3DC', fg: '#0B6E4F' },
-  Geometriya: { bg: '#EFF2EC', fg: '#6B7C66' },
-  Trigonometriya: { bg: '#E6F5D2', fg: '#1B9A6B' },
-  Analiz: { bg: '#E5ECFE', fg: '#3560C4' },
-  Olimpiada: { bg: '#FCF1DC', fg: '#B87A22' },
+const TOPIC_GLYPH: Record<string, React.ReactNode> = {
+  Algebra: <Sigma size={13} />,
+  Geometriya: <Triangle size={13} />,
+  Trigonometriya: <Compass size={13} />,
+  Analiz: <InfinityIcon size={13} />,
+  Olimpiada: <Trophy size={13} />,
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -68,18 +54,6 @@ const TIERS = [
   { name: 'Olimpiada', need: 20 },
 ]
 
-type Mode = {
-  icon: React.ReactNode
-  tint: string
-  fg: string
-  name: string
-  desc: string
-  coin: number
-  cta: string
-  pro?: boolean
-  run: () => void
-}
-
 const ProblemsScreen = () => {
   const navigate = useNavigate()
 
@@ -96,6 +70,7 @@ const ProblemsScreen = () => {
   const claimMission = useApp(s => s.claimMission)
   const unlockSet = useApp(s => s.unlockSet)
   const canOpenSet = useApp(s => s.canOpenSet)
+  const dailyBonusOn = useApp(s => s.dailyBonusOn)
 
   const [cat, setCat] = useState('Barchasi')
   const [remain, setRemain] = useState(msToMidnight)
@@ -107,7 +82,6 @@ const ProblemsScreen = () => {
   }, [rollDay])
 
   const daily = useMemo(() => dailyProblem(), [])
-  const dailyBonusOn = useApp(s => s.dailyBonusOn)
   const dailyClaimed = dailyBonusOn === new Date().toISOString().slice(0, 10)
 
   const categories = useMemo(
@@ -141,55 +115,58 @@ const ProblemsScreen = () => {
     {
       key: 'solve5',
       label: 'Bugun 5 ta masala yech',
-      reward: 20,
-      done: solvedToday >= 5,
-      progress: `${Math.min(solvedToday, 5)}/5`,
+      reward: MISSION_REWARDS.solve5,
+      ratio: Math.min(solvedToday, 5) / 5,
+      detail: `${Math.min(solvedToday, 5)}/5`,
     },
     {
       key: 'streak',
       label: "Streak'ni davom ettir",
-      reward: 10,
-      done: streak > 0,
-      progress: streak > 0 ? `${streak} kun` : '0 kun',
+      reward: MISSION_REWARDS.streak,
+      ratio: streak > 0 ? 1 : 0,
+      detail: streak > 0 ? `${streak} kun` : '0 kun',
     },
     {
       key: 'olymp',
       label: 'Bitta olimpiada masalasi yech',
-      reward: 50,
-      done: olympToday >= 1,
-      progress: `${Math.min(olympToday, 1)}/1`,
+      reward: MISSION_REWARDS.olymp,
+      ratio: Math.min(olympToday, 1) / 1,
+      detail: `${Math.min(olympToday, 1)}/1`,
     },
   ]
 
-  const modes: Mode[] = [
+  const modes = [
     {
-      icon: <Zap size={18} />,
-      tint: '#FCF1DC',
-      fg: '#E8A33D',
+      key: 'blitz',
+      icon: <Zap size={17} />,
+      tile: '#FCF1DC',
+      fg: '#B87A22',
       name: 'Tezkor Blitz',
-      desc: '5 daqiqada 10 ta masala',
+      desc: "5 daqiqada 10 ta masala",
       coin: 50,
-      cta: 'Boshlash',
+      pro: false,
       run: () => { triggerHaptic('medium'); navigate('/blitz') },
     },
     {
-      icon: <Flame size={18} />,
-      tint: '#FCF1DC',
-      fg: '#B87A22',
+      key: 'streak',
+      icon: <Flame size={17} />,
+      tile: '#FDE8E4',
+      fg: '#C2410C',
       name: 'Streak Seriya',
-      desc: "Ketma-ket 10 ta to'g'ri javob — 2x bonus",
+      desc: "Ketma-ket 10 ta — 2x bonus",
       coin: 100,
-      cta: 'Boshlash',
+      pro: false,
       run: () => { triggerHaptic('medium'); navigate('/problems/ps-streak') },
     },
     {
-      icon: <Compass size={18} />,
-      tint: '#DDF3DC',
+      key: 'topic',
+      icon: <ClipboardList size={17} />,
+      tile: '#DDF3DC',
       fg: '#0B6E4F',
-      name: 'Mavzu bo\'yicha',
-      desc: "O'zingiz mavzu tanlang",
+      name: "Mavzu bo'yicha",
+      desc: "O'zingiz mavzuni tanlang",
       coin: 25,
-      cta: 'Tanlash',
+      pro: false,
       run: () => {
         triggerHaptic('selection')
         setCat('Barchasi')
@@ -197,13 +174,13 @@ const ProblemsScreen = () => {
       },
     },
     {
-      icon: <ClipboardList size={18} />,
-      tint: '#E5ECFE',
+      key: 'exam',
+      icon: <Trophy size={17} />,
+      tile: '#E5ECFE',
       fg: '#3560C4',
       name: 'Sinov',
       desc: `${EXAM_SET.questions.length} ta savollik to'liq test`,
       coin: 150,
-      cta: 'Boshlash',
       pro: true,
       run: () => {
         if (!isPro) {
@@ -222,139 +199,300 @@ const ProblemsScreen = () => {
     return [...RIVALS.map(r => ({ ...r, me: false })), me].sort((a, b) => b.coin - a.coin)
   }, [coin])
 
+  const meRank = board.findIndex(u => u.me) + 1
+
   return (
-    <div
-      className="relative min-h-screen overflow-x-hidden font-sans pb-10 select-none"
-      style={{ background: 'linear-gradient(180deg, #CDE9AE 0%, #E6F5D2 40%, #F7FCED 76%)' }}
-    >
-      <div className="absolute inset-x-0 top-0 h-[300px] grid-paper opacity-60 pointer-events-none" />
+    <div className="min-h-screen pb-28 select-none font-sans" style={{ background: BODY }}>
 
-      <div className="relative z-10 px-5">
-        {/* ── 1. Header ── */}
-        <header className="safe-top flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => { triggerHaptic('light'); navigate('/home') }}
-              className="w-[38px] h-[38px] rounded-full flex items-center justify-center active:scale-95 transition-transform"
-              style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(28,50,20,0.08)' }}
-              aria-label="Orqaga"
-            >
-              <ChevronLeft size={18} className="text-ink-2" />
-            </button>
-            <h1 className="text-[24px] font-extrabold text-ink tracking-[-0.028em]">Masalalar</h1>
-          </div>
-
-          <button
-            onClick={() => { triggerHaptic('light'); navigate('/shop') }}
-            className="flex items-center gap-1.5 h-[32px] px-3 rounded-full active:scale-[0.97] transition-transform"
-            style={{ background: '#FCF1DC', border: '1px solid rgba(232,163,61,0.38)' }}
-          >
-            <Coins size={14} style={{ color: '#E8A33D' }} />
-            <span className="num text-[12.5px] font-extrabold" style={{ color: '#B87A22' }}>
-              {coin.toLocaleString('en-US')} coin
-            </span>
-          </button>
-        </header>
-
-        <div className="flex items-center gap-2.5 mt-4">
-          <span
-            className="flex items-center gap-1.5 h-[32px] px-3 rounded-full"
-            style={{ background: '#FFFFFF', border: '1px solid #E3E8DE' }}
-          >
-            <Flame size={14} style={{ color: '#E8A33D' }} />
-            <span className="text-[12.5px] font-extrabold text-ink num">{streak} kunlik streak</span>
-          </span>
-          <span
-            className="flex items-center gap-1.5 h-[32px] px-3 rounded-full"
-            style={{ background: '#FFFFFF', border: '1px solid #E3E8DE' }}
-          >
-            <Check size={14} className="text-brand" strokeWidth={3} />
-            <span className="text-[12.5px] font-extrabold text-ink num">{solvedCount} ta yechilgan</span>
-          </span>
-        </div>
-
-        {/* ── 2. Kunlik mega masala ── */}
-        <section className="mt-5">
-          <div
-            className="relative overflow-hidden rounded-[20px] p-4"
-            style={{
-              background: 'linear-gradient(140deg, #063F2E 0%, #0B6E4F 58%, #1B9A6B 100%)',
-              boxShadow: '0 14px 32px rgba(6,63,46,0.26)',
-            }}
-          >
-            <div className="flex items-center justify-between">
+      {/* ── 1. Header: siyoh varaq + ledger ── */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(165deg, #0E1A12 0%, #123B24 72%, #164A2C 100%)',
+          borderRadius: '0 0 26px 26px',
+          boxShadow: '0 16px 32px rgba(14,26,18,0.20)',
+        }}
+      >
+        <div className="relative z-10 px-5 safe-top">
+          <div className="flex items-center justify-between pt-3">
+            <div className="flex items-center gap-3">
               <span
-                className="text-tiny uppercase px-2.5 py-1.5 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.14)', color: '#EAF7DC', border: '1px solid rgba(205,233,174,0.28)' }}
+                className="w-[38px] h-[38px] flex items-center justify-center text-[15px] font-extrabold"
+                style={{ background: 'rgba(205,233,174,0.12)', border: '1px solid rgba(205,233,174,0.22)', borderRadius: 12, color: '#9BE04B', fontFamily: 'serif' }}
               >
-                Kunlik Mega Masala
+                <Sigma size={18} />
               </span>
-              <span className="num text-[12.5px] font-extrabold text-leaf-bright">{clock(remain)}</span>
+              <div>
+                <h1 className="text-[21px] font-extrabold tracking-[-0.028em]" style={{ color: '#F7FCED' }}>
+                  Masalalar
+                </h1>
+                <p className="text-tiny uppercase tracking-[0.12em]" style={{ color: 'rgba(205,233,174,0.5)' }}>
+                  Yech · mustahkamla · coin yig'
+                </p>
+              </div>
             </div>
 
-            <p className="mt-3.5 text-[11px] font-extrabold uppercase tracking-[0.09em]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              {daily.set.topic} · {daily.set.grade}
-            </p>
-            <p className="mt-1.5 font-mono text-[14px] leading-snug text-leaf-bright">{daily.question.prompt}</p>
+            <button
+              onClick={() => { triggerHaptic('light'); navigate('/shop') }}
+              className="flex items-center gap-1.5 h-[34px] px-3 active:scale-[0.97] transition-transform"
+              style={{ background: 'rgba(232,163,61,0.14)', border: '1px solid rgba(232,163,61,0.38)', borderRadius: 12 }}
+            >
+              <Coins size={14} style={{ color: '#F3C88A' }} />
+              <span className="num text-[13px] font-extrabold" style={{ color: '#F3C88A' }}>
+                {coin.toLocaleString('en-US')}
+              </span>
+            </button>
+          </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+          <div className="mt-4 flex items-stretch">
+            {[
+              { v: `${streak}`, u: 'kunlik streak', icon: <Flame size={12} />, c: '#F3C88A' },
+              { v: `${solvedCount}`, u: 'ta yechilgan', icon: <Check size={12} />, c: '#9BE04B' },
+              { v: `${solvedToday}`, u: 'bugun', icon: <Zap size={12} />, c: '#CDE9AE' },
+            ].map((cell, i) => (
+              <div key={cell.u} className="flex-1 flex items-center">
+                {i > 0 && <span className="w-px self-stretch" style={{ background: 'rgba(205,233,174,0.14)' }} />}
+                <div className="flex-1 px-3">
+                  <p className="num text-[20px] font-extrabold leading-none" style={{ color: '#F7FCED' }}>{cell.v}</p>
+                  <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.06em]"
+                    style={{ color: 'rgba(205,233,174,0.55)' }}>
+                    <span style={{ color: cell.c }}>{cell.icon}</span>{cell.u}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="h-4" />
+      </div>
+
+      <div className="px-5">
+        {/* ── 2. Kunlik mega masala — ticket ── */}
+        <section className="relative -mt-1">
+          <div className="relative" style={{ ...CARD, borderRadius: 16, boxShadow: '0 8px 22px rgba(14,26,18,0.08)' }}>
+            <span
+              className="absolute left-0 top-0 bottom-0"
+              style={{ width: 6, borderRadius: '16px 0 0 16px', background: 'linear-gradient(180deg, #9BE04B 0%, #5FAF22 100%)' }}
+            />
+            <div className="pl-5 pr-4 py-4">
+              <div className="flex items-center justify-between">
+                <p className="text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: '#6B7C66' }}>
+                  Kunlik Mega Masala
+                </p>
                 <span
-                  className="flex items-center gap-1 h-[28px] px-2.5 rounded-full text-[11.5px] font-extrabold num"
-                  style={{ background: 'rgba(232,163,61,0.18)', color: '#F3C88A', border: '1px solid rgba(232,163,61,0.42)' }}
+                  className="num flex items-center gap-1 h-[26px] px-2 text-[12px] font-extrabold"
+                  style={{ background: '#F6F8F3', border: '1px solid #E1E7DA', borderRadius: 8, color: '#33452F' }}
                 >
-                  <Coins size={12} /> +{DAILY_BONUS.coin} coin
+                  <Clock size={12} style={{ color: '#9AA995' }} />
+                  {clock(remain)}
                 </span>
-                <span
-                  className="flex items-center gap-1 h-[28px] px-2.5 rounded-full text-[11.5px] font-extrabold num"
-                  style={{ background: 'rgba(126,211,33,0.16)', color: '#AEEA5C', border: '1px solid rgba(126,211,33,0.40)' }}
-                >
-                  <Zap size={12} /> +{DAILY_BONUS.xp} XP
-                </span>
-                {dailyClaimed && (
-                  <span className="text-tiny uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>bugun olindi</span>
-                )}
               </div>
 
-              <button
-                onClick={() => openSet(daily.set)}
-                className="shrink-0 flex items-center gap-1 h-[40px] px-4 rounded-full text-[13px] font-extrabold text-ink active:scale-[0.97] transition-transform"
-                style={{ background: '#FFFFFF', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 8px 18px rgba(6,63,46,0.30)' }}
+              <p className="mt-3 text-[15.5px] font-extrabold leading-tight text-ink">{daily.set.title}</p>
+              <p className="mt-1 text-[11.5px] font-semibold text-ink-4">
+                {daily.set.topic} · {daily.set.grade} · har kuni yangilanadi
+              </p>
+
+              <div
+                className="mt-3 px-3 py-3"
+                style={{ background: '#F6F8F3', border: '1px dashed #CFD9C6', borderRadius: 10 }}
               >
-                Yechish <ChevronRight size={15} />
-              </button>
+                <p className="font-mono text-[13px] leading-snug text-ink">{daily.question.prompt}</p>
+              </div>
+
+              <div className="relative mt-4" style={{ borderTop: '1px dashed #CFD9C6' }}>
+                <span className="absolute -left-[28px] -top-[8px] w-4 h-4 rounded-full" style={{ background: BODY }} />
+                <span className="absolute -right-[24px] -top-[8px] w-4 h-4 rounded-full" style={{ background: BODY }} />
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="flex items-center">
+                  <div className="pr-3">
+                    <p className="num text-[15px] font-extrabold leading-none" style={{ color: '#B87A22' }}>
+                      +{DAILY_BONUS.coin}
+                    </p>
+                    <p className="mt-1 text-[10px] font-bold uppercase" style={{ color: '#9AA995' }}>coin</p>
+                  </div>
+                  <span className="w-px h-[26px]" style={{ background: '#E1E7DA' }} />
+                  <div className="pl-3">
+                    <p className="num text-[15px] font-extrabold leading-none" style={{ color: '#3560C4' }}>
+                      +{DAILY_BONUS.xp}
+                    </p>
+                    <p className="mt-1 text-[10px] font-bold uppercase" style={{ color: '#9AA995' }}>xp</p>
+                  </div>
+                  {dailyClaimed && (
+                    <span className="ml-3 text-[10.5px] font-bold uppercase" style={{ color: '#9AA995' }}>
+                      bugun olindi
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => openSet(daily.set)}
+                  className="shrink-0 flex items-center gap-1.5 h-[42px] px-4 text-[13px] font-extrabold active:scale-[0.97] transition-transform"
+                  style={LIME_BTN}
+                >
+                  Yechish <ArrowRight size={15} />
+                </button>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ── Kundalik vazifalar ── */}
+        {/* ── 3. Kategoriyalar ── */}
         <section className="mt-6">
-          <h3 className={`${sectionTitle} mb-3`}>Kundalik vazifalar</h3>
-          <div className="space-y-2.5">
-            {missions.map(m => {
+          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-1">
+            {categories.map(c => {
+              const active = cat === c
+              const count = c === 'Barchasi' ? PROBLEM_SETS.length : PROBLEM_SETS.filter(s => s.topic === c).length
+              return (
+                <button
+                  key={c}
+                  onClick={() => { triggerHaptic('selection'); setCat(c) }}
+                  className="shrink-0 flex items-center gap-1.5 h-[38px] px-3.5 text-[12.5px] font-extrabold transition-colors"
+                  style={active ? INK_BTN : { background: '#FFFFFF', color: '#6B7C66', border: '1px solid #E1E7DA', borderRadius: 12 }}
+                >
+                  {c}
+                  <span className="num text-[10.5px] font-bold" style={{ opacity: 0.55 }}>{count}</span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* ── 4. Mashq rejimlari — birlashgan panel ── */}
+        <section className="mt-6">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">Mashq rejimlari</h3>
+            <span className="text-[11px] font-bold" style={{ color: '#9AA995' }}>4 ta</span>
+          </div>
+
+          <div className="overflow-hidden" style={CARD}>
+            <div className="grid grid-cols-2">
+              {modes.map((m, i) => {
+                const proLocked = m.pro && !isPro
+                return (
+                  <button
+                    key={m.key}
+                    onClick={m.run}
+                    className="relative text-left p-3.5 transition-colors active:bg-[#F3F7EE]"
+                    style={{
+                      borderRight: i % 2 === 0 ? '1px solid #EDF1E7' : undefined,
+                      borderTop: i > 1 ? '1px solid #EDF1E7' : undefined,
+                      background: proLocked ? '#FBFCF8' : undefined,
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <span
+                        className="w-[34px] h-[34px] flex items-center justify-center"
+                        style={{ background: m.tile, color: m.fg, borderRadius: 10 }}
+                      >
+                        {m.icon}
+                      </span>
+                      {proLocked && (
+                        <span
+                          className="text-[9.5px] font-black uppercase tracking-[0.08em] px-1.5 py-1"
+                          style={{ background: '#FCF1DC', color: '#B87A22', border: '1px solid rgba(232,163,61,0.4)', borderRadius: 6 }}
+                        >
+                          Pro
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mt-2.5 text-[13.5px] font-extrabold leading-tight text-ink">{m.name}</p>
+                    <p className="mt-1 text-[11px] font-medium leading-snug text-ink-3">{m.desc}</p>
+
+                    <p className="num mt-2 text-[12px] font-extrabold" style={{ color: '#B87A22' }}>
+                      +{m.coin} coin
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 5. O'sish yo'li — segment o'lchagich ── */}
+        <section className="mt-6">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">O'sish yo'li</h3>
+            <span className="num text-[11.5px] font-bold" style={{ color: '#6B7C66' }}>{solvedCount} ta yechildi</span>
+          </div>
+
+          <div style={CARD} className="px-3.5 py-4">
+            <div className="flex gap-1.5">
+              {TIERS.map(t => {
+                const done = solvedCount >= t.need
+                const current = !done && solvedCount >= TIERS[TIERS.indexOf(t) - 1]?.need
+                return (
+                  <span key={t.name} className="flex-1 h-[7px]" style={{
+                    borderRadius: 4,
+                    background: done
+                      ? 'linear-gradient(90deg, #9BE04B, #5FAF22)'
+                      : current ? 'linear-gradient(90deg, #F6D8A6, #E8A33D)' : '#EAEEE3',
+                  }} />
+                )
+              })}
+            </div>
+            <div className="mt-3 flex gap-1.5">
+              {TIERS.map((t, i) => {
+                const done = solvedCount >= t.need
+                const current = !done && solvedCount >= TIERS[i - 1]?.need
+                return (
+                  <div key={t.name} className="flex-1">
+                    <p className="text-[11px] font-extrabold leading-tight"
+                      style={{ color: done ? '#0B6E4F' : current ? '#B87A22' : '#9AA995' }}>{t.name}</p>
+                    <p className="num mt-0.5 text-[10px] font-bold" style={{ color: '#9AA995' }}>
+                      {done ? 'ochiq' : `${t.need}+ masala`}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 6. Kundalik vazifalar — guruhlangan davotar ── */}
+        <section className="mt-6">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">Kundalik vazifalar</h3>
+            <span className="text-[11px] font-bold" style={{ color: '#9AA995' }}>tungi 00:00 gacha</span>
+          </div>
+
+          <div className="overflow-hidden" style={CARD}>
+            {missions.map((m, i) => {
               const claimed = claimedMissions.includes(m.key)
               return (
-                <div key={m.key} className="flex items-center gap-3 rounded-[14px] p-3" style={WHITE_CARD}>
+                <div key={m.key} className="flex items-center gap-3 px-3.5 py-3"
+                  style={i > 0 ? { borderTop: '1px solid #EDF1E7' } : undefined}>
                   <span
-                    className="w-[22px] h-[22px] rounded-[7px] flex items-center justify-center shrink-0"
-                    style={m.done ? limeBtn : { background: '#FFFFFF', border: '1px solid #E4E9DD' }}
+                    className="w-[22px] h-[22px] flex items-center justify-center shrink-0"
+                    style={m.ratio >= 1 ? LIME_BTN : { background: '#F6F8F3', border: '1px solid #E1E7DA', borderRadius: 7 }}
                   >
-                    {m.done && <Check size={13} strokeWidth={3.2} />}
+                    {m.ratio >= 1 && <Check size={13} strokeWidth={3.2} />}
                   </span>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13.5px] font-extrabold text-ink truncate">{m.label}</p>
-                    <p className="mt-0.5 text-tiny">
-                      <span className="num" style={{ color: '#B87A22' }}>+{m.reward} coin</span>
-                      <span className="text-ink-4"> · {m.progress}</span>
-                    </p>
+                    <p className="text-[13px] font-extrabold text-ink">{m.label}</p>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <span className="flex-1 h-[5px] overflow-hidden" style={{ background: '#EAEEE3', borderRadius: 3 }}>
+                        <span className="block h-full" style={{
+                          width: `${m.ratio * 100}%`,
+                          borderRadius: 3,
+                          background: m.ratio >= 1 ? '#5FAF22' : '#E8A33D',
+                          transition: 'width 0.4s ease',
+                        }} />
+                      </span>
+                      <span className="num text-[10.5px] font-bold" style={{ color: '#6B7C66' }}>{m.detail}</span>
+                      <span className="num text-[10.5px] font-extrabold" style={{ color: '#B87A22' }}>+{m.reward}</span>
+                    </div>
                   </div>
 
                   <button
-                    disabled={!m.done || claimed}
+                    disabled={m.ratio < 1 || claimed}
                     onClick={() => { triggerHaptic('success'); claimMission(m.key, m.reward) }}
-                    className="shrink-0 h-[30px] px-3 rounded-full text-[11.5px] font-extrabold transition-opacity"
-                    style={claimed ? ghostBtn : m.done ? limeBtn : { ...ghostBtn, opacity: 0.5 }}
+                    className="shrink-0 h-[32px] px-3 text-[11.5px] font-extrabold transition-opacity"
+                    style={claimed ? { ...OUT_BTN, color: '#9AA995' } : m.ratio >= 1 ? LIME_BTN : { ...OUT_BTN, opacity: 0.5 }}
                   >
                     {claimed ? 'Olindi' : 'Olish'}
                   </button>
@@ -364,158 +502,91 @@ const ProblemsScreen = () => {
           </div>
         </section>
 
-        {/* ── 3. Kategoriyalar ── */}
-        <section className="mt-6">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-1">
-            {categories.map(c => {
-              const active = cat === c
-              return (
-                <button
-                  key={c}
-                  onClick={() => { triggerHaptic('selection'); setCat(c) }}
-                  className="shrink-0 h-[34px] px-4 rounded-full text-[12.5px] font-extrabold transition-colors"
-                  style={active ? { background: '#0B6E4F', color: '#FFFFFF' } : { background: '#EFF2EC', color: '#6B7C66' }}
-                >
-                  {c}
-                </button>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* ── 4. Mashq rejimlari ── */}
-        <section className="mt-6">
-          <h3 className={`${sectionTitle} mb-3`}>Mashq rejimlari</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {modes.map(m => (
-              <button
-                key={m.name}
-                onClick={m.run}
-                className="relative text-left rounded-[16px] p-3.5 active:scale-[0.975] transition-transform"
-                style={WHITE_CARD}
-              >
-                {m.pro && !isPro && (
-                  <span
-                    className="absolute top-3 right-3 text-tiny uppercase px-2 py-1 rounded-full"
-                    style={{ background: '#FCF1DC', color: '#B87A22', border: '1px solid rgba(232,163,61,0.4)' }}
-                  >
-                    PRO
-                  </span>
-                )}
-
-                <span
-                  className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
-                  style={{ background: m.tint, color: m.fg }}
-                >
-                  {m.icon}
-                </span>
-                <p className="mt-3 text-[14px] font-extrabold text-ink">{m.name}</p>
-                <p className="mt-0.5 text-[11.5px] font-medium text-ink-3 leading-snug">{m.desc}</p>
-
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="flex items-center gap-1 text-[11.5px] font-extrabold num" style={{ color: '#B87A22' }}>
-                    <Coins size={12} style={{ color: '#E8A33D' }} /> +{m.coin} coin
-                  </span>
-                  <span
-                    className="flex items-center gap-1 h-[30px] px-3 rounded-full text-[11.5px] font-extrabold"
-                    style={limeBtn}
-                  >
-                    {m.cta} <Play size={10} fill="currentColor" />
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Boshqichlar yo'li ── */}
-        <section className="mt-6">
-          <h3 className={`${sectionTitle} mb-3`}>O'sish yo'li</h3>
-          <div className="flex items-center gap-1.5" style={WHITE_CARD} >
-            {TIERS.map((t, i) => {
-              const done = solvedCount >= t.need
-              const current = !done && solvedCount >= TIERS[i - 1]?.need
-              return (
-                <div key={t.name} className="flex-1 flex items-center gap-1.5">
-                  <div className="flex-1 py-3 rounded-[12px] text-center"
-                    style={{
-                      background: done ? '#DDF3DC' : current ? '#FCF1DC' : '#F6F8F3',
-                      border: `1px solid ${done ? 'rgba(11,110,79,0.18)' : current ? 'rgba(232,163,61,0.32)' : '#E3E8DE'}`,
-                    }}
-                  >
-                    <p className="text-[11px] font-extrabold" style={{ color: done ? '#0B6E4F' : current ? '#B87A22' : '#9AA995' }}>
-                      {t.name}
-                    </p>
-                    <p className="mt-0.5 text-[10px] font-bold num" style={{ color: '#9AA995' }}>
-                      {done ? '✓' : current ? '→' : '🔒'} {t.need}+
-                    </p>
-                  </div>
-                  {i < TIERS.length - 1 && <ChevronRight size={12} className="text-ink-4 shrink-0" />}
-                </div>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* ── 5. Masalalar ro'yxati ── */}
+        {/* ── 7. Barcha masalalar — reysli qatorlar ── */}
         <section className="mt-6" id="masala-royxati">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className={sectionTitle}>Barcha Masalalar</h3>
-            <button
-              onClick={() => { triggerHaptic('selection'); setCat('Barchasi') }}
-              className="flex items-center gap-1.5 h-[32px] px-3 rounded-full text-[12px] font-extrabold text-ink-2 active:scale-95 transition-transform"
-              style={{ background: '#FFFFFF', border: '1px solid #E4E9DD' }}
-            >
-              <ListFilter size={13} /> Filterlar
-            </button>
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">Barcha Masalalar</h3>
+            <span className="num text-[11.5px] font-bold" style={{ color: '#6B7C66' }}>{list.length} ta to'plam</span>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {list.map(set => {
               const open = set.free || isPro || unlocked.includes(set.id)
               const done = solvedIn(set)
-              const solvedAll = done > 0
-              const tint = TOPIC_TINT[set.topic] ?? { bg: '#EFF2EC', fg: '#6B7C66' }
+              const partial = done > 0 && done < set.questions.length
               return (
-                <div key={set.id} className="flex items-center gap-3 rounded-[14px] p-3" style={WHITE_CARD}>
-                  <span
-                    className="w-[40px] h-[40px] rounded-[12px] flex items-center justify-center shrink-0"
-                    style={{ background: tint.bg, color: tint.fg }}
-                  >
-                    {open ? TOPIC_ICON[set.topic] ?? <Triangle size={17} /> : <Lock size={16} />}
-                  </span>
+                <div key={set.id} className="relative overflow-hidden" style={CARD}>
+                  <span className="absolute left-0 top-0 bottom-0"
+                    style={{ width: 4, background: DIFF_RAIL[set.difficulty] ?? '#7ED321' }} />
+                  <div className="pl-4 pr-3.5 py-3.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14.5px] font-extrabold text-ink leading-snug">{set.title}</p>
+                        <p className="mt-1 flex items-center gap-1.5 text-[11.5px] font-semibold" style={{ color: '#6B7C66' }}>
+                          <span style={{ color: '#9AA995' }}>{TOPIC_GLYPH[set.topic]}</span>
+                          {set.difficulty} · {set.topic} · {set.grade}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => openSet(set)}
+                        className="shrink-0 h-[36px] px-3.5 text-[12px] font-extrabold num active:scale-[0.96] transition-transform"
+                        style={!open ? AMBER_BTN : done && !partial ? OUT_BTN : LIME_BTN}
+                      >
+                        {!open ? (set.unlockPrice ? `${set.unlockPrice} coin` : 'Pro') : done ? "Ko'rish" : 'Yechish'}
+                      </button>
+                    </div>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-extrabold text-ink leading-snug">{set.title}</p>
-                    <p className="mt-1 text-tiny">
-                      <span className="font-extrabold text-ink-3">{set.difficulty}</span>
-                      <span className="text-ink-4"> · {set.topic} · {set.grade} · </span>
-                      <span className="font-extrabold num" style={{ color: '#B87A22' }}>+{set.coinPerSolve} coin</span>
-                      <span className="text-ink-4"> · </span>
-                      <span className="font-extrabold num" style={{ color: '#3560C4' }}>+{set.xpPerSolve} XP</span>
-                    </p>
-                    <p className="mt-1 text-tiny" style={{ color: open ? (solvedAll ? '#0B6E4F' : '#9AA995') : '#B87A22' }}>
-                      {open ? (solvedAll ? `✓ ${done}/${set.questions.length} yechilgan` : '● Yangi') : set.unlockPrice ? '🔒 Qulflangan' : '🔒 Pro'}
-                    </p>
+                    <div className="mt-3 flex items-center gap-3">
+                      <span className="num text-[11.5px] font-extrabold" style={{ color: '#B87A22' }}>
+                        +{set.coinPerSolve} coin
+                      </span>
+                      <span className="num text-[11.5px] font-extrabold" style={{ color: '#3560C4' }}>
+                        +{set.xpPerSolve} XP
+                      </span>
+                      <span className="flex-1 h-[5px] overflow-hidden" style={{ background: '#EAEEE3', borderRadius: 3 }}>
+                        <span className="block h-full" style={{
+                          width: `${(done / set.questions.length) * 100}%`,
+                          borderRadius: 3,
+                          background: done === set.questions.length ? '#5FAF22' : '#0B6E4F',
+                          transition: 'width 0.4s ease',
+                        }} />
+                      </span>
+                      <span className="num text-[11px] font-bold" style={{ color: open ? '#6B7C66' : '#B87A22' }}>
+                        {open ? `${done}/${set.questions.length}` : 'qulflangan'}
+                      </span>
+                    </div>
                   </div>
-
-                  <button
-                    onClick={() => openSet(set)}
-                    className="shrink-0 h-[34px] px-3.5 rounded-full text-[12px] font-extrabold num active:scale-[0.96] transition-transform"
-                    style={!open ? lockedBtn : solvedAll ? ghostBtn : limeBtn}
-                  >
-                    {!open ? (set.unlockPrice ? `${set.unlockPrice} coin` : 'Pro') : solvedAll ? "Ko'rish" : 'Yechish'}
-                  </button>
                 </div>
               )
             })}
           </div>
         </section>
 
-        {/* ── 6. Haftalik reyting ── */}
+        {/* ── Formulalar qo'llanmasi ── */}
+        <section className="mt-5">
+          <button
+            onClick={() => { triggerHaptic('light'); navigate('/formulas') }}
+            className="w-full flex items-center gap-3 px-4 py-3.5 active:scale-[0.985] transition-transform"
+            style={{ ...CARD, border: '1px dashed #CFD9C6' }}
+          >
+            <span className="w-[34px] h-[34px] flex items-center justify-center shrink-0"
+              style={{ background: '#F6F8F3', border: '1px solid #E1E7DA', borderRadius: 10, color: '#0B6E4F' }}>
+              <Sigma size={16} />
+            </span>
+            <span className="flex-1 text-left">
+              <span className="block text-[13.5px] font-extrabold text-ink">Formulalar qo'llanmasi</span>
+              <span className="block mt-0.5 text-[11.5px] font-medium" style={{ color: '#6B7C66' }}>
+                Yechimda kerak bo'ladigan ifodalar — bir bosishda
+              </span>
+            </span>
+            <ChevronRight size={16} style={{ color: '#9AA995' }} />
+          </button>
+        </section>
+
+        {/* ── 8. Haftalik reyting — ixcham ro'yxat ── */}
         <section className="mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className={sectionTitle}>Bu hafta</h3>
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">Bu hafta</h3>
             <button
               onClick={() => { triggerHaptic('light'); navigate('/profile') }}
               className="flex items-center gap-0.5 text-[12px] font-extrabold text-brand active:opacity-60 transition-opacity"
@@ -524,41 +595,35 @@ const ProblemsScreen = () => {
             </button>
           </div>
 
-          <div className="rounded-[16px] p-2" style={WHITE_CARD}>
+          <div className="overflow-hidden" style={CARD}>
             {board.slice(0, 3).map((u, i) => (
-              <div
-                key={u.name}
-                className="flex items-center gap-3 px-2 py-2 rounded-[12px]"
-                style={u.me ? { background: '#DDF3DC' } : undefined}
-              >
-                <span className="w-[20px] text-center text-[12px] font-black num" style={{ color: i === 0 ? '#B87A22' : '#9AA995' }}>
-                  {i + 1}
-                </span>
-                <span
-                  className="w-[32px] h-[32px] rounded-full flex items-center justify-center text-[12px] font-extrabold shrink-0"
-                  style={u.me ? limeBtn : { background: '#EFF2EC', color: '#6B7C66' }}
-                >
+              <div key={u.name} className="flex items-center gap-3 px-3.5 py-2.5"
+                style={i > 0 ? { borderTop: '1px solid #EDF1E7' } : undefined}>
+                <span className="num w-[14px] text-[12px] font-black"
+                  style={{ color: i === 0 ? '#B87A22' : '#9AA995' }}>{i + 1}</span>
+                <span className="w-[26px] h-[26px] flex items-center justify-center text-[11.5px] font-extrabold shrink-0"
+                  style={u.me
+                    ? { ...LIME_BTN, borderRadius: 8 }
+                    : { background: i === 0 ? '#FCF1DC' : '#F6F8F3', border: '1px solid #E1E7DA', borderRadius: 8, color: i === 0 ? '#B87A22' : '#6B7C66' }}>
                   {u.name.slice(0, 1)}
                 </span>
-                <p className="flex-1 text-[13.5px] font-extrabold text-ink truncate">{u.name}</p>
-                <span className="flex items-center gap-1 text-[12.5px] font-extrabold num" style={{ color: '#B87A22' }}>
-                  <Coins size={12} style={{ color: '#E8A33D' }} /> {u.coin.toLocaleString('en-US')}
-                </span>
+                <p className="flex-1 text-[13px] font-extrabold text-ink truncate">{u.name}</p>
+                <p className="num text-[12.5px] font-extrabold shrink-0" style={{ color: '#B87A22' }}>
+                  {u.coin.toLocaleString('en-US')}
+                </p>
               </div>
             ))}
 
-            {board.findIndex(u => u.me) > 2 && (
-              <div className="flex items-center gap-3 px-2 py-2 mt-1 rounded-[12px]" style={{ background: '#DDF3DC' }}>
-                <span className="w-[20px] text-center text-[12px] font-black num text-brand">
-                  {board.findIndex(u => u.me) + 1}
-                </span>
-                <span className="w-[32px] h-[32px] rounded-full flex items-center justify-center shrink-0" style={limeBtn}>
-                  <span className="text-[12px] font-extrabold">S</span>
-                </span>
-                <p className="flex-1 text-[13.5px] font-extrabold text-ink">Siz</p>
-                <span className="flex items-center gap-1 text-[12.5px] font-extrabold num" style={{ color: '#B87A22' }}>
-                  <Coins size={12} style={{ color: '#E8A33D' }} /> {coin.toLocaleString('en-US')}
-                </span>
+            {meRank > 3 && (
+              <div className="relative flex items-center gap-3 px-3.5 py-2.5" style={{ borderTop: '1px solid #EDF1E7', background: '#F6F8F3' }}>
+                <span className="absolute left-0 top-0 bottom-0" style={{ width: 3, background: '#7ED321' }} />
+                <span className="num w-[14px] text-[12px] font-black" style={{ color: '#0B6E4F' }}>{meRank}</span>
+                <span className="w-[26px] h-[26px] flex items-center justify-center text-[11.5px] font-extrabold shrink-0"
+                  style={{ ...LIME_BTN, borderRadius: 8 }}>S</span>
+                <p className="flex-1 text-[13px] font-extrabold text-ink">Siz</p>
+                <p className="num text-[12.5px] font-extrabold shrink-0" style={{ color: '#B87A22' }}>
+                  {coin.toLocaleString('en-US')}
+                </p>
               </div>
             )}
           </div>

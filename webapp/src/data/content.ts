@@ -593,6 +593,517 @@ export const EXAM_SET: ProblemSet = {
 
 export const ALL_SETS: ProblemSet[] = [...PROBLEM_SETS, STREAK_SET, EXAM_SET]
 
+/* ─────────────────── IQTISOD: yagona raqamlar manbasi ─────────────────── */
+/* Do'kon «coin qanday keladi» bloki shu konstantalarni o'qiydi —
+   ekranda yozilgan raqam bilan haqiqiy to'lov bir xil bo'lishi shart. */
+
+/** Kunlik mega masala bonusi — bir marta, kuniga */
+export const DAILY_BONUS = { coin: 50, xp: 80 }
+
+/** Dars testi: har to'g'ri javob */
+export const TEST_REWARD = { coin: 5, xp: 20 }
+
+/** Kunlik missiyalar mukofoti ( ProblemsScreen kalitlari ) */
+export const MISSION_REWARDS = { solve5: 20, streak: 10, olymp: 50 }
+
+/** To'plamlardagi eng arzon / eng qimmat bitta to'g'ri javob */
+export const SET_COIN_RANGE = {
+  min: Math.min(...ALL_SETS.map(s => s.coinPerSolve)),
+  max: Math.max(...ALL_SETS.map(s => s.coinPerSolve)),
+}
+
+/* ─────────────────── DO'KON ─────────────────── */
+
+export type ConsumableKind = 'hint' | 'skip'
+
+export interface Consumable {
+  id: string
+  kind: ConsumableKind
+  title: string
+  desc: string
+  /** do'kon qatori uchun qisqa satr */
+  short: string
+  /** buyum qayerda ishlatiladi — ekranda ko'rsatiladi */
+  where: string
+  cost: number
+  /** bir vaqtda ko'pi bilan nechta saqlash mumkin */
+  maxHold: number
+}
+
+export const CONSUMABLES: Consumable[] = [
+  {
+    id: 'it-hint',
+    kind: 'hint',
+    title: 'Maslahat',
+    desc: "Javobni belgilashdan oldin mavzu bo'yicha eslatma ochiladi",
+    short: 'Javobdan oldin tushuntirish ochiladi',
+    where: 'Dars testida',
+    cost: 30,
+    maxHold: 5,
+  },
+  {
+    id: 'it-skip',
+    kind: 'skip',
+    title: "Savolni o'tkazish",
+    desc: "Qiyin savolni xato hisoblanmasdan o'tkazib yuboradi",
+    short: "Savolni xatosiz o'tkazib yuboradi",
+    where: 'Dars testida',
+    cost: 45,
+    maxHold: 3,
+  },
+]
+
+/** Coin evaziga Pro ko'prigi — oyiga 1 marta. Pul to'lovi /pro da qoladi. */
+export const PRO_TRIAL = { id: 'it-pro7', coin: 300, days: 7, title: '7 kunlik Pro' }
+
+/** 2x bonus kartasi — inventory'da saqlanmaydi, sotib olinishi bilan faol bo'ladi */
+export const BOOST_CARD = { id: 'it-boost', title: '2x bonus kartasi', desc: "Keyingi tugallangan seansdagi coinlar ikki barobar bo'ladi", cost: 120 }
+
+/** Coin evaziga ochiladigan to'plamlar — do'konning «Ochishlar» javoni */
+export const UNLOCKABLE_SETS = ALL_SETS.filter(s => !s.free && !!s.unlockPrice)
+
+/* ─────────────────── SOVG'ALAR DO'KONI ─────────────────── */
+/* Coinlar haqiqiy narsa oladi: telefon, sumka, kitob. Narxlar EARN_PER_DAY
+   orqali «necha kunlik mehnat» ekanini ko'rsatadi — foydalanuvchi yig'ayotgan
+   narsasining vaqtini bilishi shart. */
+
+export type ProductCat = 'Elektronika' | "Kiyim-kechak" | 'Adabiyot' | 'Kanchelyariya'
+
+export const PRODUCT_CATS: ProductCat[] = ['Elektronika', 'Kiyim-kechak', 'Adabiyot', 'Kanchelyariya']
+
+export interface Product {
+  id: string
+  title: string
+  cat: ProductCat
+  /** coin */
+  price: number
+  /** ombordagi qoldiq — sotib olinganda kamayadi */
+  stock: number
+  rating: number
+  ratingCount: number
+  /** karta ustidagi bir-ikki satr */
+  blurb: string
+  /** mahsulot sahifasidagi to'liq tavsif */
+  desc: string
+  /** mahsulot sahifasidagi xususiyatlar ro'yxati */
+  specs: { k: string; v: string }[]
+  /** ProductArt'dagi rasmlar kaliti */
+  art: string
+}
+
+/** Kunlik o'rtacha daromad — «necha kunda olasan» hisobi shu yerdan */
+export const EARN_PER_DAY = TEST_REWARD.coin * 10 + DAILY_BONUS.coin + MISSION_REWARDS.solve5 + MISSION_REWARDS.streak
+
+export const PRODUCTS: Product[] = [
+  {
+    id: 'gp-phone',
+    title: 'Samsung Galaxy A15',
+    cat: 'Elektronika',
+    price: 18000,
+    stock: 3,
+    rating: 4.9,
+    ratingCount: 14,
+    blurb: '6.5" ekran · 128GB · 5000 mA·h batareya',
+    desc: "Ombordan 3 ta. Dars videolarini ko'rish, test yechish va Telegram'da doim bo'lish uchun yetarli telefon. Yetkazib berish — Toshkent bo'ylab 2 kun, viloyatlarga 4 kun.",
+    specs: [
+      { k: 'Ekran', v: '6.5" · 90Hz' },
+      { k: 'Xotira', v: '128GB + 4GB RAM' },
+      { k: 'Batareya', v: '5000 mA·h · 25W' },
+      { k: 'Kafolat', v: '12 oy' },
+    ],
+    art: 'phone',
+  },
+  {
+    id: 'gp-tablet',
+    title: 'Lenovo Tab M9 planshet',
+    cat: 'Elektronika',
+    price: 26000,
+    stock: 2,
+    rating: 4.8,
+    ratingCount: 6,
+    blurb: '9" ekran — dars videolari va formulalar uchun',
+    desc: "Formulalar banki va yechim videolari katta ekranda aniq ko'rinadi. Qo'shimcha stylus bilan masalani yozib yechish ham mumkin.",
+    specs: [
+      { k: 'Ekran', v: '9" · 1340×800' },
+      { k: 'Xotira', v: '64GB + 4GB RAM' },
+      { k: 'Batareya', v: '5100 mA·h' },
+      { k: 'Kafolat', v: '12 oy' },
+    ],
+    art: 'tablet',
+  },
+  {
+    id: 'gp-buds',
+    title: 'JBL Wave Buds quloqchin',
+    cat: 'Elektronika',
+    price: 1500,
+    stock: 12,
+    rating: 4.7,
+    ratingCount: 41,
+    blurb: 'Simsiz · 32 soat quti bilan · changdan himoya',
+    desc: "Dars videolarini shovqinli yurtonda ham eshitish uchun. Qutisi bilan 32 soat ishlaydi — bir haftalik kurs yetadi.",
+    specs: [
+      { k: 'Ulanish', v: 'Bluetooth 5.3' },
+      { k: 'Ish vaqti', v: '8 soat + 24 soat quti' },
+      { k: 'Himoya', v: 'IP54' },
+      { k: 'Kafolat', v: '6 oy' },
+    ],
+    art: 'buds',
+  },
+  {
+    id: 'gp-watch',
+    title: 'Xiaomi Smart Band 8',
+    cat: 'Elektronika',
+    price: 4500,
+    stock: 6,
+    rating: 4.6,
+    ratingCount: 22,
+    blurb: 'Kunlik qo\'ng\'iroq — streak uzilmasin',
+    desc: "Blitz sessiyasi va kunlik vazifalar eslatmasini bilakda olasan. 16 kun gacha qurilmaydi.",
+    specs: [
+      { k: 'Ekran', v: '1.62" AMOLED' },
+      { k: 'Batareya', v: '16 kun' },
+      { k: 'Suv himoyasi', v: '5ATM' },
+      { k: 'Kafolat', v: '6 oy' },
+    ],
+    art: 'watch',
+  },
+  {
+    id: 'gp-power',
+    title: '20000 mA·h powerbank',
+    cat: 'Elektronika',
+    price: 2400,
+    stock: 9,
+    rating: 4.5,
+    ratingCount: 30,
+    blurb: 'Telefonni 4 marta to\'ldiradi · tezkor chiqish',
+    desc: "Metroda, darsda yoki uzoq yo'lda coin yig'ish tugamasligi uchun. Ikki USB + bir USB-C port.",
+    specs: [
+      { k: 'Sig\'im', v: '20000 mA·h' },
+      { k: 'Chiqish', v: '22.5W tezkor' },
+      { k: 'Portlar', v: 'USB-C + 2×USB-A' },
+      { k: 'Kafolat', v: '12 oy' },
+    ],
+    art: 'power',
+  },
+  {
+    id: 'gp-kbd',
+    title: 'Mekanik klaviatura 87',
+    cat: 'Elektronika',
+    price: 6800,
+    stock: 0,
+    rating: 4.4,
+    ratingCount: 9,
+    blurb: 'Qizil switch · yorug\'likli · simli/simsiz',
+    desc: "Ombor tugagan — keyingi partiya kelgach sotuvga qo'yiladi. Hozir maqsad qilib qo'ysang, kelganda birinchi bo'lib xabar beramiz.",
+    specs: [
+      { k: 'Switch', v: 'Red · chiziqli' },
+      { k: 'O\'lcham', v: '87 klavish (TKL)' },
+      { k: 'Ulanish', v: 'USB-C / 2.4G' },
+      { k: 'Kafolat', v: '12 oy' },
+    ],
+    art: 'keyboard',
+  },
+  {
+    id: 'gp-calc',
+    title: 'Kassio 991 kalkulyator',
+    cat: 'Elektronika',
+    price: 1200,
+    stock: 20,
+    rating: 4.8,
+    ratingCount: 57,
+    blurb: 'DTM ruxsat etilgan model · 552 funksiya',
+    desc: "Sinovda ishlatishga ruxsat berilgan yagona turdagi kalkulyator. Hosila, integral va vektor amallarini bajaradi.",
+    specs: [
+      { k: 'Funksiya', v: '552 ta' },
+      { k: 'Ekran', v: 'Natural V.P.A.M.' },
+      { k: 'Batareya', v: 'Quyosh + AAA' },
+      { k: 'Sinovda', v: 'Ruxsat etilgan' },
+    ],
+    art: 'calculator',
+  },
+  {
+    id: 'gp-speaker',
+    title: 'Bluetooth kolonka JBL Go 4',
+    cat: 'Elektronika',
+    price: 7500,
+    stock: 1,
+    rating: 4.3,
+    ratingCount: 11,
+    blurb: 'Kichik, suv o\'tkazmaydi · 7 soat musiqa',
+    desc: "Xonadagi guruh darslari uchun. IP67 — ho'l qo'l bilan ham bosaveradi.",
+    specs: [
+      { k: 'Quvvat', v: '5W' },
+      { k: 'Ish vaqti', v: '7 soat' },
+      { k: 'Himoya', v: 'IP67' },
+      { k: 'Kafolat', v: '12 oy' },
+    ],
+    art: 'speaker',
+  },
+  {
+    id: 'gp-bag',
+    title: 'HDP Academy ryukzak sumka',
+    cat: 'Kiyim-kechak',
+    price: 5200,
+    stock: 5,
+    rating: 4.9,
+    ratingCount: 26,
+    blurb: '28L · 15,6" laptop bo\'limi · suv o\'tkazmaydi',
+    desc: "Kitob, laptop va butelka uchun alohida bo'limlar. Tig'ini ochmagan holda tashqaridan qo'ying olish bo'limi bor.",
+    specs: [
+      { k: 'Hajm', v: '28 litr' },
+      { k: 'Bo\'limlar', v: 'Laptop · kitob · chamadon' },
+      { k: 'Mato', v: 'Suv o\'tkazmaydigan polyester' },
+      { k: 'Kafolat', v: '2 yil' },
+    ],
+    art: 'backpack',
+  },
+  {
+    id: 'gp-tote',
+    title: 'Kanvas tote-sumka',
+    cat: 'Kiyim-kechak',
+    price: 1800,
+    stock: 14,
+    rating: 4.6,
+    ratingCount: 18,
+    blurb: 'Qalin mato · A4 daftar sig\'adi',
+    desc: "Sinf do'stlar bilan bir xil oladigan oddiy sumka. Oldida HDP Academy bosma nashri.",
+    specs: [
+      { k: 'O\'lcham', v: '38×42 sm' },
+      { k: 'Mato', v: '12 oz qalin kanvas' },
+      { k: 'Cho\'ntak', v: 'Ichki bitta' },
+      { k: 'Bosma', v: 'Bir tomonlama' },
+    ],
+    art: 'tote',
+  },
+  {
+    id: 'gp-tee',
+    title: 'HDP Academy futbolka',
+    cat: 'Kiyim-kechak',
+    price: 1200,
+    stock: 18,
+    rating: 4.7,
+    ratingCount: 33,
+    blurb: '100% paxta · S–XXL o\'lchamlari',
+    desc: "Yozgi intensiv kursda kiyadigan futbolka. O'lchamni izohda yozib qoldirsangiz, yetkazuvchi shu bilan keladi.",
+    specs: [
+      { k: 'Mato', v: '100% paxta · 180 g' },
+      { k: 'O\'lcham', v: 'S · M · L · XL · XXL' },
+      { k: 'Bosma', v: 'Ko\'krak oldida' },
+      { k: 'Yuvish', v: '30°C' },
+    ],
+    art: 'tee',
+  },
+  {
+    id: 'gp-cap',
+    title: 'Beyzbolka qalpoq',
+    cat: 'Kiyim-kechak',
+    price: 900,
+    stock: 0,
+    rating: 4.5,
+    ratingCount: 12,
+    blurb: 'Soya beruvchi burchak · orqasi sozlanadi',
+    desc: "Ombor tugagan. Kuniga 120 ta sotiladigan eng arzon sovg'a — keyingi partiyaga maqsad qilib qo'ying.",
+    specs: [
+      { k: 'Mato', v: 'Paxta twill' },
+      { k: 'O\'lcham', v: 'Sozlanadigan bitta' },
+      { k: 'Bosma', v: 'Old tomonda' },
+      { k: 'Mavsum', v: 'Yoz' },
+    ],
+    art: 'cap',
+  },
+  {
+    id: 'gp-shoes',
+    title: 'Yengil krossovka',
+    cat: 'Kiyim-kechak',
+    price: 8500,
+    stock: 2,
+    rating: 4.4,
+    ratingCount: 7,
+    blurb: '36–45 o\'lcham · kun bo\'yi oyoqda yurishga',
+    desc: "Ertalabki navbatchilikka, kechqurun kursga — bitta oyoq kiyimi. To'r shoxli taglik zarbani oladi.",
+    specs: [
+      { k: 'O\'lcham', v: '36–45' },
+      { k: 'Taglik', v: 'EVA · yengil' },
+      { k: 'Mato', v: 'To\'r + sun\'iy teri' },
+      { k: 'Vazn', v: '260 g (42-o\'lcham)' },
+    ],
+    art: 'sneaker',
+  },
+  {
+    id: 'gp-book-math',
+    title: "DTM matematika to'plami",
+    cat: 'Adabiyot',
+    price: 400,
+    stock: 25,
+    rating: 5,
+    ratingCount: 64,
+    blurb: "1200 masala · javoblari yechimi bilan",
+    desc: "Ilovidagi barcha mavzular bo'yicha sinovga tayyor to'plam. Har masala oxirida qisqa yechim, murakkablarida to'liq tahlil.",
+    specs: [
+      { k: 'Sahifa', v: '412' },
+      { k: 'Masala', v: '1200 ta' },
+      { k: 'Mavzular', v: 'Algebra · Geometriya · Analiz' },
+      { k: 'Muallif', v: 'HDP Academy' },
+    ],
+    art: 'bookMath',
+  },
+  {
+    id: 'gp-book-olymp',
+    title: 'Olimpiada masalalari',
+    cat: 'Adabiyot',
+    price: 750,
+    stock: 4,
+    rating: 4.9,
+    ratingCount: 21,
+    blurb: "Respublika bosqichi · 300 g'oyali yechim",
+    desc: "Standart bo'lmagan usullar: invariant, graf, Dirixle prinsipi. Ilovidagi Olimpiada to'plami bilan birga yuriladi.",
+    specs: [
+      { k: 'Sahifa', v: '268' },
+      { k: 'Masala', v: '300 ta' },
+      { k: 'Daraja', v: '10–11-sinf' },
+      { k: 'Yechim', v: 'Ikki xil usulda' },
+    ],
+    art: 'bookOlymp',
+  },
+  {
+    id: 'gp-book-atlas',
+    title: 'Matematika atlas-kartasi',
+    cat: 'Adabiyot',
+    price: 600,
+    stock: 8,
+    rating: 4.8,
+    ratingCount: 15,
+    blurb: "Barcha formulalar — devorga osadigan 70×100",
+    desc: "Formulalar bankidagi hamma narsa bitta varaqda. Devorga yoki stol ortiga osib qo'yiladi, yozuvga chidamli qoplamasi bor.",
+    specs: [
+      { k: "O'lcham", v: '70×100 sm' },
+      { k: 'Qoplama', v: 'Laminat · yozish mumkin' },
+      { k: 'Bo\'lim', v: '9 ta mavzu' },
+      { k: 'O\'ram', v: 'Qattiq gilza' },
+    ],
+    art: 'atlas',
+  },
+  {
+    id: 'gp-note',
+    title: '10 ta daftar to\'plami',
+    cat: 'Kanchelyariya',
+    price: 250,
+    stock: 30,
+    rating: 4.6,
+    ratingCount: 48,
+    blurb: "48 varaqli · qattiq muqovali · 4 rangda",
+    desc: "Bitta fanga bitta rang. Eng tezkor olinadigan sovg'a — kunlik bonusni ikki kun yig'sang yetadi.",
+    specs: [
+      { k: 'Soni', v: '10 ta' },
+      { k: 'Varaq', v: '48 ta' },
+      { k: 'Muqova', v: 'Qattiq · laklangan' },
+      { k: 'Chiziq', v: 'Qatorli' },
+    ],
+    art: 'notes',
+  },
+  {
+    id: 'gp-pens',
+    title: 'Zotichka va ruchka to\'plami',
+    cat: 'Kanchelyariya',
+    price: 300,
+    stock: 22,
+    rating: 4.5,
+    ratingCount: 27,
+    blurb: '6 xil qalinlikdagi qalam + 2 ruchka',
+    desc: "Chizma geometriya va test javoblarini toza ishlash uchun. Silg'igi bilan birga qutida keladi.",
+    specs: [
+      { k: 'Qalamlar', v: '6 ta · HB–2B…6B' },
+      { k: 'Ruchka', v: '2 ta · ko\'k' },
+      { k: 'Silg\'i', v: 'Kiss-block' },
+      { k: 'Quti', v: 'Karton' },
+    ],
+    art: 'pens',
+  },
+  {
+    id: 'gp-thermo',
+    title: 'Termosh stakan 500 ml',
+    cat: 'Kanchelyariya',
+    price: 900,
+    stock: 7,
+    rating: 4.7,
+    ratingCount: 19,
+    blurb: '12 soat issiq · bir qo\'lda ochiladi',
+    desc: "Tonggi darsga olib kiriladigan choy. Qopqog'i to'kilmaydi, idish yuvish mashinasiga solinadi.",
+    specs: [
+      { k: 'Sig\'im', v: '500 ml' },
+      { k: 'Saqlash', v: '12 soat issiq / 24 soat sovuq' },
+      { k: 'Metall', v: '18/8 zanglamas po\'lat' },
+      { k: 'Qopqoq', v: 'Bir qo\'lda ochiladi' },
+    ],
+    art: 'thermos',
+  },
+  {
+    id: 'gp-lamp',
+    title: 'Kitob chirog\'i LED',
+    cat: 'Kanchelyariya',
+    price: 1100,
+    stock: 3,
+    rating: 4.4,
+    ratingCount: 13,
+    blurb: '3 rangli nur · myishka bilan qisqadi',
+    desc: "Yurtonda qo'shni uxlab turganda ham dars o'qish mumkin. Uchi egiladi, USB-C dan quvvatlanadi.",
+    specs: [
+      { k: 'Nur', v: '3000K / 4500K / 6000K' },
+      { k: 'Batareya', v: '1200 mA·h · USB-C' },
+      { k: 'O\'rnatish', v: 'Kitobga qisqich bilan' },
+      { k: 'Ish vaqti', v: '18 soat' },
+    ],
+    art: 'lamp',
+  },
+]
+
+export const findProduct = (id: string) => PRODUCTS.find(p => p.id === id)
+
+/**
+ * Reyting = ombor ko'rsatkichi + foydalanuvchining yangi izohlari.
+ * `extra` — foydalanuvchi yozgan baholar (SEED_REVIEWS allaqachon ratingCount ichida).
+ */
+export const blendedRating = (p: Product, extra: number[]) => {
+  const n = p.ratingCount + extra.length
+  if (n === 0) return 0
+  return (p.rating * p.ratingCount + extra.reduce((a, b) => a + b, 0)) / n
+}
+
+/** «necha kunda yig'ib bo'lasan» — EARN_PER_DAY asosidagi taxmin */
+export const daysToEarn = (price: number) => Math.max(1, Math.ceil(price / EARN_PER_DAY))
+
+/* ── Mahsulot izohlari ── */
+
+export interface SeedReview {
+  productId: string
+  name: string
+  rating: number
+  text: string
+  /** necha kun oldin yozilgan */
+  daysAgo: number
+}
+
+/** Ilova ichidagi boshqa o'quvchilarning izohlari — foydalanuvchiki ustiga qo'shiladi */
+export const SEED_REVIEWS: SeedReview[] = [
+  { productId: 'gp-phone', name: 'Dilnoza', rating: 5, text: "14 kunlik kursni yechib olgach ertasiiga yetkazib berishdi. Test videolari endi aniq ko'rinadi.", daysAgo: 6 },
+  { productId: 'gp-phone', name: 'Jasurbek', rating: 4, text: "Xotira yetarli, lekin o'yin uchun emas. Darsga zo'r.", daysAgo: 18 },
+  { productId: 'gp-phone', name: 'Malika', rating: 5, text: "Umumiy sinovni 4 marta qayta yechib chiqdim, shu telefon bilan. 18 mingga tushdi, arzoniga qismat.", daysAgo: 31 },
+  { productId: 'gp-buds', name: 'Sardor', rating: 5, text: "Metroda dars tinglayman — hech narsa chiqmaydi. Qutisi 3 kunda quvvatlanadi.", daysAgo: 3 },
+  { productId: 'gp-buds', name: 'Otabek', rating: 4, text: "Yostig'i kichik keldi, almashishdi. Ovoz toza.", daysAgo: 12 },
+  { productId: 'gp-calc', name: 'Nigora', rating: 5, text: "Kuniga 3 savol yechib, 20 kunda oldim. Sinovda haqiqatdan ishlatishga qo'yishdi.", daysAgo: 9 },
+  { productId: 'gp-calc', name: 'Bekzod', rating: 5, text: "Hosilani bir tugma bilan yechadi. Qo'lda tekshirishga vaqt tejaldi.", daysAgo: 27 },
+  { productId: 'gp-bag', name: 'Aziza', rating: 5, text: "Laptop bo'limi qalin, kitoblar ham sig'di. Bir oy yig'ib oldim, arzoniga chiqdi.", daysAgo: 5 },
+  { productId: 'gp-bag', name: 'Temur', rating: 4, text: "Chamadon bo'limi kichikroq. Lekin tikiqlari mustahkam.", daysAgo: 22 },
+  { productId: 'gp-book-math', name: 'Shohruh', rating: 5, text: "Ilovidagi mavzular bilan bir xil tartibda. Yechimlari ham to'liq yozilgan.", daysAgo: 2 },
+  { productId: 'gp-book-math', name: 'Feruza', rating: 5, text: "400 coin — eng tez oladigan narsa. Ikkinchisini singlimga oldim.", daysAgo: 14 },
+  { productId: 'gp-book-olymp', name: 'Ulug\'bek', rating: 5, text: "Invariant masalalari meni 2-bosqichga olib chiqdi. 4 ta qoldi degan joyi rost ekan.", daysAgo: 8 },
+  { productId: 'gp-note', name: 'Madina', rating: 4, text: "Muqovasi chiroyli, varaqlari yupqa. Chizma uchun yaxshi.", daysAgo: 4 },
+  { productId: 'gp-tee', name: 'Rustam', rating: 5, text: "M o'lchamni yozib qoldirdim, shu keldi. Mato qalin emas, yozga zo'r.", daysAgo: 16 },
+  { productId: 'gp-thermo', name: 'Gulnora', rating: 5, text: "Ertalabki 6:30 darsga choy olib kiraman — 12 soat issiq degani to'g'ri ekan.", daysAgo: 11 },
+  { productId: 'gp-watch', name: 'Aliya', rating: 4, text: "Qo'ng'iroq eslatmasi streak ni saqlab qoldi. Ekrani quyoshda xira.", daysAgo: 20 },
+]
+
+
 /**
  * Kunlik mega masala — kun raqamiga qarab bepul to'plamlardan biri aylanadi.
  * Yarim tunda yangilanadi; bonus bir marta beriladi.
@@ -603,4 +1114,94 @@ export function dailyProblem(date = new Date()) {
   const day = Math.floor((date.getTime() - start.getTime()) / 86_400_000)
   const set = free[day % free.length]
   return { set, question: set.questions[day % set.questions.length], day }
+}
+
+/* ─────────────────── PROFIL: YUTUQLAR ─────────────────── */
+
+/** Profil ekrani store'dan hisoblab chiqaradigan haqiqiy ko'rsatkichlar */
+export interface AchStats {
+  /** testi yakunlangan darslar soni */
+  lessonsDone: number
+  /** shulardan nechasi bepul ro'yxatda */
+  freeDone: number
+  solved: number
+  streak: number
+  bestStreak: number
+  level: number
+  /** 0..100 */
+  accuracy: number
+  solvedToday: number
+  orders: number
+  reviews: number
+  favs: number
+  /** mavzu nomi -> yechilgan masala soni */
+  topic: Record<string, number>
+}
+
+export type AchIcon =
+  | 'bolt' | 'trophy' | 'grid' | 'cap' | 'books' | 'check' | 'medal' | 'star'
+  | 'gem' | 'target' | 'flame' | 'brain' | 'bag' | 'heart' | 'pen' | 'rocket'
+  | 'moon' | 'compass' | 'sigma' | 'crown'
+
+export interface Achievement {
+  id: string
+  /** medal nomi */
+  title: string
+  /** nima uchun berilishi */
+  hint: string
+  icon: AchIcon
+  test: (s: AchStats) => boolean
+}
+
+/** Har birining ochilish sharti store'dagi haqiqiy raqamlardan hisoblanadi */
+export const ACHIEVEMENTS: Achievement[] = [
+  { id: 'a-viyet', title: 'Viyet Master', hint: 'Tezkor Masala', icon: 'bolt', test: s => s.solved >= 25 && s.accuracy >= 85 },
+  { id: 'a-dtm', title: 'DTM Pro', hint: 'Olimpiada', icon: 'trophy', test: s => (s.topic['Olimpiada'] ?? 0) >= 10 },
+  { id: 'a-algebra', title: 'Algebra Pro', hint: 'Matritsa', icon: 'grid', test: s => (s.topic['Algebra'] ?? 0) >= 20 },
+  { id: 'a-first', title: 'Birinchi qadam', hint: '1 ta dars', icon: 'cap', test: s => s.lessonsDone >= 1 },
+  { id: 'a-five', title: 'Beshlik', hint: '5 ta dars', icon: 'books', test: s => s.lessonsDone >= 5 },
+  { id: 'a-free', title: 'Bepul kurs', hint: '10 ta bepul dars', icon: 'check', test: s => s.freeDone >= FREE_LESSON_COUNT },
+  { id: 'a-all', title: 'To\'liq kurs', hint: 'Barcha darslar', icon: 'medal', test: s => s.lessonsDone >= LESSONS.length },
+  { id: 'a-ten', title: "O'nlik", hint: '10 ta masala', icon: 'star', test: s => s.solved >= 10 },
+  { id: 'a-fifty', title: 'Ellikchi', hint: '50 ta masala', icon: 'gem', test: s => s.solved >= 50 },
+  { id: 'a-hundred', title: 'Yuzlik', hint: '100 ta masala', icon: 'target', test: s => s.solved >= 100 },
+  { id: 'a-streak3', title: 'Uch kun', hint: '3 kunlik zanjir', icon: 'flame', test: s => s.bestStreak >= 3 },
+  { id: 'a-streak7', title: 'Hafta', hint: '7 kunlik zanjir', icon: 'flame', test: s => s.bestStreak >= 7 },
+  { id: 'a-streak14', title: 'Ikki hafta', hint: '14 kunlik zanjir', icon: 'crown', test: s => s.bestStreak >= 14 },
+  { id: 'a-accuracy', title: 'Aniq miya', hint: '90% aniqlik', icon: 'brain', test: s => s.solved >= 20 && s.accuracy >= 90 },
+  { id: 'a-olymp', title: 'Geometriya', hint: '15 ta geometriya', icon: 'compass', test: s => (s.topic['Geometriya'] ?? 0) >= 15 },
+  { id: 'a-order', title: 'Birinchi sovg\'a', hint: '1 ta buyurtma', icon: 'bag', test: s => s.orders >= 1 },
+  { id: 'a-fav', title: "Sevimlilar", hint: '5 ta belgi', icon: 'heart', test: s => s.favs >= 5 },
+  { id: 'a-review', title: 'Izohchi', hint: '1 ta izoh', icon: 'pen', test: s => s.reviews >= 1 },
+  { id: 'a-level', title: 'Bosqich 5', hint: '5-darajaga chiqish', icon: 'rocket', test: s => s.level >= 5 },
+  { id: 'a-day', title: 'Kun rekordi', hint: 'Bir kunda 10 masala', icon: 'moon', test: s => s.solvedToday >= 10 },
+]
+
+/** Ochilgan medallar ro'yxati (tartib saqlanadi) */
+export const unlockedAchievements = (s: AchStats): Achievement[] =>
+  ACHIEVEMENTS.filter(a => a.test(s))
+
+/* ─────────────────── PROFIL: LIGA VA HAFTA ─────────────────── */
+
+/**
+ * Liga — backend'dagi reyting servisi yo'qolguncha XP'dan hisoblanadi.
+ * 40 XP = 1 pog'ona; eng yuqori pog'ona 1.
+ */
+export const LEAGUE_SIZE = 500
+export const XP_PER_RANK = 40
+
+export const leagueRank = (xp: number) =>
+  Math.max(1, LEAGUE_SIZE - Math.floor(xp / XP_PER_RANK))
+
+/** Dushanbadan Yakshanbagacha — o'zbekcha qisqartma */
+export const WEEK_LABELS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sha', 'Ya']
+
+/** Dushanbaidan boshlangan joriy haftaning 7 kun kaliti (YYYY-MM-DD) */
+export function currentWeekKeys(date = new Date()): string[] {
+  const dow = (date.getDay() + 6) % 7
+  const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - dow)
+  return WEEK_LABELS.map((_, i) => {
+    const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
 }

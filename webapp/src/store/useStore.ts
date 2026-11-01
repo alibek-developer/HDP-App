@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { LESSONS, PROBLEM_SETS, findLesson, findProblemSet, dailyProblem } from '../data/content'
+import {
+  LESSONS, PROBLEM_SETS, findLesson, findProblemSet, dailyProblem,
+  CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_BONUS, findProduct,
+  type ConsumableKind,
+} from '../data/content'
 
 /**
  * Ilovaning yagona holat manbai.
@@ -32,10 +36,36 @@ export interface SessionResult {
   kind: 'lesson-test' | 'problem-set' | 'daily'
   refId: string
   title: string
-  /** foydalanuvchi javoblari, tartib saqlanadi */
-  answers: { prompt: string; picked: number; correct: number; options: string[]; explain: string; ok: boolean }[]
+  /** foydalanuvchi javoblari, tartib saqlanadi. `skipped` — o'tkazilgan, xato emas */
+  answers: { prompt: string; picked: number; correct: number; options: string[]; explain: string; ok: boolean; skipped?: boolean }[]
   coinsEarned: number
   xpEarned: number
+}
+
+/** Do'kon xarid tarixi yozuvi */
+export interface TxEntry {
+  title: string
+  cost: number
+  /** ISO sana */
+  at: string
+}
+
+/** Haqiqiy sovg'a buyurtmasi */
+export interface OrderEntry {
+  productId: string
+  title: string
+  price: number
+  at: string
+}
+
+/** Mahsulotga yozilgan izoh */
+export interface ReviewEntry {
+  id: string
+  productId: string
+  name: string
+  rating: number
+  text: string
+  at: string
 }
 
 interface AppState {
@@ -47,9 +77,22 @@ interface AppState {
   xp: number
   coin: number
   streak: number
+  /** eng uzun ketma-ket kun zanjiri */
+  bestStreak: number
+  /** zanjir uzilmagan oxirgi kun */
+  lastActiveDay: string | null
   solvedCount: number
+  /** javob berilgan savollar (o'tkazib yuborilganlar sansiz) */
+  answeredTotal: number
+  answeredCorrect: number
   isPro: boolean
   proExpires: string | null
+  /** kun -> shu kunda o'qilgan daqiqa */
+  studyMinutes: Record<string, number>
+  /** ochilgan seans boshlanish vaqti (ms); daqiqa hisobi shundan */
+  sessionStartedAt: number | null
+  notifOn: boolean
+  theme: 'light' | 'dark'
 
   /* ── Progressiya ── */
   lessons: Record<number, LessonProgress>
@@ -70,10 +113,32 @@ interface AppState {
   activeLessonId: number | null
   onboarded: boolean
 
+  /* ── Do'kon ── */
+  /** sotib olingan, hali ishlatilmagan buyumlar: buyum id -> soni */
+  inventory: Record<string, number>
+  /** oxirgi xaridlar (yangisi boshida) */
+  txLog: TxEntry[]
+  /** foydalanuvchi «nega yig'ayapman» deb tanlagan buyum/to'plam id'si */
+  goalId: string | null
+  /** coin evaziga Pro sinovi olingan oy (YYYY-MM) */
+  proTrialMonth: string | null
+  /** 2x bonus kartasi faolmi — keyingi seansda sarflanadi */
+  boostActive: boolean
+  /** berilgan buyurtmalar: haqiqiy sovg'alar */
+  orders: OrderEntry[]
+  /** ombordan olingan donalar: mahsulot id -> soni */
+  stockTaken: Record<string, number>
+  /** foydalanuvchining own izohlari */
+  reviews: ReviewEntry[]
+  /** «keyin olaman» deb belgilangan mahsulotlar */
+  favs: string[]
+
   /* ── Actions ── */
   setOnboarded: () => void
   /** Login/ro'yxatdan o'tishda profil ma'lumotlari */
   setProfile: (name: string, username: string) => void
+  /** Seans boshlandi — daqiqa hisobi shu nuqtadan yuriladi */
+  beginSession: () => void
   startLesson: (id: number) => void
   markVideoWatched: (id: number) => void
   markExampleDone: (id: number) => void
@@ -91,6 +156,33 @@ interface AppState {
   claimMission: (key: string, reward: number) => void
   resetAll: () => void
 
+  /* ── Do'kon actions ── */
+  buyConsumable: (id: string) => boolean
+  buyProTrial: () => 'ok' | 'poor' | 'used'
+  /** Pro muddatini kunlarga cho'zish (sana hisobi shu yerda) */
+  grantProDays: (days: number) => void
+  setGoal: (id: string | null) => void
+  /** buyumni ishlatish: soni 1 ga kamayadi */
+  useConsumable: (kind: ConsumableKind) => boolean
+  /** holdagi buyum soni */
+  heldCount: (id: string) => number
+  /** haqiqiy sovg'a buyurtmasi: coin yechiladi, ombor kamayadi */
+  buyProduct: (id: string) => 'ok' | 'poor' | 'out'
+  /** ombordagi qolgan dona (buyurtmalar bilan kamaygan) */
+  stockLeft: (id: string) => number
+  /** mahsulot buyurtma qilinganmi */
+  ordered: (id: string) => boolean
+  addReview: (productId: string, rating: number, text: string) => boolean
+  /** mahsulot izohlari (o'nikisi boshida) */
+  reviewsFor: (productId: string) => ReviewEntry[]
+  toggleFav: (id: string) => void
+
+  /* ── Sozlamalar ── */
+  setNotif: (on: boolean) => void
+  setTheme: (t: 'light' | 'dark') => void
+  /** Hisobdan chiqish — progress saqlanadi, faqat sessiya yopiladi */
+  signOut: () => void
+
   /* ── Derived ── */
   lessonStage: (id: number) => Stage
   canOpenLesson: (id: number) => boolean
@@ -100,16 +192,72 @@ interface AppState {
   xpForNext: () => number
 }
 
-const todayKey = () => new Date().toISOString().slice(0, 10)
+/** Kun kaliti — foydalanuvchining mahalliy vaqti bo'yicha (YYYY-MM-DD) */
+const dayKey = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+const todayKey = () => dayKey(new Date())
 
 const XP_STEP = 1000
-
-/** Kunlik mega masala bonusi — bir marta, kuniga */
-export const DAILY_BONUS = { coin: 50, xp: 80 }
 
 /** Daraja har 1000 XP da ko'tariladi */
 function levelFromXp(xp: number): number {
   return Math.floor(xp / XP_STEP) + 1
+}
+
+/** 2x kartasi faol bo'lsa seans coinlarini ikkilantiradi (natija ekrani ham shuni ko'rsatadi) */
+function applyBoost(s: { boostActive: boolean }, result: SessionResult): SessionResult {
+  if (!s.boostActive) return result
+  return { ...result, coinsEarned: result.coinsEarned * 2 }
+}
+
+/** Seans yakunida kartani sarflash */
+function boostConsume(s: { boostActive: boolean }): Partial<AppState> {
+  return s.boostActive ? { boostActive: false } : {}
+}
+
+/** Xaridni tarixga yozish (eng yangi boshida, 20 tagacha) */
+function tx(entry: TxEntry, log: TxEntry[]): TxEntry[] {
+  return [entry, ...log].slice(0, 20)
+}
+
+/**
+ * Zanjir — ketma-ket kunlarda faol bo'lish.
+ * Bugun allaqachon qayd bo'lsa o'zgarmaydi; kecha bo'lsa +1; aks holda 1 dan boshlanadi.
+ */
+function bumpStreak(
+  s: { streak: number; bestStreak: number; lastActiveDay: string | null },
+  day: string,
+): Partial<AppState> {
+  if (s.lastActiveDay === day) return {}
+  const yesterday = dayKey(new Date(Date.now() - 86_400_000))
+  const streak = s.lastActiveDay === yesterday ? s.streak + 1 : 1
+  return { streak, lastActiveDay: day, bestStreak: Math.max(s.bestStreak, streak) }
+}
+
+/** Seans davomiyligini kunlik o'qilgan daqiqalarga qo'shish */
+function creditMinutes(
+  s: { sessionStartedAt: number | null; studyMinutes: Record<string, number> },
+  day: string,
+): Partial<AppState> {
+  if (s.sessionStartedAt === null) return {}
+  const mins = Math.min(120, Math.round((Date.now() - s.sessionStartedAt) / 60_000))
+  const started: Partial<AppState> = { sessionStartedAt: null }
+  if (mins <= 0) return started
+  return {
+    ...started,
+    studyMinutes: { ...s.studyMinutes, [day]: (s.studyMinutes[day] ?? 0) + mins },
+  }
+}
+
+/** Javob berilgan savollar va to'g'rilari — aniqlik foizi shundan */
+function creditAnswers(
+  s: { answeredTotal: number; answeredCorrect: number },
+  result: SessionResult,
+): Partial<AppState> {
+  const answered = result.answers.filter(a => !a.skipped).length
+  const ok = result.answers.filter(a => a.ok).length
+  return { answeredTotal: s.answeredTotal + answered, answeredCorrect: s.answeredCorrect + ok }
 }
 
 export const useApp = create<AppState>()(
@@ -122,9 +270,17 @@ export const useApp = create<AppState>()(
       xp: 0,
       coin: 0,
       streak: 0,
+      bestStreak: 0,
+      lastActiveDay: null,
       solvedCount: 0,
+      answeredTotal: 0,
+      answeredCorrect: 0,
       isPro: false,
       proExpires: null,
+      studyMinutes: {},
+      sessionStartedAt: null,
+      notifOn: true,
+      theme: 'light',
 
       lessons: {},
       solvedQuestions: {},
@@ -138,20 +294,40 @@ export const useApp = create<AppState>()(
       activeLessonId: null,
       onboarded: false,
 
+      inventory: {},
+      txLog: [],
+      goalId: null,
+      proTrialMonth: null,
+      boostActive: false,
+      orders: [],
+      stockTaken: {},
+      reviews: [],
+      favs: [],
+
       setOnboarded: () => set({ onboarded: true }),
 
-      setProfile: (name, username) =>
-        set({ name, username, publicId: 'HDP-' + Math.floor(10000 + Math.random() * 89999) }),
+      /** Profil tahriri — hisob raqami (publicId) o'zgarmaydi */
+      setProfile: (name, username) => set({ name, username }),
+
+      beginSession: () => {
+        if (get().sessionStartedAt !== null) return
+        set({ sessionStartedAt: Date.now() })
+      },
 
       startLesson: (id) => set({ activeLessonId: id }),
 
       markVideoWatched: (id) =>
-        set((s) => ({
-          lessons: {
-            ...s.lessons,
-            [id]: { ...emptyProgress(), ...s.lessons[id], videoWatched: true },
-          },
-        })),
+        set((s) => {
+          const day = todayKey()
+          return {
+            lessons: {
+              ...s.lessons,
+              [id]: { ...emptyProgress(), ...s.lessons[id], videoWatched: true },
+            },
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+          }
+        }),
 
       markExampleDone: (id) =>
         set((s) => ({
@@ -163,7 +339,9 @@ export const useApp = create<AppState>()(
 
       finishLessonTest: (lessonId, result) =>
         set((s) => {
+          const day = todayKey()
           const ok = result.answers.filter((a) => a.ok).length
+          const credited = applyBoost(s, result)
           return {
             lessons: {
               ...s.lessons,
@@ -176,13 +354,16 @@ export const useApp = create<AppState>()(
                 testTotal: result.answers.length,
               },
             },
-            coin: s.coin + result.coinsEarned,
+            coin: s.coin + credited.coinsEarned,
             xp: s.xp + result.xpEarned,
             level: levelFromXp(s.xp + result.xpEarned),
             solvedCount: s.solvedCount + ok,
-            streak: s.streak + 1,
-            lastResult: result,
+            lastResult: credited,
             activeLessonId: lessonId,
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+            ...creditAnswers(s, result),
+            ...boostConsume(s),
           }
         }),
 
@@ -199,9 +380,10 @@ export const useApp = create<AppState>()(
           const dailyHit = dailyProblem().set.id === setId && s.dailyBonusOn !== day
           const extraCoin = dailyHit ? DAILY_BONUS.coin : 0
           const extraXp = dailyHit ? DAILY_BONUS.xp : 0
+          const credited = applyBoost(s, result)
           return {
             solvedQuestions: { ...s.solvedQuestions, [setId]: [...new Set([...prev, ...now])] },
-            coin: s.coin + result.coinsEarned + extraCoin,
+            coin: s.coin + credited.coinsEarned + extraCoin,
             xp: s.xp + result.xpEarned + extraXp,
             level: levelFromXp(s.xp + result.xpEarned + extraXp),
             solvedCount: s.solvedCount + newly,
@@ -210,18 +392,28 @@ export const useApp = create<AppState>()(
             olympToday: (rolled ? 0 : s.olympToday) + (solved?.topic === 'Olimpiada' ? newly : 0),
             claimedMissions: rolled ? [] : s.claimedMissions,
             dailyBonusOn: dailyHit ? day : s.dailyBonusOn,
-            lastResult: result,
+            lastResult: credited,
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+            ...creditAnswers(s, result),
+            ...boostConsume(s),
           }
         }),
 
       finishDaily: (result) =>
-        set((s) => ({
-          coin: s.coin + result.coinsEarned,
-          xp: s.xp + result.xpEarned,
-          level: levelFromXp(s.xp + result.xpEarned),
-          solvedCount: s.solvedCount + result.answers.filter((a) => a.ok).length,
-          lastResult: result,
-        })),
+        set((s) => {
+          const day = todayKey()
+          return {
+            coin: s.coin + result.coinsEarned,
+            xp: s.xp + result.xpEarned,
+            level: levelFromXp(s.xp + result.xpEarned),
+            solvedCount: s.solvedCount + result.answers.filter((a) => a.ok).length,
+            lastResult: result,
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+            ...creditAnswers(s, result),
+          }
+        }),
 
       subscribePro: (months) => {
         const until = new Date()
@@ -241,7 +433,12 @@ export const useApp = create<AppState>()(
       unlockSet: (id, price) => {
         if (get().unlocked.includes(id)) return true
         if (get().coin < price) return false
-        set((s) => ({ coin: s.coin - price, unlocked: [...s.unlocked, id] }))
+        const setItem = findProblemSet(id)
+        set((s) => ({
+          coin: s.coin - price,
+          unlocked: [...s.unlocked, id],
+          txLog: tx({ title: setItem?.title ?? id, cost: price, at: new Date().toISOString() }, s.txLog),
+        }))
         return true
       },
 
@@ -258,15 +455,145 @@ export const useApp = create<AppState>()(
         set({ coin: s.coin + reward, claimedMissions: [...s.claimedMissions, key] })
       },
 
+      /* ── Do'kon ── */
+
+      /** Buyum sotib olish: coin kamayadi, inventory ko'payadi (2x karta darhol faol) */
+      buyConsumable: (id) => {
+        const s = get()
+        const item = id === BOOST_CARD.id ? null : CONSUMABLES.find(c => c.id === id)
+        const cost = item ? item.cost : id === BOOST_CARD.id ? BOOST_CARD.cost : 0
+        if (!cost || s.coin < cost) return false
+
+        if (!item) {
+          if (s.boostActive) return false
+          set({
+            coin: s.coin - cost,
+            boostActive: true,
+            txLog: tx({ title: BOOST_CARD.title, cost, at: new Date().toISOString() }, s.txLog),
+          })
+          return true
+        }
+
+        const held = s.inventory[item.id] ?? 0
+        if (held >= item.maxHold) return false
+        set({
+          coin: s.coin - cost,
+          inventory: { ...s.inventory, [item.id]: held + 1 },
+          txLog: tx({ title: item.title, cost, at: new Date().toISOString() }, s.txLog),
+        })
+        return true
+      },
+
+      /** Coin evaziga 7 kunlik Pro — oyiga bir marta */
+      buyProTrial: () => {
+        const s = get()
+        const month = todayKey().slice(0, 7)
+        if (s.proTrialMonth === month) return 'used'
+        if (s.coin < PRO_TRIAL.coin) return 'poor'
+        set({
+          coin: s.coin - PRO_TRIAL.coin,
+          proTrialMonth: month,
+          txLog: tx({ title: PRO_TRIAL.title, cost: PRO_TRIAL.coin, at: new Date().toISOString() }, s.txLog),
+        })
+        get().grantProDays(PRO_TRIAL.days)
+        return 'ok'
+      },
+
+      /** Pro muddati: mavjud sana oxiridan qo'shiladi, tugagan bo'lsa bugundan */
+      grantProDays: (days) => {
+        const s = get()
+        const current = s.isPro && s.proExpires ? Date.parse(s.proExpires + 'T00:00:00') : 0
+        const from = Math.max(current, Date.now())
+        const until = new Date(from + days * 86400000)
+        set({ isPro: true, proExpires: until.toISOString().slice(0, 10) })
+      },
+
+      setGoal: (id) => set({ goalId: id }),
+
+      useConsumable: (kind) => {
+        const s = get()
+        const item = CONSUMABLES.find(c => c.kind === kind)
+        if (!item) return false
+        const held = s.inventory[item.id] ?? 0
+        if (held <= 0) return false
+        set({ inventory: { ...s.inventory, [item.id]: held - 1 } })
+        return true
+      },
+
+      heldCount: (id) => get().inventory[id] ?? 0,
+
+      /** Sovg'a buyurtmasi — coin yechiladi, ombor dona kamayadi, tarixga yoziladi */
+      buyProduct: (id) => {
+        const s = get()
+        const product = findProduct(id)
+        if (!product) return 'out'
+        const left = product.stock - (s.stockTaken[id] ?? 0)
+        if (left <= 0) return 'out'
+        if (s.coin < product.price) return 'poor'
+        const at = new Date().toISOString()
+        set({
+          coin: s.coin - product.price,
+          stockTaken: { ...s.stockTaken, [id]: (s.stockTaken[id] ?? 0) + 1 },
+          orders: [{ productId: id, title: product.title, price: product.price, at }, ...s.orders].slice(0, 30),
+          txLog: tx({ title: product.title, cost: product.price, at }, s.txLog),
+        })
+        return 'ok'
+      },
+
+      stockLeft: (id) => {
+        const product = findProduct(id)
+        if (!product) return 0
+        return Math.max(0, product.stock - (get().stockTaken[id] ?? 0))
+      },
+
+      ordered: (id) => get().orders.some(o => o.productId === id),
+
+      addReview: (productId, rating, text) => {
+        const s = get()
+        const clean = text.trim()
+        if (!findProduct(productId) || clean.length < 3) return false
+        const entry: ReviewEntry = {
+          id: 'r' + Date.now().toString(36),
+          productId,
+          name: s.name.split(' ')[0] || 'Siz',
+          rating: Math.min(5, Math.max(1, rating)),
+          text: clean.slice(0, 300),
+          at: new Date().toISOString(),
+        }
+        set({ reviews: [entry, ...s.reviews] })
+        return true
+      },
+
+      reviewsFor: (productId) => get().reviews.filter(r => r.productId === productId),
+
+      toggleFav: (id) =>
+        set((s) => ({
+          favs: s.favs.includes(id) ? s.favs.filter(f => f !== id) : [...s.favs, id],
+        })),
+
+      /* ── Sozlamalar ── */
+
+      setNotif: (on) => set({ notifOn: on }),
+
+      setTheme: (t) => set({ theme: t }),
+
+      signOut: () => set({ onboarded: false, sessionStartedAt: null }),
+
       resetAll: () =>
         set({
           xp: 0,
           coin: 0,
           level: 1,
           streak: 0,
+          bestStreak: 0,
+          lastActiveDay: null,
           solvedCount: 0,
+          answeredTotal: 0,
+          answeredCorrect: 0,
           isPro: false,
           proExpires: null,
+          studyMinutes: {},
+          sessionStartedAt: null,
           lessons: {},
           solvedQuestions: {},
           unlocked: [],
@@ -277,6 +604,15 @@ export const useApp = create<AppState>()(
           lastResult: null,
           activeLessonId: null,
           onboarded: false,
+          inventory: {},
+          txLog: [],
+          goalId: null,
+          proTrialMonth: null,
+          boostActive: false,
+          orders: [],
+          stockTaken: {},
+          reviews: [],
+          favs: [],
         }),
 
       lessonStage: (id) => {
@@ -323,9 +659,16 @@ export const useApp = create<AppState>()(
         coin: s.coin,
         level: s.level,
         streak: s.streak,
+        bestStreak: s.bestStreak,
+        lastActiveDay: s.lastActiveDay,
         solvedCount: s.solvedCount,
+        answeredTotal: s.answeredTotal,
+        answeredCorrect: s.answeredCorrect,
         isPro: s.isPro,
         proExpires: s.proExpires,
+        studyMinutes: s.studyMinutes,
+        notifOn: s.notifOn,
+        theme: s.theme,
         lessons: s.lessons,
         solvedQuestions: s.solvedQuestions,
         unlocked: s.unlocked,
@@ -335,6 +678,15 @@ export const useApp = create<AppState>()(
         claimedMissions: s.claimedMissions,
         dailyBonusOn: s.dailyBonusOn,
         onboarded: s.onboarded,
+        inventory: s.inventory,
+        txLog: s.txLog,
+        goalId: s.goalId,
+        proTrialMonth: s.proTrialMonth,
+        boostActive: s.boostActive,
+        orders: s.orders,
+        stockTaken: s.stockTaken,
+        reviews: s.reviews,
+        favs: s.favs,
       }),
     }
   )

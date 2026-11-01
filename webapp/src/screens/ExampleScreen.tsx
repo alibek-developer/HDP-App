@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, Lightbulb, Lock, Check } from 'lucide-react'
+import { Check, ChevronRight, Lightbulb, Lock } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
 import { findLesson } from '../data/content'
 import { useApp } from '../store/useStore'
+import { BODY, CARD, LIME_BTN, TICK } from '../styles/solver'
 
 /**
  * 5-qadam: Misol — dars mavzusiga oid BITTA yechilgan misol.
@@ -23,8 +24,12 @@ const ExampleScreen = () => {
 
   if (!lesson) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#F1F4F9' }}>
-        <button onClick={() => navigate('/courses')} className="text-sm font-bold" style={{ color: '#4338CA' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: BODY }}>
+        <button
+          onClick={() => navigate('/courses')}
+          className="h-[44px] px-5 text-[13px] font-extrabold"
+          style={{ ...CARD, color: '#0E1A12' }}
+        >
           Kurslarga qaytish
         </button>
       </div>
@@ -37,16 +42,21 @@ const ExampleScreen = () => {
   // Zanjir qoidasi: video tugamagan bo'lsa misolga kirib bo'lmaydi
   if (!canEnterExample) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: '#F1F4F9' }}>
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#EEF2FF' }}>
-          <Lock size={22} style={{ color: '#4338CA' }} />
-        </div>
-        <p className="text-base font-bold text-center" style={{ color: '#0F172A' }}>Avval videoni ko\'ring</p>
-        <p className="text-xs text-center" style={{ color: '#64748B' }}>Misol video oxirigacha ko\'rilgach ochiladi.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: BODY }}>
+        <span
+          className="w-[54px] h-[54px] flex items-center justify-center"
+          style={{ background: '#F6F8F3', border: '1px solid #E1E7DA', borderRadius: 16, color: '#6B7C66' }}
+        >
+          <Lock size={22} />
+        </span>
+        <p className="text-[16px] font-extrabold text-center text-ink">Avval videoni ko'ring</p>
+        <p className="text-[12.5px] text-center font-medium" style={{ color: '#6B7C66' }}>
+          Misol video oxirigacha ko'rilgach ochiladi.
+        </p>
         <button
           onClick={() => navigate(`/lesson/${lesson.id}`)}
-          className="mt-2 px-6 py-3 rounded-xl font-bold text-sm text-white"
-          style={{ background: '#4338CA' }}
+          className="mt-2 h-[46px] px-6 text-[13.5px] font-extrabold active:scale-[0.97] transition-transform"
+          style={LIME_BTN}
         >
           Videoga qaytish
         </button>
@@ -66,134 +76,132 @@ const ExampleScreen = () => {
   }
 
   return (
-    <div className="min-h-screen pb-8 select-none font-sans" style={{ background: '#F1F4F9' }}>
+    <div className="min-h-screen pb-10 select-none font-sans" style={{ background: BODY }}>
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 pt-4 pb-3">
-        <button
-          onClick={() => { triggerHaptic('light'); navigate(`/lesson/${lesson.id}`) }}
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
-        >
-          <ChevronRight size={18} style={{ color: '#334155', transform: 'rotate(180deg)' }} />
-        </button>
-        <div className="text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>Misol</p>
-          <p className="text-sm font-bold" style={{ color: '#0F172A' }}>{lesson.title}</p>
+      {/* Holat chizig'i: qadam hisobi + davotar chiziqlari */}
+      <div className="flex items-center gap-3 px-4 pt-5 pb-1">
+        <span className="num text-[12px] font-extrabold shrink-0" style={{ color: '#33452F' }}>
+          {Math.min(revealed, steps.length)}/{steps.length}
+        </span>
+
+        <div className="flex-1 flex gap-1.5">
+          {steps.map((_, i) => (
+            <motion.span
+              key={i}
+              className="flex-1 h-[5px]"
+              animate={{ background: i < revealed ? TICK.ok : i === revealed ? TICK.current : TICK.todo }}
+              transition={{ duration: 0.3 }}
+              style={{ borderRadius: 3 }}
+            />
+          ))}
         </div>
-        <div style={{ width: 36 }} />
-      </header>
 
-      {/* Step rail */}
-      <div className="flex items-center gap-2 px-6 mb-5">
-        <StepDot on label="Video" />
-        <StepLine on />
-        <StepDot on={allSeen} label="Misol" />
-        <StepLine on={allSeen} />
-        <StepDot on={false} label="Test" />
+        <span className="text-[11.5px] font-extrabold shrink-0 uppercase tracking-[0.08em]" style={{ color: '#6B7C66' }}>
+          qadam
+        </span>
       </div>
 
-      {/* Problem */}
-      <section className="px-4 mb-4">
-        <div
-          className="rounded-2xl p-5"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
-        >
-          <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: '#4338CA' }}>
-            Masala sharti
-          </p>
-          <p className="text-base font-semibold leading-snug" style={{ color: '#0F172A' }}>
-            {lesson.example.prompt}
-          </p>
-        </div>
-      </section>
-
-      {/* Steps */}
-      <section className="px-4 mb-4 space-y-2">
-        {steps.map((s, i) => (
-          <AnimatePresence key={i}>
-            {i < revealed ? (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-start gap-3 p-4 rounded-xl"
-                style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}
-              >
-                <span
-                  className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-black text-white"
-                  style={{ background: '#4338CA' }}
-                >
-                  {i + 1}
-                </span>
-                <p className="text-sm leading-relaxed" style={{ color: '#312E81' }}>{s}</p>
-              </motion.div>
-            ) : (
-              i === revealed && (
-                <button
-                  onClick={revealNext}
-                  className="w-full flex items-center justify-center gap-2 p-4 rounded-xl font-bold text-sm"
-                  style={{ background: '#FFFFFF', border: '1.5px dashed #CBD5E1', color: '#4338CA' }}
-                >
-                  <Lightbulb size={16} />
-                  {i === 0 ? 'Yechimning 1-qadamini ko\'rish' : `${i + 1}-qadamni ko'rish`}
-                </button>
-              )
-            )}
-          </AnimatePresence>
-        ))}
-      </section>
-
-      {/* Answer */}
-      {allSeen && (
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="px-4 mb-5"
-        >
-          <div
-            className="rounded-xl p-4 flex items-center justify-between"
-            style={{ background: '#ECFDF5', border: '1px solid #A7F3D0' }}
-          >
-            <span className="text-xs font-bold" style={{ color: '#065F46' }}>Javob</span>
-            <span className="text-sm font-extrabold font-mono" style={{ color: '#059669' }}>
-              {lesson.example.answer}
-            </span>
+      <div className="px-4 mt-3">
+        {/* Masala sharti */}
+        <div className="relative" style={{ ...CARD, borderRadius: 16, boxShadow: '0 6px 18px rgba(14,26,18,0.06)' }}>
+          <span
+            className="absolute left-0 top-0 bottom-0"
+            style={{ width: 5, borderRadius: '16px 0 0 16px', background: 'linear-gradient(180deg, #9BE04B 0%, #5FAF22 100%)' }}
+          />
+          <div className="pl-5 pr-4 py-4">
+            <p className="text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: '#6B7C66' }}>
+              {lesson.title} · masala sharti
+            </p>
+            <p className="mt-2 text-[16.5px] font-semibold leading-snug text-ink">{lesson.example.prompt}</p>
           </div>
-        </motion.section>
-      )}
+        </div>
 
-      {/* Gated CTA */}
-      <section className="px-4">
+        {/* Qadamlar */}
+        <div className="mt-4 space-y-2.5">
+          {steps.map((s, i) => (
+            <AnimatePresence key={i}>
+              {i < revealed ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative flex items-start gap-3 overflow-hidden"
+                  style={{ ...CARD, borderRadius: 14, background: '#FBFCF8' }}
+                >
+                  <span className="absolute left-0 top-0 bottom-0" style={{ width: 4, background: '#5FAF22' }} />
+                  <span
+                    className="num ml-3 w-[26px] h-[26px] flex items-center justify-center shrink-0 text-[12px] font-black"
+                    style={{ background: '#DDF3DC', color: '#0B6E4F', borderRadius: 8 }}
+                  >
+                    {i + 1}
+                  </span>
+                  <p className="flex-1 py-3.5 pr-4 text-[14px] leading-relaxed text-ink-2">{s}</p>
+                </motion.div>
+              ) : (
+                i === revealed && (
+                  <button
+                    onClick={revealNext}
+                    className="w-full h-[54px] flex items-center justify-center gap-2 text-[13.5px] font-extrabold active:scale-[0.99] transition-transform"
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1.5px dashed #CFD9C6',
+                      borderRadius: 14,
+                      color: '#0E1A12',
+                    }}
+                  >
+                    <Lightbulb size={16} style={{ color: '#B87A22' }} />
+                    {i === 0 ? '1-qadamni ko\'rish' : `${i + 1}-qadamni ko'rish`}
+                  </button>
+                )
+              )}
+            </AnimatePresence>
+          ))}
+        </div>
+
+        {/* Javob */}
+        {allSeen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative mt-4 overflow-hidden"
+            style={{ background: '#0E1A12', borderRadius: 14, boxShadow: '0 10px 24px rgba(14,26,18,0.22)' }}
+          >
+            <span
+              className="absolute left-0 top-0 bottom-0"
+              style={{ width: 5, background: 'linear-gradient(180deg, #9BE04B 0%, #5FAF22 100%)' }}
+            />
+            <div className="pl-5 pr-4 py-4 flex items-center justify-between gap-3">
+              <p className="text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: 'rgba(205,233,174,0.55)' }}>
+                Javob
+              </p>
+              <p className="num font-mono text-[16px] font-extrabold" style={{ color: '#9BE04B' }}>
+                {lesson.example.answer}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Testga o'tish — qulf zanjiri */}
         <button
           disabled={!allSeen}
           onClick={toTest}
-          className="w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+          className="mt-5 w-full h-[52px] text-[14.5px] font-extrabold flex items-center justify-center gap-2 active:scale-[0.985] transition-transform"
           style={allSeen
-            ? { background: 'linear-gradient(135deg, #4338CA, #6366F1)', color: '#FFFFFF', boxShadow: '0 4px 16px rgba(67,56,202,0.28)' }
-            : { background: '#E2E8F0', color: '#94A3B8' }}
+            ? LIME_BTN
+            : { background: '#EAEEE3', color: '#9AA995', borderRadius: 12 }}
         >
           {!allSeen && <Lock size={15} />}
-          {allSeen ? 'Testga o\'tish →' : 'Avval yechimni to\'liq ko\'ring'}
+          {allSeen ? 'Testga o\'tish' : 'Avval yechimni to\'liq ko\'ring'}
+          {allSeen && <ChevronRight size={16} />}
         </button>
+
         {allSeen && (
-          <p className="text-center text-[11px] mt-2" style={{ color: '#94A3B8' }}>
-            <Check size={11} className="inline -mt-0.5" /> Misol bajarildi deb belgilandi
+          <p className="mt-3 text-center text-[11.5px] font-bold" style={{ color: '#9AA995' }}>
+            <Check size={11} className="inline -mt-0.5" style={{ color: '#5FAF22' }} /> Misol bajarildi deb belgilandi
           </p>
         )}
-      </section>
+      </div>
     </div>
   )
 }
-
-const StepDot = ({ on, label }: { on: boolean; label: string }) => (
-  <div className="flex flex-col items-center gap-1">
-    <span className="w-2.5 h-2.5 rounded-full" style={{ background: on ? '#059669' : '#CBD5E1' }} />
-    <span className="text-[9px] font-bold" style={{ color: on ? '#059669' : '#94A3B8' }}>{label}</span>
-  </div>
-)
-
-const StepLine = ({ on }: { on: boolean }) => (
-  <span className="flex-1 h-0.5 rounded-full -mt-3.5" style={{ background: on ? '#059669' : '#E2E8F0' }} />
-)
 
 export default ExampleScreen

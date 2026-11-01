@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ChevronRight, Check, X, Coins, Zap, Award, RotateCcw, Home, BookOpen } from 'lucide-react'
+import { Check, X, RotateCcw, Home, BookOpen } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
 import { useApp } from '../store/useStore'
+import { BODY, CARD, LIME_BTN, OUT_BTN, TICK } from '../styles/solver'
 
 /**
  * 7-qadam: Natija — nechta to'g'ri, qancha coin, va har bir xato uchun
@@ -15,13 +16,21 @@ const ResultScreen = () => {
 
   if (!result) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: '#F1F4F9' }}>
-        <p className="text-base font-bold" style={{ color: '#0F172A' }}>Natija topilmadi</p>
-        <p className="text-xs text-center" style={{ color: '#64748B' }}>Avval test yoki to'plamni yakunlang.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8" style={{ background: BODY }}>
+        <span
+          className="w-[54px] h-[54px] flex items-center justify-center mb-1"
+          style={{ background: '#EDF7DE', border: '1px solid #CFD9C6', borderRadius: 16, color: '#5FAF22' }}
+        >
+          <BookOpen size={22} />
+        </span>
+        <p className="text-[16px] font-extrabold text-ink">Natija topilmadi</p>
+        <p className="text-[12.5px] text-center font-medium" style={{ color: '#6B7C66' }}>
+          Avval test yoki to'plamni yakunlang.
+        </p>
         <button
-          onClick={() => navigate('/home')}
-          className="mt-2 px-6 py-3 rounded-xl font-bold text-sm text-white"
-          style={{ background: '#4338CA' }}
+          onClick={() => { triggerHaptic('light'); navigate('/home') }}
+          className="mt-2 h-[46px] px-6 text-[13.5px] font-extrabold active:scale-[0.97] transition-transform"
+          style={LIME_BTN}
         >
           Bosh sahifaga
         </button>
@@ -31,93 +40,133 @@ const ResultScreen = () => {
 
   const total = result.answers.length
   const correct = result.answers.filter(a => a.ok).length
-  const wrong = result.answers.filter(a => !a.ok)
+  const skipped = result.answers.filter(a => a.skipped)
+  const wrong = result.answers.filter(a => !a.ok && !a.skipped)
   const percent = total === 0 ? 0 : Math.round((correct / total) * 100)
   const backTo = result.kind === 'problem-set' ? '/problems' : `/lesson/${result.refId}`
+  const tone = percent >= 80 ? TICK.ok : percent >= 50 ? '#E8A33D' : TICK.bad
 
   return (
-    <div className="min-h-screen pb-32 select-none font-sans" style={{ background: '#F1F4F9' }}>
+    <div className="min-h-screen pb-32 select-none font-sans" style={{ background: BODY }}>
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 pt-4 pb-2">
-        <button
-          onClick={() => { triggerHaptic('light'); navigate(backTo) }}
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+      {/* ── Natija varaqasi ── */}
+      <div className="px-4 pt-5">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="relative overflow-hidden"
+          style={{ ...CARD, borderRadius: 16, boxShadow: '0 10px 26px rgba(14,26,18,0.08)' }}
         >
-          <ChevronRight size={18} style={{ color: '#334155', transform: 'rotate(180deg)' }} />
-        </button>
-        <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>Natija</p>
-        <div style={{ width: 36 }} />
-      </header>
-
-      {/* Score card */}
-      <motion.section
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-4 mb-4"
-      >
-        <div
-          className="rounded-2xl p-6 text-center"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}
-        >
-          <ScoreRing percent={percent} />
-          <p className="text-2xl font-extrabold mt-4" style={{ color: '#0F172A' }}>
-            {correct} / {total}
-          </p>
-          <p className="text-sm mt-1" style={{ color: '#64748B' }}>{result.title}</p>
-
-          {/* Rewards */}
-          <div className="flex items-center justify-center gap-2 mt-5">
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: '#FFF7E6', border: '1px solid #F5D899' }}>
-              <Coins size={14} style={{ color: '#B45309' }} />
-              <span className="text-sm font-extrabold" style={{ color: '#B45309' }}>+{result.coinsEarned}</span>
+          <span
+            className="absolute left-0 top-0 bottom-0"
+            style={{ width: 6, background: tone }}
+          />
+          <div className="pl-5 pr-4 py-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: '#6B7C66' }}>
+                  {result.kind === 'problem-set' ? 'To\'plam natijasi' : 'Test natijasi'}
+                </p>
+                <p className="mt-2 text-[14px] font-extrabold text-ink">{result.title}</p>
+              </div>
+              <p className="num text-[34px] font-extrabold leading-none text-ink">
+                {correct}
+                <span className="text-[18px]" style={{ color: '#9AA995' }}>/{total}</span>
+              </p>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: '#EEF2FF', border: '1px solid #C7D2FE' }}>
-              <Zap size={14} style={{ color: '#4338CA' }} />
-              <span className="text-sm font-extrabold" style={{ color: '#4338CA' }}>+{result.xpEarned}</span>
+
+            {/* Har bir savol uchun holat chizig'i */}
+            <div className="mt-4 flex gap-1.5">
+              {result.answers.map((a, i) => (
+                <motion.span
+                  key={i}
+                  className="flex-1 h-[6px]"
+                  initial={{ background: TICK.todo }}
+                  animate={{ background: a.ok ? TICK.ok : a.skipped ? '#E8A33D' : TICK.bad }}
+                  transition={{ delay: 0.25 + i * 0.07, duration: 0.25 }}
+                  style={{ borderRadius: 3 }}
+                />
+              ))}
+            </div>
+
+            <div className="mt-2 flex items-center justify-between">
+              <span className="num text-[11.5px] font-extrabold" style={{ color: tone }}>
+                {percent}% {percent >= 80 ? '· ajoyib' : percent >= 50 ? '· yaxshi' : '· takrorlash kerak'}
+              </span>
+              <span className="num text-[11.5px] font-bold" style={{ color: '#9AA995' }}>
+                {wrong.length} ta xato{skipped.length > 0 ? ` · ${skipped.length} o'tkazildi` : ''}
+              </span>
+            </div>
+
+            {/* Mukofot ledger */}
+            <div className="mt-4 flex items-stretch" style={{ borderTop: '1px solid #EDF1E7', paddingTop: 14 }}>
+              {[
+                { v: `+${result.coinsEarned}`, u: 'coin', c: '#B87A22' },
+                { v: `+${result.xpEarned}`, u: 'XP', c: '#3560C4' },
+                { v: `${coin.toLocaleString('en-US')}`, u: 'hamyonda', c: '#0E1A12' },
+              ].map((cell, i) => (
+                <div key={cell.u} className="flex-1 flex items-center">
+                  {i > 0 && <span className="w-px self-stretch" style={{ background: '#EDF1E7' }} />}
+                  <div className="flex-1 text-center">
+                    <p className="num text-[17px] font-extrabold leading-none" style={{ color: cell.c }}>{cell.v}</p>
+                    <p className="mt-1.5 text-[10px] font-bold uppercase" style={{ color: '#9AA995' }}>{cell.u}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <p className="text-[11px] mt-3" style={{ color: '#94A3B8' }}>
-            <Award size={11} className="inline -mt-0.5" /> Jami hamyoningizda: {coin} 🪙
-          </p>
-        </div>
-      </motion.section>
+        </motion.div>
+      </div>
 
-      {/* Xatolar tahlili */}
+      {/* ── Topilgan xatolar ── */}
       {wrong.length > 0 && (
-        <section className="px-4 mb-4">
-          <p className="text-xs font-bold uppercase tracking-wider mb-2 px-1" style={{ color: '#64748B' }}>
-            Topilgan xatolar ({wrong.length})
-          </p>
-          <div className="space-y-2">
+        <section className="px-4 mt-6">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">Topilgan xatolar</h3>
+            <span className="num text-[11.5px] font-bold" style={{ color: '#6B7C66' }}>{wrong.length} ta</span>
+          </div>
+
+          <div className="space-y-3">
             {wrong.map((a, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="rounded-xl p-4"
-                style={{ background: '#FFFFFF', border: '1px solid #FECACA' }}
+                className="relative overflow-hidden"
+                style={{ ...CARD, borderRadius: 14 }}
               >
-                <div className="flex items-start gap-2 mb-2">
-                  <span className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#FEE2E2' }}>
-                    <X size={12} style={{ color: '#DC2626' }} />
-                  </span>
-                  <p className="text-sm font-semibold leading-snug" style={{ color: '#0F172A' }}>{a.prompt}</p>
-                </div>
-                <div className="pl-7 space-y-1.5">
-                  <p className="text-xs" style={{ color: '#DC2626' }}>
-                    Sizning javobingiz: <span className="font-bold">{a.options[a.picked] ?? '—'}</span>
-                  </p>
-                  <p className="text-xs" style={{ color: '#059669' }}>
-                    To'g'ri javob: <span className="font-bold">{a.options[a.correct]}</span>
-                  </p>
-                  <div className="mt-2 p-3 rounded-lg" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#4338CA' }}>
+                <span className="absolute left-0 top-0 bottom-0" style={{ width: 4, background: TICK.bad }} />
+                <div className="pl-4 pr-3.5 py-3.5">
+                  <p className="text-[14px] font-extrabold leading-snug text-ink">{a.prompt}</p>
+
+                  <div className="mt-3 space-y-1.5">
+                    <p className="flex items-center gap-2 text-[12.5px]">
+                      <span className="w-[18px] h-[18px] flex items-center justify-center shrink-0"
+                        style={{ background: '#FBE9E7', borderRadius: 6 }}>
+                        <X size={11} style={{ color: TICK.bad }} strokeWidth={3} />
+                      </span>
+                      <span style={{ color: '#6B7C66' }}>Sizning javobingiz:</span>
+                      <span className="font-extrabold" style={{ color: '#8C2F2C' }}>
+                        {a.options[a.picked] ?? '—'}
+                      </span>
+                    </p>
+                    <p className="flex items-center gap-2 text-[12.5px]">
+                      <span className="w-[18px] h-[18px] flex items-center justify-center shrink-0"
+                        style={{ background: '#DDF3DC', borderRadius: 6 }}>
+                        <Check size={11} style={{ color: TICK.ok }} strokeWidth={3} />
+                      </span>
+                      <span style={{ color: '#6B7C66' }}>To'g'ri javob:</span>
+                      <span className="font-extrabold" style={{ color: '#0B6E4F' }}>{a.options[a.correct]}</span>
+                    </p>
+                  </div>
+
+                  <div className="mt-3 pl-3 py-2.5" style={{ background: '#FBFCF8', borderLeft: '2px solid #E1E7DA' }}>
+                    <p className="text-tiny uppercase tracking-[0.12em] font-extrabold mb-1" style={{ color: '#6B7C66' }}>
                       Qanday to'g'rilash kerak
                     </p>
-                    <p className="text-xs leading-relaxed" style={{ color: '#334155' }}>{a.explain}</p>
+                    <p className="text-[13px] leading-relaxed text-ink-2">{a.explain}</p>
                   </div>
                 </div>
               </motion.div>
@@ -126,85 +175,118 @@ const ResultScreen = () => {
         </section>
       )}
 
-      {/* To'g'ri javoblar ro'yxati */}
+      {/* ── O'tkazilgan savollar (buyum sarflangan) ── */}
+      {skipped.length > 0 && (
+        <section className="px-4 mt-6">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">O'tkazilganlar</h3>
+            <span className="num text-[11.5px] font-bold" style={{ color: '#B87A22' }}>{skipped.length} ta</span>
+          </div>
+
+          <div className="space-y-3">
+            {skipped.map((a, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="relative overflow-hidden"
+                style={{ ...CARD, borderRadius: 14 }}
+              >
+                <span className="absolute left-0 top-0 bottom-0" style={{ width: 4, background: '#E8A33D' }} />
+                <div className="pl-4 pr-3.5 py-3.5">
+                  <p className="text-[14px] font-extrabold leading-snug text-ink">{a.prompt}</p>
+                  <p className="mt-2.5 flex items-center gap-2 text-[12.5px]">
+                    <span style={{ color: '#6B7C66' }}>To'g'ri javob:</span>
+                    <span className="font-extrabold" style={{ color: '#0B6E4F' }}>{a.options[a.correct]}</span>
+                  </p>
+                  <div className="mt-3 pl-3 py-2.5" style={{ background: '#FBFCF8', borderLeft: '2px solid #E1E7DA' }}>
+                    <p className="text-tiny uppercase tracking-[0.12em] font-extrabold mb-1" style={{ color: '#6B7C66' }}>
+                      Nima yodda qolishi kerak
+                    </p>
+                    <p className="text-[13px] leading-relaxed text-ink-2">{a.explain}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Bajarilganlar ── */}
       {correct > 0 && (
-        <section className="px-4 mb-4">
-          <p className="text-xs font-bold uppercase tracking-wider mb-2 px-1" style={{ color: '#64748B' }}>
-            Bajarilganlar
-          </p>
-          <div className="rounded-xl" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
+        <section className="px-4 mt-6">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[17px] font-extrabold text-ink">Bajarilganlar</h3>
+            <span className="num text-[11.5px] font-bold" style={{ color: '#6B7C66' }}>{correct} ta</span>
+          </div>
+
+          <div className="overflow-hidden" style={CARD}>
             {result.answers.filter(a => a.ok).map((a, i) => (
-              <div key={i} className="flex items-center gap-2 px-4 py-3" style={{ borderTop: i === 0 ? 'none' : '1px solid #F1F5F9' }}>
-                <Check size={14} style={{ color: '#059669' }} />
-                <p className="text-xs flex-1 truncate" style={{ color: '#334155' }}>{a.prompt}</p>
+              <div key={i} className="flex items-center gap-3 px-3.5 py-2.5"
+                style={i > 0 ? { borderTop: '1px solid #EDF1E7' } : undefined}>
+                <Check size={14} style={{ color: TICK.ok }} strokeWidth={3} className="shrink-0" />
+                <p className="flex-1 text-[13px] font-semibold text-ink-2 leading-snug">{a.prompt}</p>
+                <span className="num text-[12px] font-extrabold shrink-0" style={{ color: '#0B6E4F' }}>
+                  {a.options[a.correct]}
+                </span>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {wrong.length === 0 && (
-        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 mb-4">
-          <div className="rounded-xl p-4 text-center" style={{ background: '#ECFDF5', border: '1px solid #A7F3D0' }}>
-            <p className="text-sm font-bold" style={{ color: '#065F46' }}>Ajoyib! Xatosiz yakunladingiz.</p>
+      {wrong.length === 0 && skipped.length === 0 && (
+        <motion.section
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="px-4 mt-6"
+        >
+          <div className="relative overflow-hidden" style={{ background: '#0E1A12', borderRadius: 14 }}>
+            <span className="absolute left-0 top-0 bottom-0" style={{ width: 5, background: 'linear-gradient(180deg, #9BE04B, #5FAF22)' }} />
+            <div className="pl-5 pr-4 py-4">
+              <p className="text-[15px] font-extrabold" style={{ color: '#9BE04B' }}>
+                Xatosiz yakunladingiz
+              </p>
+              <p className="mt-1 text-[12.5px] font-medium" style={{ color: 'rgba(205,233,174,0.6)' }}>
+                {result.kind === 'problem-set' ? "To'plam to'liq yechildi." : 'Barcha savollarga to\'g\'ri javob berdingiz.'}
+              </p>
+            </div>
           </div>
         </motion.section>
       )}
 
-      {/* Fixed actions */}
+      {/* ── Pastki harakat paneli ── */}
       <div className="fixed bottom-0 left-0 right-0 z-40" style={{ maxWidth: 430, margin: '0 auto' }}>
-        <div className="px-4 pt-3 pb-5" style={{ background: 'rgba(241,244,249,0.92)', backdropFilter: 'blur(14px)', borderTop: '1px solid #E2E8F0' }}>
-          <div className="flex gap-2">
+        <div className="px-4 pt-3 pb-5"
+          style={{ background: 'rgba(243,247,238,0.92)', backdropFilter: 'blur(14px)', borderTop: '1px solid #E1E7DA' }}>
+          <div className="flex gap-2.5">
             <button
               onClick={() => { triggerHaptic('light'); navigate('/home') }}
-              className="flex-1 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5"
-              style={{ background: '#FFFFFF', border: '1.5px solid #E2E8F0', color: '#334155' }}
+              className="flex-1 h-[50px] text-[13.5px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
+              style={OUT_BTN}
             >
               <Home size={15} /> Bosh sahifa
             </button>
             {result.kind === 'lesson-test' ? (
               <button
                 onClick={() => { triggerHaptic('medium'); navigate(`/lesson/${result.refId}`) }}
-                className="flex-1 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 text-white"
-                style={{ background: '#4338CA' }}
+                className="flex-1 h-[50px] text-[13.5px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
+                style={LIME_BTN}
               >
                 <BookOpen size={15} /> Davom etish
               </button>
             ) : (
               <button
                 onClick={() => { triggerHaptic('medium'); navigate(backTo) }}
-                className="flex-1 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 text-white"
-                style={{ background: '#4338CA' }}
+                className="flex-1 h-[50px] text-[13.5px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
+                style={LIME_BTN}
               >
                 <RotateCcw size={15} /> Yana ishlash
               </button>
             )}
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-const ScoreRing = ({ percent }: { percent: number }) => {
-  const r = 44
-  const c = 2 * Math.PI * r
-  const color = percent >= 80 ? '#059669' : percent >= 50 ? '#D97706' : '#DC2626'
-  return (
-    <div className="relative w-28 h-28 mx-auto">
-      <svg viewBox="0 0 100 100" className="-rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#E2E8F0" strokeWidth="9" />
-        <motion.circle
-          cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="9" strokeLinecap="round"
-          strokeDasharray={c}
-          initial={{ strokeDashoffset: c }}
-          animate={{ strokeDashoffset: c - (c * percent) / 100 }}
-          transition={{ duration: 0.9, ease: 'easeOut' }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-extrabold" style={{ color }}>{percent}%</span>
-        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: '#94A3B8' }}>natija</span>
       </div>
     </div>
   )

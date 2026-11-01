@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Lock, Play, Check, ChevronRight, Crown } from 'lucide-react'
+import { Check, ChevronRight, Crown, Lock, Play, Coins } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
 import { LESSONS } from '../data/content'
 import { useApp, freeLessonCount } from '../store/useStore'
 import type { Stage } from '../store/useStore'
+import { BODY, CARD, TICK } from '../styles/solver'
 
 const STAGE_LABEL: Record<Stage, string> = {
   new: 'Boshlash',
@@ -45,124 +46,221 @@ const CoursesScreen = () => {
   }
 
   const freeDone = LESSONS.filter(l => l.free && stageOf(l.id) === 'done').length
+  const freeLessons = LESSONS.filter(l => l.free)
+  const firstOpen = freeLessons.find(l => stageOf(l.id) !== 'done')?.id
+
+  const ledger = [
+    { v: LESSONS.filter(l => lessonsState[l.id]?.videoWatched).length, u: 'video ko\'rildi' },
+    { v: LESSONS.filter(l => lessonsState[l.id]?.exampleDone).length, u: 'misol ishlandi' },
+    { v: LESSONS.filter(l => lessonsState[l.id]?.testScore !== null && lessonsState[l.id]?.testScore !== undefined).length, u: 'test topshirildi' },
+  ]
 
   return (
-    <div className="min-h-screen pb-24 select-none font-sans" style={{ background: '#F1F4F9' }}>
+    <div className="min-h-screen pb-28 select-none font-sans" style={{ background: BODY }}>
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 pt-4 pb-3">
+      {/* ── Header ── */}
+      <header className="flex items-center justify-between px-4 pt-5 pb-3">
         <button
           onClick={() => { triggerHaptic('light'); navigate(-1) }}
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}
+          aria-label="Orqaga"
+          className="w-[38px] h-[38px] flex items-center justify-center active:scale-[0.96] transition-transform"
+          style={{ background: '#FFFFFF', border: '1px solid #E1E7DA', borderRadius: 12, color: '#33452F' }}
         >
-          <ChevronRight size={18} style={{ color: '#334155', transform: 'rotate(180deg)' }} />
+          <ChevronRight size={17} style={{ transform: 'rotate(180deg)' }} />
         </button>
-        <div className="text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>Kurs</p>
-          <p className="text-sm font-bold" style={{ color: '#0F172A' }}>DTM Matematika</p>
+        <div className="text-center min-w-0 px-2">
+          <p className="text-tiny uppercase tracking-[0.16em] font-extrabold" style={{ color: '#6B7C66' }}>Kurs</p>
+          <p className="mt-0.5 text-[15px] font-extrabold text-ink leading-none">DTM Matematika</p>
         </div>
-        <div style={{ width: 36 }} />
+        <button
+          onClick={() => { triggerHaptic('light'); navigate('/shop') }}
+          className="w-[38px] h-[38px] flex flex-col items-center justify-center active:scale-[0.96] transition-transform"
+          style={{ background: '#FCF1DC', border: '1px solid #E8A33D', borderRadius: 12 }}
+          aria-label="Hamyon"
+        >
+          <Coins size={12} style={{ color: '#B87A22' }} />
+          <span className="num text-[9.5px] font-extrabold leading-none mt-0.5" style={{ color: '#B87A22' }}>{coin}</span>
+        </button>
       </header>
 
-      {/* Free / Pro summary */}
+      {/* ── Bepul darslar: kvantli progress ── */}
       <section className="px-4 mb-4">
-        <div
-          className="rounded-2xl p-4"
-          style={{
-            background: 'linear-gradient(135deg, #312E81 0%, #4338CA 65%, #6366F1 100%)',
-            boxShadow: '0 8px 28px rgba(67,56,202,0.26)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-white text-sm font-bold">Bepul darslar</p>
-            <span className="text-indigo-200 text-xs font-bold">{freeDone}/{freeLessonCount} yakunlandi</span>
+        <div className="relative overflow-hidden" style={{ ...CARD, borderRadius: 16, boxShadow: '0 6px 18px rgba(14,26,18,0.06)' }}>
+          <span className="absolute left-0 top-0 bottom-0" style={{ width: 6, background: 'linear-gradient(180deg, #9BE04B 0%, #5FAF22 100%)' }} />
+          <div className="pl-5 pr-4 py-4">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-tiny uppercase tracking-[0.14em] font-extrabold" style={{ color: '#6B7C66' }}>
+                  Bepul darslar
+                </p>
+                <p className="num mt-1.5 text-[26px] font-extrabold leading-none text-ink">
+                  {freeDone}
+                  <span style={{ color: '#9AA995' }}>/{freeLessonCount}</span>
+                </p>
+              </div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.06em]" style={{ color: '#5FAF22' }}>
+                {Math.round((freeDone / freeLessonCount) * 100)}%
+              </p>
+            </div>
+
+            <div className="mt-3.5 flex gap-[3px]">
+              {freeLessons.map(l => {
+                const done = stageOf(l.id) === 'done'
+                const current = !done && l.id === firstOpen
+                return (
+                  <motion.span
+                    key={l.id}
+                    className="flex-1 h-[16px]"
+                    initial={false}
+                    animate={{
+                      background: done
+                        ? 'linear-gradient(180deg, #9BE04B 0%, #7ED321 100%)'
+                        : current ? '#0E1A12' : '#EAEEE3',
+                    }}
+                    transition={{ duration: 0.4, delay: l.id * 0.02 }}
+                    style={{ borderRadius: 4 }}
+                  />
+                )
+              })}
+            </div>
+
+            <div className="mt-4 flex items-stretch" style={{ borderTop: '1px solid #EDF1E7', paddingTop: 14 }}>
+              {ledger.map((cell, i) => (
+                <div key={cell.u} className="flex-1 flex items-center">
+                  {i > 0 && <span className="w-px self-stretch" style={{ background: '#EDF1E7' }} />}
+                  <div className="flex-1 px-2">
+                    <p className="num text-[17px] font-extrabold leading-none" style={{ color: '#0E1A12' }}>{cell.v}</p>
+                    <p className="mt-1.5 text-[9.5px] font-bold uppercase leading-tight" style={{ color: '#9AA995' }}>
+                      {cell.u}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-3.5 text-[11.5px] font-medium leading-snug" style={{ color: '#6B7C66' }}>
+              Har dars: <span className="font-extrabold" style={{ color: '#33452F' }}>video → misol → test</span>.
+              Keyingi bosqich oldingisi tugagach ochiladi.
+            </p>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.22)' }}>
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${(freeDone / freeLessonCount) * 100}%`, background: '#FFFFFF' }}
-            />
-          </div>
-          <p className="text-indigo-200/80 text-[11px] mt-2">
-            Har dars: video → misol → test. Keyingi bosqich oldingisi tugagach ochiladi.
-          </p>
         </div>
       </section>
 
-      {/* Lessons */}
-      <section className="px-4 space-y-2">
-        {LESSONS.map(l => {
-          const locked = !l.free && !isPro
-          const stage = stageOf(l.id)
-          const done = stage === 'done'
+      {/* ── Darslar ro'yxati — yagona varaq, soch sovu chiziqlar ── */}
+      <section className="px-4">
+        <p className="text-tiny uppercase tracking-[0.14em] font-extrabold mb-2 px-1" style={{ color: '#6B7C66' }}>
+          Barcha darslar
+        </p>
+        <div style={{ ...CARD, borderRadius: 16 }}>
+          {LESSONS.map((l, idx) => {
+            const locked = !l.free && !isPro
+            const stage = stageOf(l.id)
+            const done = stage === 'done'
+            const started = !done && stage !== 'new'
 
-          return (
-            <motion.button
-              key={l.id}
-              whileTap={{ scale: 0.99 }}
-              onClick={() => open(l.id, l.free)}
-              className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left"
-              style={{
-                background: '#FFFFFF',
-                border: `1px solid ${locked ? '#E2E8F0' : done ? '#A7F3D0' : '#E2E8F0'}`,
-                opacity: locked ? 0.72 : 1,
-              }}
-            >
-              {/* Status */}
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            const tileStyle: React.CSSProperties = locked
+              ? { background: '#FBFCF8', border: '1px solid #E1E7DA', color: '#9AA995' }
+              : done
+                ? { background: '#DDF3DC', color: '#0B6E4F' }
+                : started
+                  ? { background: '#0E1A12', color: '#9BE04B' }
+                  : { background: '#FFFFFF', border: '1px solid #E1E7DA', color: '#33452F' }
+
+            const ticks = [
+              !!lessonsState[l.id]?.videoWatched,
+              !!lessonsState[l.id]?.exampleDone,
+              stage === 'done',
+            ]
+
+            return (
+              <motion.button
+                key={l.id}
+                whileTap={{ scale: 0.995 }}
+                onClick={() => open(l.id, l.free)}
+                className="w-full flex items-center gap-3 pl-3.5 pr-3 py-3.5 text-left"
                 style={{
-                  background: locked ? '#F8FAFC' : done ? '#ECFDF5' : stage === 'new' ? '#EEF2FF' : '#FEF3C7',
-                  color: locked ? '#94A3B8' : done ? '#059669' : stage === 'new' ? '#4338CA' : '#D97706',
+                  borderTop: idx === 0 ? 'none' : '1px solid #EDF1E7',
+                  opacity: locked ? 0.82 : 1,
+                  borderRadius: idx === 0 ? '16px 16px 0 0' : idx === LESSONS.length - 1 ? '0 0 16px 16px' : 0,
+                  background: locked ? '#FBFCF8' : '#FFFFFF',
                 }}
               >
-                {locked ? <Lock size={16} /> : done ? <Check size={17} /> : <Play size={15} />}
-              </div>
+                <span
+                  className="num w-[40px] h-[40px] flex items-center justify-center shrink-0 text-[15px] font-extrabold"
+                  style={{ ...tileStyle, borderRadius: 12 }}
+                >
+                  {locked ? <Lock size={15} /> : done ? <Check size={17} /> : started ? <Play size={14} /> : l.id}
+                </span>
 
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate" style={{ color: '#0F172A' }}>
-                  {l.id}. {l.title}
-                </p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[10px] font-medium" style={{ color: '#94A3B8' }}>
-                    {l.topic} · {l.duration} daqiqa
-                  </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] font-extrabold truncate leading-tight text-ink">
+                    {l.title}
+                  </p>
+                  <p className="num mt-1 text-[10.5px] font-bold uppercase tracking-[0.04em]" style={{ color: '#9AA995' }}>
+                    {l.topic} · {l.duration} daq · {l.questions.length} savol
+                  </p>
+                  {!locked && (
+                    <div className="mt-2 flex gap-1">
+                      {ticks.map((on, i) => (
+                        <span
+                          key={i}
+                          className="flex-1 h-[4px]"
+                          style={{ borderRadius: 2, background: on ? TICK.ok : '#EAEEE3' }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Stage hint */}
-              <div className="shrink-0 text-right">
-                {!l.free && !isPro ? (
-                  <span
-                    className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-lg"
-                    style={{ background: '#FFFBEB', color: '#D97706' }}
-                  >
-                    <Crown size={11} /> PRO
-                  </span>
-                ) : (
-                  <span
-                    className="text-[10px] font-bold"
-                    style={{ color: done ? '#059669' : '#4338CA' }}
-                  >
-                    {STAGE_LABEL[stage]}
-                  </span>
-                )}
-              </div>
-            </motion.button>
-          )
-        })}
+                <div className="shrink-0 text-right">
+                  {locked ? (
+                    <span
+                      className="num flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-1"
+                      style={{ background: '#FCF1DC', color: '#B87A22', borderRadius: 7 }}
+                    >
+                      <Crown size={10} /> Pro
+                    </span>
+                  ) : (
+                    <>
+                      <p
+                        className="text-[10px] font-extrabold uppercase leading-tight"
+                        style={{ color: done ? '#0B6E4F' : started ? '#B87A22' : '#6B7C66' }}
+                      >
+                        {STAGE_LABEL[stage]}
+                      </p>
+                      <ChevronRight size={15} className="inline-block mt-1" style={{ color: '#9AA995' }} />
+                    </>
+                  )}
+                </div>
+              </motion.button>
+            )
+          })}
+        </div>
       </section>
 
-      {/* Coin balance hint */}
-      <section className="px-4 mt-5">
-        <div
-          className="rounded-xl p-3.5 flex items-center justify-between"
-          style={{ background: '#FFFBEB', border: '1px solid #FDE68A' }}
+      {/* ── Pro taklif ── */}
+      <section className="px-4 mt-4">
+        <button
+          onClick={() => { triggerHaptic('warning'); navigate('/pro', { state: { reason: 'lesson' } }) }}
+          className="w-full flex items-center gap-3 pl-4 pr-3.5 py-3.5 text-left active:scale-[0.99] transition-transform"
+          style={{ background: '#FFFFFF', border: '1px dashed #CFD9C6', borderRadius: 16 }}
         >
-          <span className="text-xs font-bold" style={{ color: '#D97706' }}>Sizning balansingiz</span>
-          <span className="text-sm font-extrabold" style={{ color: '#D97706' }}>{coin} coin</span>
-        </div>
+          <span
+            className="w-[38px] h-[38px] flex items-center justify-center shrink-0"
+            style={{ background: '#FCF1DC', borderRadius: 12, color: '#B87A22' }}
+          >
+            <Crown size={18} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13.5px] font-extrabold text-ink leading-tight">
+              {LESSONS.length - freeLessonCount} ta dars Pro'da
+            </p>
+            <p className="mt-0.5 text-[11.5px] font-semibold" style={{ color: '#6B7C66' }}>
+              Olimpiada mavzulari, sinovlar va ustoz tekshiruvi
+            </p>
+          </div>
+          <ChevronRight size={16} style={{ color: '#9AA995' }} />
+        </button>
       </section>
     </div>
   )

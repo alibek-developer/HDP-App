@@ -15,6 +15,7 @@ import ProblemSetScreen from './screens/ProblemSetScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import ProScreen from './screens/ProScreen'
 import ShopScreen from './screens/ShopScreen'
+import ProductScreen from './screens/ProductScreen'
 import BlitzScreen from './screens/BlitzScreen'
 import BottomNav from './components/BottomNav'
 
@@ -40,7 +41,7 @@ import BottomNav from './components/BottomNav'
  *  /blitz                 Blitz Duel
  */
 
-const TAB_ROUTES = ['/home', '/formulas', '/shop', '/profile']
+const TAB_ROUTES = ['/home', '/problems', '/shop', '/profile']
 
 const AppContent = () => {
   const location = useLocation()
@@ -67,6 +68,7 @@ const AppContent = () => {
 
         <Route path="/pro" element={<ProScreen />} />
         <Route path="/shop" element={<ShopScreen />} />
+        <Route path="/shop/:id" element={<ProductScreen />} />
         <Route path="/profile" element={<ProfileScreen />} />
         <Route path="/blitz" element={<BlitzScreen />} />
 
