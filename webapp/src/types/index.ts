@@ -68,11 +68,26 @@ export interface SolveState {
   reset: () => void
 }
 
+export interface TelegramUser {
+  id: number
+  first_name: string
+  last_name?: string
+  username?: string
+  language_code?: string
+  is_premium?: boolean
+  photo_url?: string
+}
+
 export interface TelegramWebApp {
   ready: () => void
   expand: () => void
   setHeaderColor: (color: string) => void
   setBackgroundColor: (color: string) => void
+  initData: string
+  initDataUnsafe: {
+    user?: TelegramUser
+    start_param?: string
+  }
   BackButton: {
     show: () => void
     hide: () => void

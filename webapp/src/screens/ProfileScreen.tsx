@@ -223,13 +223,15 @@ const ProfileScreen = () => {
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
               <div
-                className="w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold"
+                className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center font-extrabold"
                 style={{
                   background: 'linear-gradient(150deg, #16A34A 0%, #006C49 100%)',
                   fontSize: 24, color: '#FFFFFF', letterSpacing: '-0.02em',
                 }}
               >
-                {initials}
+                {s.photoUrl
+                  ? <img src={s.photoUrl} alt={s.name} className="w-full h-full object-cover" />
+                  : initials}
               </div>
               <button
                 onClick={() => { triggerHaptic('light'); openEdit() }}

@@ -21,13 +21,28 @@ export const getTelegram = () => {
   return null
 }
 
-export const getTelegramUser = (): { name: string; username: string } | null => {
-  const tg = getTelegram() as any
+export interface TelegramProfile {
+  id: number | null
+  name: string
+  username: string
+  photoUrl: string | null
+  isPremium: boolean
+}
+
+/**
+ * Telegram ichida ochilganda foydalanuvchi ma'lumoti mavjud bo'ladi.
+ * Demo uchun `initDataUnsafe` ishlatiladi — server tekshiruvi yo'q.
+ */
+export const getTelegramUser = (): TelegramProfile | null => {
+  const tg = getTelegram()
   const u = tg?.initDataUnsafe?.user
   if (!u) return null
   return {
+    id: u.id ?? null,
     name: [u.first_name, u.last_name].filter(Boolean).join(' '),
     username: u.username ?? '',
+    photoUrl: u.photo_url ?? null,
+    isPremium: Boolean(u.is_premium),
   }
 }
 

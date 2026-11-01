@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Eye, EyeOff, Lock, Mail, Check } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, Lock, Mail, Check, Loader2 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
+import { signInWithTelegram } from '../lib/auth'
+import { useApp } from '../store/useStore'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -32,13 +34,25 @@ const inputCls = 'flex-1 bg-transparent outline-none text-[15px] font-semibold t
  */
 const LoginScreen = () => {
   const navigate = useNavigate()
+  const signIn = useApp(s => s.signInWithTelegram)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(false)
+  const [tgLoading, setTgLoading] = useState(false)
 
   const enter = () => {
+    triggerHaptic('success')
+    navigate('/home', { replace: true })
+  }
+
+  const telegramEnter = async () => {
+    if (tgLoading) return
+    triggerHaptic('light')
+    setTgLoading(true)
+    const profile = await signInWithTelegram()
+    signIn(profile)
     triggerHaptic('success')
     navigate('/home', { replace: true })
   }
@@ -179,12 +193,13 @@ const LoginScreen = () => {
 
         <div className="flex gap-3">
           <button
-            onClick={enter}
-            className="flex-1 h-[54px] rounded-[18px] text-[15px] font-bold text-ink flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            onClick={telegramEnter}
+            disabled={tgLoading}
+            className="flex-1 h-[54px] rounded-[18px] text-[15px] font-bold text-ink flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-70"
             style={{ background: '#FFFFFF', border: '1px solid #E4E9DD', boxShadow: '0 4px 14px rgba(28,50,20,0.06)' }}
           >
-            <TelegramMark />
-            Telegram
+            {tgLoading ? <Loader2 size={18} className="animate-spin" /> : <TelegramMark />}
+            {tgLoading ? 'Ulanmoqda...' : 'Telegram'}
           </button>
           <button
             onClick={enter}
