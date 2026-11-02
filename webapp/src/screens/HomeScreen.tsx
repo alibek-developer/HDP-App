@@ -241,6 +241,22 @@ const HomeScreen = () => {
             </div>
           </header>
 
+          {/* ── Demo holat — ko'rinib turadigan joyda ── */}
+          <button
+            onClick={() => { triggerHaptic('light'); setDemoOpen(true) }}
+            className="w-full mt-3 flex items-center gap-2 h-[34px] px-2.5 text-left active:scale-[0.99] transition-transform"
+            style={{ background: '#FFF6E0', border: '1px solid #F0DCA5', borderRadius: 10 }}
+          >
+            <Info size={13} className="shrink-0" style={{ color: '#A9741A' }} />
+            <span className="flex-1 min-w-0 truncate text-[11.5px] font-extrabold" style={{ color: '#7A5410' }}>
+              Ilova bir kunda qurilgan — kamchiliklari bor
+            </span>
+            <span className="shrink-0 text-[10.5px] font-extrabold" style={{ color: '#A9741A' }}>
+              Real appda yo'q
+            </span>
+            <ChevronRight size={14} className="shrink-0" style={{ color: '#A9741A' }} />
+          </button>
+
           {/* Coin / XP pill'lari */}
           <div className="flex items-center gap-2.5 mt-4">
             <button
@@ -452,40 +468,13 @@ const HomeScreen = () => {
             </div>
           </section>
         </Reveal>
-
-        {/* ── 6. Demo holat ── */}
-        <Reveal delay={0.3}>
-          <section className="mt-7">
-            <button
-              onClick={() => { triggerHaptic('light'); setDemoOpen(true) }}
-              className="w-full flex items-center gap-3 rounded-[14px] p-3 text-left active:scale-[0.98] transition-transform"
-              style={{ background: '#FFF7E6', border: '1px solid #F0DCA5' }}
-            >
-              <span
-                className="w-[34px] h-[34px] rounded-full flex items-center justify-center shrink-0"
-                style={{ background: '#FFE1A8', color: '#8A6116' }}
-              >
-                <Info size={16} />
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="block text-[13.5px] font-extrabold" style={{ color: '#7A5410' }}>
-                  Ilova demo holatda
-                </span>
-                <span className="block mt-0.5 text-[11.5px] font-medium leading-snug" style={{ color: '#9B7A35' }}>
-                  {DEMO_NOTES.length} ta cheklov bor — real appda ularning hech biri bo'lmaydi
-                </span>
-              </span>
-              <ChevronRight size={16} className="shrink-0" style={{ color: '#B8942F' }} />
-            </button>
-          </section>
-        </Reveal>
       </div>
 
       <Sheet
         open={demoOpen}
         onClose={() => setDemoOpen(false)}
         title="DEMO HOLAT"
-        subtitle="Bu ilova hozir namuna sifatida ko'rsatilmoqda. Quyidagilar hozir ishlamaydi — real versiyada ularning barchasi yo'lga qo'yilgan."
+        subtitle="Bu ilova bir kunda qurilgan — quyidagilar hozir ishlamaydi. Real versiyada ularning hech biri bo'lmaydi."
       >
         <div className="space-y-2.5 pb-2">
           {DEMO_NOTES.map(n => (
