@@ -1,0 +1,18 @@
+name: keep-bot-awake
+
+# Render bepul instansi 15 daqiqa kirish so'rovisiz qolsa uxlab qoladi.
+# Bu ish 3 daqiqada bir botning tiriklik endpoint'iga uradi, shunda u
+# hech qachon 15 daqiqalik bo'shliqqa tushmaydi. 3 tanlov sababi: GitHub
+# rejalashtirilgan ishni ba'zan bir necha daqiqaga kechiktiradi.
+on:
+  schedule:
+    - cron: '*/3 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Render health probe
+        run: curl -fsS --max-time 20 https://hdp-app.onrender.com/
