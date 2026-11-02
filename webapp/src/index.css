@@ -74,7 +74,7 @@ body {
 
 @layer utilities {
   .text-balance { text-wrap: balance; }
-  .safe-bottom { padding-bottom: calc(var(--sab) + 88px); }
+  .safe-bottom { padding-bottom: calc(var(--sab) + 112px); }
   .safe-top { padding-top: calc(var(--sat) + 12px); }
 }
 
