@@ -6,6 +6,7 @@ import { triggerHaptic } from '../lib/telegram'
 import { useBack } from '../lib/nav'
 import { signInWithTelegram } from '../lib/auth'
 import { useApp } from '../store/useStore'
+import BrandMark from '../components/BrandMark'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -88,15 +89,7 @@ const SignUpScreen = () => {
         transition={{ delay: 0.06, duration: 0.6, ease }}
         className="relative z-10 flex items-center justify-center gap-2.5 mt-5"
       >
-        <span
-          className="w-[38px] h-[38px] rounded-[13px] flex items-center justify-center shrink-0"
-          style={{
-            background: 'linear-gradient(150deg, #9BE04B 0%, #7ED321 60%, #5FAF22 100%)',
-            boxShadow: '0 8px 20px rgba(95,175,34,0.36), inset 0 1px 0 rgba(255,255,255,0.6)',
-          }}
-        >
-          <span className="font-serif text-[19px] leading-none text-ink-on-lime">Σ</span>
-        </span>
+        <BrandMark size={38} />
         <p className="font-serif text-[26px] text-brand-deep" style={{ letterSpacing: '-0.01em' }}>
           HDP Matematika
         </p>

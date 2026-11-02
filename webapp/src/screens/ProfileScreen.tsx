@@ -15,6 +15,7 @@ import { triggerHaptic } from '../lib/telegram'
 import { useBackRoot } from '../lib/nav'
 import { useApp, freeLessonCount } from '../store/useStore'
 import Sheet from '../components/Sheet'
+import BrandMark from '../components/BrandMark'
 
 /**
  * Profil — shaxsiy kabinet. Bu yerdagi har bir raqam store'dan keladi:
@@ -172,15 +173,7 @@ const ProfileScreen = () => {
         style={{ background: CANVAS, borderBottom: `1px solid ${HAIR}` }}
       >
         <div className="px-4 h-[54px] flex items-center">
-          <span
-            className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center shrink-0"
-            style={{
-              background: 'linear-gradient(150deg, #9BE04B 0%, #7ED321 60%, #5FAF22 100%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.55)',
-            }}
-          >
-            <span className="font-serif text-[15px] leading-none" style={{ color: '#0E1A12' }}>Σ</span>
-          </span>
+          <BrandMark size={28} />
 
           <div className="flex-1 text-center min-w-0">
             <p className="text-[16px] font-extrabold leading-tight truncate" style={{ color: INK }}>

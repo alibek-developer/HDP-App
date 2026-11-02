@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { triggerHaptic } from '../lib/telegram'
 import { useBackRoot } from '../lib/nav'
+import BrandMark from '../components/BrandMark'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -74,7 +75,7 @@ const SplashScreen = () => {
           </div>
         </motion.div>
 
-        {/* Σ belgisi — markaziy foto ostida.
+        {/* Brend belgisi — markaziy foto ostida.
             Joylashuv statik qatorda: motion ichki transform yozgani uchun
             -translate-x-1/2 shu elementda saqlanmaydi. */}
         <div className="absolute -bottom-[52px] left-1/2 -translate-x-1/2 z-20">
@@ -82,14 +83,8 @@ const SplashScreen = () => {
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.34, type: 'spring', stiffness: 240, damping: 17 }}
-            className="w-[68px] h-[68px] rounded-[23px] flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(150deg, #9BE04B 0%, #7ED321 60%, #5FAF22 100%)',
-              border: '5px solid rgba(255,255,255,0.85)',
-              boxShadow: '0 14px 30px rgba(95,175,34,0.42), inset 0 1.5px 0 rgba(255,255,255,0.6)',
-            }}
           >
-            <span className="font-serif text-[30px] leading-none text-ink-on-lime">Σ</span>
+            <BrandMark size={68} hero />
           </motion.div>
         </div>
       </div>

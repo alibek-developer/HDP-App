@@ -7,6 +7,7 @@ import {
 import { triggerHaptic } from '../lib/telegram'
 import { useBackRoot } from '../lib/nav'
 import { useApp } from '../store/useStore'
+import BrandMark from '../components/BrandMark'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -199,15 +200,7 @@ const HomeScreen = () => {
               onClick={() => { triggerHaptic('light'); navigate('/profile') }}
               className="flex items-center gap-2 active:opacity-70 transition-opacity"
             >
-              <span
-                className="w-[30px] h-[30px] rounded-[10px] flex items-center justify-center shrink-0"
-                style={{
-                  background: 'linear-gradient(150deg, #9BE04B 0%, #7ED321 60%, #5FAF22 100%)',
-                  boxShadow: '0 6px 14px rgba(95,175,34,0.34), inset 0 1px 0 rgba(255,255,255,0.6)',
-                }}
-              >
-                <span className="font-serif text-[15px] leading-none text-ink-on-lime">Σ</span>
-              </span>
+              <BrandMark size={30} />
               <span className="font-serif text-[19px] leading-none text-brand-deep">HDP Academy</span>
             </button>
 
