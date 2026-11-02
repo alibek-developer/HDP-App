@@ -7,8 +7,7 @@ import {
 import { triggerHaptic } from '../lib/telegram'
 import { useBack } from '../lib/nav'
 import { findTopicLesson, TOPIC_1_LESSONS } from '../data/topic1'
-import { videoFileUrl } from '../lib/videos'
-import { LockedVideo } from '../components/LockedVideo'
+import { LessonVideo } from '../components/LessonVideo'
 import { TOPIC_LESSON_REWARD, useApp } from '../store/useStore'
 import { BODY, CARD, INK_BTN, LIME_BTN } from '../styles/solver'
 
@@ -29,9 +28,6 @@ const LABEL_STYLE: Record<string, { bg: string; fg: string }> = {
 }
 
 const labelStyle = (kind: string) => LABEL_STYLE[kind] ?? LABEL_STYLE.ESLATISH
-
-/** YouTube'yidagi eski nom — fayl lokal bo'lsa ham afisha shu yerda turadi */
-const posterUrl = (videoId: string) => `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
 
 /** Ustun shaklidagi hisob: 8567 / +1129 / 9696 */
 const Stack = ({ op, rows, result }: { op: string; rows: string[]; result: string }) => (
@@ -82,8 +78,8 @@ const TopicLessonScreen = () => {
   }
 
   const st = stateOf(lesson.id)
-  /** Fayli yo'q video bo'lim shartidir hisoblanmaydi — lekin u hech qachon
-   *  tashqi manbaga (YouTube) chiqmaydi: kurs sotiladi, tekinga berilmaydi */
+  /** Ochilmagan (bloklangan) video bo'lim sharti hisoblanmaydi — aks holda
+   *  o'quvchi tashqi sabab bilan bo'limni tuza olmaydi */
   const watchable = lesson.videos.filter(v => !unavailable[v.id])
   const needsVideo = watchable.length > 0
   const canFinish = !needsVideo || st.videoSeen || st.done
@@ -152,30 +148,17 @@ const TopicLessonScreen = () => {
         </div>
 
         {/* ── Video dars ── */}
-        {lesson.videos.map(v => (unavailable[v.id] ? null : (
+        {lesson.videos.map(v => (
           <div key={v.id} className="mt-4">
-            <LockedVideo
-              src={videoFileUrl(v.id)}
-              poster={posterUrl(v.id)}
+            <LessonVideo
+              videoId={v.id}
               title={v.title}
               watched={st.videoSeen || Boolean(seen[v.id])}
               onWatched={() => markWatched(v.id)}
               onUnavailable={() => markUnavailable(v.id)}
             />
           </div>
-        )))}
-
-        {lesson.videos.length > 0 && watchable.length === 0 && (
-          <div className="mt-4 flex items-center gap-2.5 px-3.5 py-3.5" style={{ background: '#0E1A12', borderRadius: 16 }}>
-            <Film size={15} className="shrink-0" style={{ color: '#9BE04B' }} />
-            <p className="flex-1 text-[12.5px] font-semibold leading-snug" style={{ color: 'rgba(255,255,255,0.82)' }}>
-              Bu bo'limning video darsi ilovaga hali kiritilmagan.
-            </p>
-            <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-[0.1em]" style={{ color: 'rgba(205,233,174,0.55)' }}>
-                Tez orada
-            </span>
-          </div>
-        )}
+        ))}
 
         {lesson.videoOnly && (
           <p className="mt-3 text-[12.5px] leading-relaxed font-medium" style={{ color: '#6B7C66' }}>

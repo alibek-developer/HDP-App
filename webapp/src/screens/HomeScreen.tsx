@@ -170,7 +170,7 @@ const clock = (ms: number) => {
  * yangi cheklov qo'shilsa shu joyga yoziladi, aks holda e'lon yolg'on bo'ladi.
  */
 const DEMO_NOTES = [
-  { title: 'Video darslar', demo: 'Fayllar hali internetga yuklanmagan — ular faqat muallif kompyuteridagi tarmoqda ochiladi.', real: 'Real appda barcha videolar tez CDN\u2018dan ochiladi.' },
+  { title: 'Video darslar', demo: 'Darslar YouTube\u2018dan ochiladi — internet kerak. YouTube\u2018ning o\u2018zi oldinga o\u2018tkazishni cheklamaydi.', real: 'Real appda videolar o\u2018z serverimizda, oldinga o\u2018tkazish yopiq.' },
   { title: 'Email bilan kirish', demo: 'Hisob shu telefonning o\u2018zida saqlanadi, server tekshirmaydi.', real: 'Real appda hisob serverda — telefon almashsa ham yo\u2018qolmaydi.' },
   { title: 'Obuna to\u2018lovi', demo: 'Pro obunasi tugma bosilishi bilan yoqiladi, pul yechilmaydi.', real: 'Real appda to\u2018lov Click / Payme orqali qabul qilinadi.' },
   { title: 'Google orqali kirish', demo: 'Tugma hali yopiq.', real: 'Real appda Google hisobi bilan kirish ishlaydi.' },
