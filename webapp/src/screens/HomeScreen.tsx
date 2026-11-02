@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Bell, ChevronRight, Coins, Flame, Lock, Play, Sigma, Swords, Triangle, Zap,
+  Bell, ChevronRight, Coins, Flame, Info, Lock, Play, Sigma, Swords, Triangle, Zap,
 } from 'lucide-react'
 import { triggerHaptic } from '../lib/telegram'
 import { useBackRoot } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import BrandMark from '../components/BrandMark'
+import Sheet from '../components/Sheet'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -164,6 +165,17 @@ const clock = (ms: number) => {
   return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`
 }
 
+/**
+ * Demo holatdagi cheklovlar ro'yxati. Har biri hozir haqiqatan ham shunday —
+ * yangi cheklov qo'shilsa shu joyga yoziladi, aks holda e'lon yolg'on bo'ladi.
+ */
+const DEMO_NOTES = [
+  { title: 'Video darslar', demo: 'Fayllar hali internetga yuklanmagan — ular faqat muallif kompyuteridagi tarmoqda ochiladi.', real: 'Real appda barcha videolar tez CDN\u2018dan ochiladi.' },
+  { title: 'Email bilan kirish', demo: 'Hisob shu telefonning o\u2018zida saqlanadi, server tekshirmaydi.', real: 'Real appda hisob serverda — telefon almashsa ham yo\u2018qolmaydi.' },
+  { title: 'Obuna to\u2018lovi', demo: 'Pro obunasi tugma bosilishi bilan yoqiladi, pul yechilmaydi.', real: 'Real appda to\u2018lov Click / Payme orqali qabul qilinadi.' },
+  { title: 'Google orqali kirish', demo: 'Tugma hali yopiq.', real: 'Real appda Google hisobi bilan kirish ishlaydi.' },
+]
+
 const HomeScreen = () => {
   const navigate = useNavigate()
   useBackRoot()
@@ -173,6 +185,7 @@ const HomeScreen = () => {
   const xp = useApp(s => s.xp)
 
   const [remain, setRemain] = useState(leftUntilMidnight)
+  const [demoOpen, setDemoOpen] = useState(false)
   useEffect(() => {
     const t = setInterval(() => setRemain(leftUntilMidnight()), 1000)
     return () => clearInterval(t)
@@ -439,7 +452,68 @@ const HomeScreen = () => {
             </div>
           </section>
         </Reveal>
+
+        {/* ── 6. Demo holat ── */}
+        <Reveal delay={0.3}>
+          <section className="mt-7">
+            <button
+              onClick={() => { triggerHaptic('light'); setDemoOpen(true) }}
+              className="w-full flex items-center gap-3 rounded-[14px] p-3 text-left active:scale-[0.98] transition-transform"
+              style={{ background: '#FFF7E6', border: '1px solid #F0DCA5' }}
+            >
+              <span
+                className="w-[34px] h-[34px] rounded-full flex items-center justify-center shrink-0"
+                style={{ background: '#FFE1A8', color: '#8A6116' }}
+              >
+                <Info size={16} />
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-[13.5px] font-extrabold" style={{ color: '#7A5410' }}>
+                  Ilova demo holatda
+                </span>
+                <span className="block mt-0.5 text-[11.5px] font-medium leading-snug" style={{ color: '#9B7A35' }}>
+                  {DEMO_NOTES.length} ta cheklov bor — real appda ularning hech biri bo'lmaydi
+                </span>
+              </span>
+              <ChevronRight size={16} className="shrink-0" style={{ color: '#B8942F' }} />
+            </button>
+          </section>
+        </Reveal>
       </div>
+
+      <Sheet
+        open={demoOpen}
+        onClose={() => setDemoOpen(false)}
+        title="DEMO HOLAT"
+        subtitle="Bu ilova hozir namuna sifatida ko'rsatilmoqda. Quyidagilar hozir ishlamaydi — real versiyada ularning barchasi yo'lga qo'yilgan."
+      >
+        <div className="space-y-2.5 pb-2">
+          {DEMO_NOTES.map(n => (
+            <div
+              key={n.title}
+              className="rounded-[14px] p-3.5"
+              style={{ background: '#F7FAF3', border: '1px solid #E3E8DE' }}
+            >
+              <p className="text-[13.5px] font-extrabold text-ink">{n.title}</p>
+              <p className="mt-1.5 text-[12.5px] font-medium leading-snug text-ink-3">{n.demo}</p>
+              <p className="mt-2 flex items-start gap-1.5 text-[12.5px] font-bold leading-snug" style={{ color: '#0B6E4F' }}>
+                <span className="shrink-0 mt-[3px] w-[6px] h-[6px] rounded-full" style={{ background: '#7ED321' }} />
+                {n.real}
+              </p>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => { triggerHaptic('light'); setDemoOpen(false) }}
+          className="w-full h-[50px] mt-4 rounded-full text-[15px] font-extrabold text-ink-on-lime active:scale-[0.98] transition-transform"
+          style={{
+            background: 'linear-gradient(135deg, #9BE04B 0%, #7ED321 100%)',
+            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 10px 22px rgba(95,175,34,0.32)',
+          }}
+        >
+          Tushunarli
+        </button>
+      </Sheet>
     </div>
   )
 }

@@ -95,6 +95,8 @@ interface AppState {
   name: string
   username: string
   publicId: string
+  /** Email hisobi bilan kirganda saqlanadi (hozircha lokal — server tekshiruvi yo'q) */
+  email: string | null
   /** Telegram foydalanuvchi id'si (demo rejimda namunaviy) */
   telegramId: number | null
   /** Telegram profil rasmi */
@@ -165,6 +167,8 @@ interface AppState {
 
   /* ── Actions ── */
   setOnboarded: () => void
+  /** Email + parol bilan kirish (lokal hisob — haqiqiy auth server keyin) */
+  signInWithEmail: (email: string) => void
   /** Login/ro'yxatdan o'tishda profil ma'lumotlari */
   setProfile: (name: string, username: string) => void
   /** Telegram (yoki demo) hisobi bilan kirish */
@@ -317,6 +321,7 @@ export const useApp = create<AppState>()(
       name: 'Sardor Aliyev',
       username: 'sardor_hdp',
       publicId: 'HDP-84219',
+      email: null,
       telegramId: null,
       photoUrl: null,
       level: 1,
@@ -360,6 +365,8 @@ export const useApp = create<AppState>()(
       favs: [],
 
       setOnboarded: () => set({ onboarded: true }),
+
+      signInWithEmail: (email) => set({ email: email.toLowerCase(), onboarded: true }),
 
       /** Profil tahriri — hisob raqami (publicId) o'zgarmaydi */
       setProfile: (name, username) => set({ name, username }),
@@ -689,7 +696,7 @@ export const useApp = create<AppState>()(
 
       setTheme: (t) => set({ theme: t }),
 
-      signOut: () => set({ onboarded: false, sessionStartedAt: null, telegramId: null, photoUrl: null }),
+      signOut: () => set({ onboarded: false, sessionStartedAt: null, telegramId: null, photoUrl: null, email: null }),
 
       resetAll: () =>
         set({
@@ -784,6 +791,7 @@ export const useApp = create<AppState>()(
         name: s.name,
         username: s.username,
         publicId: s.publicId,
+        email: s.email,
         telegramId: s.telegramId,
         photoUrl: s.photoUrl,
         xp: s.xp,

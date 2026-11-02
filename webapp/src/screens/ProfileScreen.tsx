@@ -246,7 +246,7 @@ const ProfileScreen = () => {
                 {s.username && <BadgeCheck size={17} strokeWidth={2.2} color={GREEN} fill={GREEN_SOFT} />}
               </div>
               <p className="text-[12px] font-bold mt-0.5 truncate" style={{ color: GRAY }}>
-                @{s.username} · #{s.publicId}
+                {s.email ?? `@${s.username}`} · #{s.publicId}
               </p>
               <span
                 className="inline-flex items-center gap-1 mt-2.5 px-2.5 h-[26px] rounded-full text-[12px] font-extrabold"

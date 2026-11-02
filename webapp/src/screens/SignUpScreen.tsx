@@ -31,13 +31,15 @@ const inputCls = 'flex-1 bg-transparent outline-none text-[15px] font-semibold t
 const socialStyle = { background: '#FFFFFF', border: '1px solid #E4E9DD', boxShadow: '0 4px 14px rgba(28,50,20,0.06)' }
 
 /**
- * Ro'yxatdan o'tish — hozircha faqat ko'rinish (maydonlar mantig'i keyin).
+ * Ro'yxatdan o'tish — email hisobi shu telefon yaratiladi va saqlanadi
+ * (server tekshiruvi keyingi bosqich, task #17). Google hali yo'q.
  */
 const SignUpScreen = () => {
   const navigate = useNavigate()
   const exit = useBack('/')
   const signIn = useApp(s => s.signInWithTelegram)
-  const setOnboarded = useApp(s => s.setOnboarded)
+  const signInEmail = useApp(s => s.signInWithEmail)
+  const setProfile = useApp(s => s.setProfile)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -45,10 +47,38 @@ const SignUpScreen = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [terms, setTerms] = useState(false)
   const [tgLoading, setTgLoading] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
 
-  const submit = () => {
+  const submit = async () => {
+    if (busy) return
+    if (name.trim().length < 3) {
+      triggerHaptic('warning')
+      setErr("Ism familiyani to'liq kiriting.")
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+      triggerHaptic('warning')
+      setErr("Email manzili noto'g'ri ko'rinishda.")
+      return
+    }
+    if (password.length < 6) {
+      triggerHaptic('warning')
+      setErr('Parol kamida 6 belgi bo‘lishi kerak.')
+      return
+    }
+    if (!terms) {
+      triggerHaptic('warning')
+      setErr('Davom etish uchun shartlarga rozilik bering.')
+      return
+    }
+    setErr(null)
+    setBusy(true)
+    await new Promise(r => setTimeout(r, 600))
+    const first = name.trim().split(/\s+/)[0].toLowerCase()
+    setProfile(name.trim(), first)
+    signInEmail(email.trim())
     triggerHaptic('success')
-    setOnboarded()
     navigate('/home', { replace: true })
   }
 
@@ -173,15 +203,23 @@ const SignUpScreen = () => {
           </span>
         </button>
 
+        {err && (
+          <p className="mt-3 px-1 text-[12.5px] font-bold leading-snug" style={{ color: '#C2453D' }}>
+            {err}
+          </p>
+        )}
+
         <button
           onClick={submit}
-          className="w-full h-[56px] mt-6 rounded-full text-[16px] font-extrabold text-ink-on-lime active:scale-[0.975] transition-transform"
+          disabled={busy}
+          className="w-full h-[56px] mt-6 rounded-full text-[16px] font-extrabold text-ink-on-lime active:scale-[0.975] transition-transform disabled:opacity-80 flex items-center justify-center gap-2"
           style={{
             background: 'linear-gradient(135deg, #9BE04B 0%, #7ED321 100%)',
             boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 12px 26px rgba(95,175,34,0.36)',
           }}
         >
-          Ro'yxatdan o'tish
+          {busy && <Loader2 size={18} className="animate-spin" />}
+          {busy ? 'Hisob ochilmoqda...' : "Ro'yxatdan o'tish"}
         </button>
 
         <div className="flex items-center gap-3 mt-6 mb-4">
@@ -200,14 +238,22 @@ const SignUpScreen = () => {
             {tgLoading ? <Loader2 size={18} className="animate-spin" /> : <TelegramMark />}
             {tgLoading ? 'Ulanmoqda...' : 'Telegram'}
           </button>
-          <button
-            onClick={submit}
-            className="flex-1 h-[54px] rounded-[18px] text-[15px] font-bold text-ink flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-            style={socialStyle}
-          >
-            <GoogleMark />
-            Google
-          </button>
+          <div className="relative flex-1">
+            <button
+              onClick={() => triggerHaptic('warning')}
+              className="w-full h-[54px] rounded-[18px] text-[15px] font-bold text-ink flex items-center justify-center gap-2 opacity-55"
+              style={{ background: '#FFFFFF', border: '1px dashed #C6D0BE', boxShadow: '0 4px 14px rgba(28,50,20,0.06)' }}
+            >
+              <GoogleMark />
+              Google
+            </button>
+            <span
+              className="absolute -top-2 right-2 px-2 py-[3px] text-[9.5px] font-black uppercase tracking-[0.08em]"
+              style={{ background: '#FFF3D6', color: '#8A6116', border: '1px solid #F0DCA5', borderRadius: 999 }}
+            >
+              Tez orada
+            </span>
+          </div>
         </div>
 
         <p className="text-body-md text-ink-3 text-center mt-7 pb-8">
