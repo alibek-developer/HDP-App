@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { createServer } from 'node:http'
 import { Bot } from 'grammy'
 
 const BOT_TOKEN = process.env.BOT_TOKEN
@@ -45,6 +46,17 @@ bot.on('message:text', async (ctx) => {
 bot.catch((err) => {
   console.error('Bot catch error:', err)
 })
+
+// Render Web Service turi kamida bitta ochiq port kutadi. Bot Telegram'ga o'zi
+// chiqin ulanadi (long polling), shuning uchun bu server faqat «men tirikman»
+// degan javob beradi; PORT bo'lmasa (Background Worker) um ishga tushmaydi.
+if (process.env.PORT) {
+  const port = Number(process.env.PORT)
+  createServer((_req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('HDP bot ishlab turibdi\n')
+  }).listen(port, '0.0.0.0', () => console.log(`✅ Health server :${port} da turibdi`))
+}
 
 bot.start({
   onStart: () => console.log('✅ Bot started successfully!'),
