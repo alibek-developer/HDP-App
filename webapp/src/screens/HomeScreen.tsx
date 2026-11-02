@@ -8,7 +8,6 @@ import { triggerHaptic } from '../lib/telegram'
 import { useBackRoot } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import BrandMark from '../components/BrandMark'
-import Sheet from '../components/Sheet'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -165,17 +164,6 @@ const clock = (ms: number) => {
   return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`
 }
 
-/**
- * Demo holatdagi cheklovlar ro'yxati. Har biri hozir haqiqatan ham shunday —
- * yangi cheklov qo'shilsa shu joyga yoziladi, aks holda e'lon yolg'on bo'ladi.
- */
-const DEMO_NOTES = [
-  { title: 'Video darslar', demo: 'Darslar YouTube\u2018dan ochiladi — internet kerak. YouTube\u2018ning o\u2018zi oldinga o\u2018tkazishni cheklamaydi.', real: 'Real appda videolar o\u2018z serverimizda, oldinga o\u2018tkazish yopiq.' },
-  { title: 'Email bilan kirish', demo: 'Hisob shu telefonning o\u2018zida saqlanadi, server tekshirmaydi.', real: 'Real appda hisob serverda — telefon almashsa ham yo\u2018qolmaydi.' },
-  { title: 'Obuna to\u2018lovi', demo: 'Pro obunasi tugma bosilishi bilan yoqiladi, pul yechilmaydi.', real: 'Real appda to\u2018lov Click / Payme orqali qabul qilinadi.' },
-  { title: 'Google orqali kirish', demo: 'Tugma hali yopiq.', real: 'Real appda Google hisobi bilan kirish ishlaydi.' },
-]
-
 const HomeScreen = () => {
   const navigate = useNavigate()
   useBackRoot()
@@ -185,7 +173,6 @@ const HomeScreen = () => {
   const xp = useApp(s => s.xp)
 
   const [remain, setRemain] = useState(leftUntilMidnight)
-  const [demoOpen, setDemoOpen] = useState(false)
   useEffect(() => {
     const t = setInterval(() => setRemain(leftUntilMidnight()), 1000)
     return () => clearInterval(t)
@@ -242,20 +229,19 @@ const HomeScreen = () => {
           </header>
 
           {/* ── Demo holat — ko'rinib turadigan joyda ── */}
-          <button
-            onClick={() => { triggerHaptic('light'); setDemoOpen(true) }}
-            className="w-full mt-3 flex items-center gap-2 h-[34px] px-2.5 text-left active:scale-[0.99] transition-transform"
+          <div
+            className="w-full mt-3 flex items-start gap-2 px-2.5 py-2"
             style={{ background: '#FFF6E0', border: '1px solid #F0DCA5', borderRadius: 10 }}
           >
-            <Info size={13} className="shrink-0" style={{ color: '#A9741A' }} />
-            <span className="flex-1 min-w-0 truncate text-[11.5px] font-extrabold" style={{ color: '#7A5410' }}>
-              Ilova bir kunda qurilgan — kamchiliklari bor
-            </span>
-            <span className="shrink-0 text-[10.5px] font-extrabold" style={{ color: '#A9741A' }}>
-              Real appda yo'q
-            </span>
-            <ChevronRight size={14} className="shrink-0" style={{ color: '#A9741A' }} />
-          </button>
+            <Info size={13} className="shrink-0 mt-[2px]" style={{ color: '#A9741A' }} />
+            <p className="flex-1 text-[11.5px] font-bold leading-snug" style={{ color: '#7A5410' }}>
+              Bu ilova bir kunda qilindi — shuning uchun xatolari bor, dizayni yaxshi emas va
+              real appdan farqi katta.{' '}
+              <span className="font-extrabold" style={{ color: '#A9741A' }}>
+                Real appda bu muammolar bo'lmaydi.
+              </span>
+            </p>
+          </div>
 
           {/* Coin / XP pill'lari */}
           <div className="flex items-center gap-2.5 mt-4">
@@ -469,40 +455,6 @@ const HomeScreen = () => {
           </section>
         </Reveal>
       </div>
-
-      <Sheet
-        open={demoOpen}
-        onClose={() => setDemoOpen(false)}
-        title="DEMO HOLAT"
-        subtitle="Bu ilova bir kunda qurilgan — quyidagilar hozir ishlamaydi. Real versiyada ularning hech biri bo'lmaydi."
-      >
-        <div className="space-y-2.5 pb-2">
-          {DEMO_NOTES.map(n => (
-            <div
-              key={n.title}
-              className="rounded-[14px] p-3.5"
-              style={{ background: '#F7FAF3', border: '1px solid #E3E8DE' }}
-            >
-              <p className="text-[13.5px] font-extrabold text-ink">{n.title}</p>
-              <p className="mt-1.5 text-[12.5px] font-medium leading-snug text-ink-3">{n.demo}</p>
-              <p className="mt-2 flex items-start gap-1.5 text-[12.5px] font-bold leading-snug" style={{ color: '#0B6E4F' }}>
-                <span className="shrink-0 mt-[3px] w-[6px] h-[6px] rounded-full" style={{ background: '#7ED321' }} />
-                {n.real}
-              </p>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={() => { triggerHaptic('light'); setDemoOpen(false) }}
-          className="w-full h-[50px] mt-4 rounded-full text-[15px] font-extrabold text-ink-on-lime active:scale-[0.98] transition-transform"
-          style={{
-            background: 'linear-gradient(135deg, #9BE04B 0%, #7ED321 100%)',
-            boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), 0 10px 22px rgba(95,175,34,0.32)',
-          }}
-        >
-          Tushunarli
-        </button>
-      </Sheet>
     </div>
   )
 }
