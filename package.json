@@ -10,12 +10,16 @@
     "build:vercel": "cd webapp && vite build",
     "build:bot": "tsc -p bot/tsconfig.json",
     "start": "node bot/dist/index.js",
-    "preview": "cd webapp && vite preview"
+    "preview": "cd webapp && vite preview",
+    "app:icons": "node scripts/make-icon.mjs && capacitor-assets generate --android",
+    "app:sync": "npm run build && cap sync android",
+    "app:apk": "npm run app:sync && cd android && gradlew.bat assembleDebug"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@capacitor/core": "^8.6.0",
     "dotenv": "^18.0.9",
     "framer-motion": "^10.16.0",
     "grammy": "^1.46.0",
@@ -26,6 +30,9 @@
     "zustand": "^4.4.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

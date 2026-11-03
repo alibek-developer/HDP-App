@@ -21,6 +21,13 @@ export const getTelegram = () => {
   return null
 }
 
+/**
+ * Haqiqiy Telegram ichidamizmi. SDK skripti brauzerda va WebView'da ham
+ * `window.Telegram.WebApp` yaratadi, lekin `initData` faqat Telegram ochganda
+ * to'ladi — shu belgi Telegram tugmasini tashqarida yashirish uchun kerak.
+ */
+export const isInsideTelegram = (): boolean => Boolean(getTelegram()?.initData)
+
 export interface TelegramProfile {
   id: number | null
   name: string

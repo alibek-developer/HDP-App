@@ -51,3 +51,11 @@ coverage/
 1-mavzu/
 # Siqilgan nusxalar shu yerga qo'yiladi — kurs kontenti, ochiq repo'ga tushmasin.
 webapp/public/videos/
+
+# Android: `npm run app:icons` ikonlarni qayta yasaydi, `local.properties`
+# faqat shu kompyuterdagi SDK yo'lini yozadi — ikkalasi ham repo kerak emas.
+/assets/
+android/.gradle/
+android/local.properties
+# Tayyor APK — repo'ga tushmaydi, telefonga fayl sifatida beriladi
+*.apk

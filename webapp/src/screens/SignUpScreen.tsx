@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Eye, EyeOff, Lock, Mail, User, Check, Loader2 } from 'lucide-react'
-import { triggerHaptic } from '../lib/telegram'
+import { triggerHaptic, isInsideTelegram } from '../lib/telegram'
 import { useBack } from '../lib/nav'
 import { signInWithTelegram } from '../lib/auth'
 import { useApp } from '../store/useStore'
@@ -229,6 +229,9 @@ const SignUpScreen = () => {
         </div>
 
         <div className="flex gap-3">
+          {/* Telegram ichida emaslikda (app, brauzer) bu tugma soxta profil
+              yaratadi — shuning uchun u faqat Telegram'da ko'rinadi */}
+          {isInsideTelegram() && (
           <button
             onClick={telegramEnter}
             disabled={tgLoading}
@@ -238,6 +241,7 @@ const SignUpScreen = () => {
             {tgLoading ? <Loader2 size={18} className="animate-spin" /> : <TelegramMark />}
             {tgLoading ? 'Ulanmoqda...' : 'Telegram'}
           </button>
+          )}
           <div className="relative flex-1">
             <button
               onClick={() => triggerHaptic('warning')}
