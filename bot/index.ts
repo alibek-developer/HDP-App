@@ -60,5 +60,7 @@ if (process.env.PORT) {
 
 bot.start({
   onStart: () => console.log('✅ Bot started successfully!'),
-  drop_pending_updates: true,
+  /** `true` bo'lsa, instance uxlab turganda kelgan xabarlar (navbatdagi
+   *  /start'lar) uyg'onganda tashlab yuboriladi — foydalanuvchi javobsiz qoladi */
+  drop_pending_updates: false,
 })
