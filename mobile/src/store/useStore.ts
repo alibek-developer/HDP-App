@@ -98,9 +98,7 @@ interface AppState {
   publicId: string
   /** Email hisobi bilan kirganda saqlanadi (hozircha lokal — server tekshiruvi yo'q) */
   email: string | null
-  /** Telegram foydalanuvchi id'si (demo rejimda namunaviy) */
-  telegramId: number | null
-  /** Telegram profil rasmi */
+  /** Profil rasmi */
   photoUrl: string | null
   level: number
   xp: number
@@ -172,13 +170,6 @@ interface AppState {
   signInWithEmail: (email: string) => void
   /** Login/ro'yxatdan o'tishda profil ma'lumotlari */
   setProfile: (name: string, username: string) => void
-  /** Telegram (yoki demo) hisobi bilan kirish */
-  signInWithTelegram: (profile: {
-    id: number | null
-    name: string
-    username: string
-    photoUrl: string | null
-  }) => void
   /** Seans boshlandi — daqiqa hisobi shu nuqtadan yuriladi */
   beginSession: () => void
   startLesson: (id: number) => void
@@ -323,7 +314,6 @@ export const useApp = create<AppState>()(
       username: 'sardor_hdp',
       publicId: 'HDP-84219',
       email: null,
-      telegramId: null,
       photoUrl: null,
       level: 1,
       xp: 0,
@@ -371,15 +361,6 @@ export const useApp = create<AppState>()(
 
       /** Profil tahriri — hisob raqami (publicId) o'zgarmaydi */
       setProfile: (name, username) => set({ name, username }),
-
-      signInWithTelegram: (profile) =>
-        set({
-          telegramId: profile.id,
-          name: profile.name || get().name,
-          username: profile.username,
-          photoUrl: profile.photoUrl,
-          onboarded: true,
-        }),
 
       beginSession: () => {
         if (get().sessionStartedAt !== null) return
@@ -697,7 +678,7 @@ export const useApp = create<AppState>()(
 
       setTheme: (t) => set({ theme: t }),
 
-      signOut: () => set({ onboarded: false, sessionStartedAt: null, telegramId: null, photoUrl: null, email: null }),
+      signOut: () => set({ onboarded: false, sessionStartedAt: null, photoUrl: null, email: null }),
 
       resetAll: () =>
         set({
@@ -707,7 +688,6 @@ export const useApp = create<AppState>()(
           streak: 0,
           bestStreak: 0,
           lastActiveDay: null,
-          telegramId: null,
           photoUrl: null,
           solvedCount: 0,
           answeredTotal: 0,
@@ -793,7 +773,6 @@ export const useApp = create<AppState>()(
         username: s.username,
         publicId: s.publicId,
         email: s.email,
-        telegramId: s.telegramId,
         photoUrl: s.photoUrl,
         xp: s.xp,
         coin: s.coin,
