@@ -35,7 +35,7 @@ const Sheet = ({
               <View style={sh.headRow}>
                 <View style={sh.headText}>
                   <Text style={sh.title}>{title}</Text>
-                  {subtitle && <Text style={sh.subtitle}>{subtitle}</Text>}
+                  {!!subtitle && <Text style={sh.subtitle}>{subtitle}</Text>}
                 </View>
                 <Pressable
                   onPress={() => { triggerHaptic('light'); onClose() }}

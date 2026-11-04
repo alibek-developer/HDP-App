@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import { WebView } from 'react-native-webview'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -14,6 +14,13 @@ import { ABS_FILL, type Grad } from '../theme/tokens'
 
 const WATCH_RATIO = 0.95
 const RAIL_GRAD: Grad = ['#7ED321', '#9BE04B']
+
+/**
+ * Android WebView UA'sida «; wv)» qatari bor — shu qatorni ko'rgan YouTube
+ * embed'ni bloklaydi (xuddi Capacitor'dagi kabi). Toza Chrome UA'si beriladi.
+ */
+const BROWSER_UA =
+  'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
 
 const mmss = (t: number) => {
   const sec = Number.isFinite(t) && t > 0 ? t : 0
@@ -118,17 +125,7 @@ export const LessonVideo = ({ videoId, title, watched, onWatched, onUnavailable 
             {title}
           </Text>
         </View>
-        <Text style={styles.failNote}>Bu dars ilova ichida ochilmadi — YouTube&apos;da ko&apos;ring.</Text>
-        <Pressable
-          onPress={() => {
-            triggerHaptic('light')
-            Linking.openURL(`https://www.youtube.com/watch?v=${videoId}`).catch(() => undefined)
-          }}
-          style={({ pressed }) => [styles.failCta, pressed && { opacity: 0.9 }]}
-        >
-          <Ionicons name="open-outline" size={13} color="#0E1A12" />
-          <Text style={styles.failCtaText}>YouTube&apos;da ochish</Text>
-        </Pressable>
+        <Text style={styles.failNote}>Bu dars ilova ichida ochilmadi — internet aloqasini tekshirib, sahifani qayta ochib ko'ring.</Text>
       </View>
     )
   }
@@ -147,6 +144,7 @@ export const LessonVideo = ({ videoId, title, watched, onWatched, onUnavailable 
             allowsInlineMediaPlayback
             mediaPlaybackRequiresUserAction={false}
             originWhitelist={['*']}
+            userAgent={BROWSER_UA}
             onMessage={onMessage}
             onError={bail}
             onHttpError={bail}
@@ -230,16 +228,4 @@ const styles = StyleSheet.create({
   failTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   failTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '700', color: 'rgba(255,255,255,0.85)' },
   failNote: { marginTop: 8, fontSize: 12, lineHeight: 18, fontWeight: '500', color: 'rgba(205,233,174,0.7)' },
-  failCta: {
-    marginTop: 12,
-    alignSelf: 'flex-start',
-    height: 38,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#9BE04B',
-    borderRadius: 19,
-  },
-  failCtaText: { fontSize: 12.5, fontWeight: '800', color: '#0E1A12' },
 })

@@ -154,7 +154,7 @@ const SignUpScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList,
                 </Text>
               </Pressable>
 
-              {err && <Text style={styles.err}>{err}</Text>}
+              {!!err && <Text style={styles.err}>{err}</Text>}
 
               <LimeButton label="Ro'yxatdan o'tish" onPress={submit} style={styles.submit} />
 

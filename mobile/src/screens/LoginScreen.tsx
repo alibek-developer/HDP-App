@@ -111,7 +111,7 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
                 }
               />
 
-              {err && <Text style={styles.err}>{err}</Text>}
+              {!!err && <Text style={styles.err}>{err}</Text>}
 
               <View style={styles.row}>
                 <Pressable

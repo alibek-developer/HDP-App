@@ -284,7 +284,7 @@ const ProfileScreen = () => {
                   <Text style={p.proActive}>Faol</Text>
                 </View>
                 <Text style={p.proDesc}>Barcha maxsus darslar va IMO tahlili ochiq.</Text>
-                {proExpires && (
+                {!!proExpires && (
                   <View style={p.proDateRow}>
                     <Ionicons name="calendar" size={12} color="rgba(255,255,255,0.6)" />
                     <Text style={p.proDateText}>Muddati: {fmtUz(proExpires)}</Text>
@@ -754,7 +754,7 @@ const Field = ({
   <View style={st.fieldWrap}>
     <Text style={st.fieldLabel}>{label}</Text>
     <View style={st.fieldBox}>
-      {prefix && <Text style={st.fieldPrefix}>{prefix}</Text>}
+      {!!prefix && <Text style={st.fieldPrefix}>{prefix}</Text>}
       <TextInput
         value={value}
         onChangeText={onChange}

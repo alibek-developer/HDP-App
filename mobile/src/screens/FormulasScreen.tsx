@@ -336,7 +336,7 @@ const FormulasScreen = () => {
       </Modal>
 
       {/* ── Toast ── */}
-      {copiedId && (
+      {!!copiedId && (
         <View pointerEvents="none" style={styles.toastWrap}>
           <Reveal y={20} duration={220} style={styles.toast}>
             <Ionicons name="checkmark" size={14} color="#9BE04B" />

@@ -203,7 +203,7 @@ const ProScreen = () => {
                 <View style={s.planMid}>
                   <View style={s.planTitleRow}>
                     <Text style={s.planLabel}>{p.label}</Text>
-                    {p.badge && (
+                    {!!p.badge && (
                       <View style={p.id === '1y' ? s.badgeAmber : s.badgeLime}>
                         <Text style={p.id === '1y' ? s.badgeAmberText : s.badgeLimeText}>{p.badge}</Text>
                       </View>
@@ -292,7 +292,7 @@ const ProScreen = () => {
                   <Text style={s.activeTitle}>Pro faol</Text>
                 </View>
                 <Text style={s.activeSub}>Barcha darslar va to'plamlar ochiq.</Text>
-                {proExpires && (
+                {!!proExpires && (
                   <View style={s.activeDateRow}>
                     <Ionicons name="calendar" size={14} color="#0B4A34" />
                     <Text style={[s.activeDate, NUM]}>Amal qiladi: {ruDate(proExpires)} gacha</Text>
