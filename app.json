@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "HDP Academy",
+    "slug": "hdp-academy",
+    "scheme": "hdpacademy",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "uz.hdp.academy"
+    },
+    "android": {
+      "package": "uz.hdp.academy",
+      "adaptiveIcon": {
+        "backgroundColor": "#063F2E",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#063F2E"
+        }
+      ]
+    ]
+  }
+}
