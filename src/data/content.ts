@@ -1235,10 +1235,10 @@ export function dailyProblem(date = new Date()) {
 
 /** Profil ekrani store'dan hisoblab chiqaradigan haqiqiy ko'rsatkichlar */
 export interface AchStats {
-  /** testi yakunlangan darslar soni */
+  /** yakunlangan bo'limlar soni */
   lessonsDone: number
-  /** shulardan nechasi bepul ro'yxatda */
-  freeDone: number
+  /** kursdagi jami bo'limlar soni */
+  totalLessons: number
   solved: number
   streak: number
   bestStreak: number
@@ -1273,10 +1273,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'a-viyet', title: 'Viyet Master', hint: '12 masala · 85% aniqlik', icon: 'bolt', test: s => s.solved >= 12 && s.accuracy >= 85 },
   { id: 'a-dtm', title: 'DTM Pro', hint: 'Olimpiada to\'plami', icon: 'trophy', test: s => (s.topic['Olimpiada'] ?? 0) >= 2 },
   { id: 'a-algebra', title: 'Algebra Pro', hint: 'Algebra banki', icon: 'grid', test: s => (s.topic['Algebra'] ?? 0) >= 5 },
-  { id: 'a-first', title: 'Birinchi qadam', hint: '1 ta dars', icon: 'cap', test: s => s.lessonsDone >= 1 },
-  { id: 'a-five', title: 'Beshlik', hint: '5 ta dars', icon: 'books', test: s => s.lessonsDone >= 5 },
-  { id: 'a-free', title: 'Bepul kurs', hint: '10 ta bepul dars', icon: 'check', test: s => s.freeDone >= FREE_LESSON_COUNT },
-  { id: 'a-all', title: 'To\'liq kurs', hint: 'Barcha darslar', icon: 'medal', test: s => s.lessonsDone >= LESSONS.length },
+  { id: 'a-first', title: 'Birinchi qadam', hint: '1 ta bo\'lim', icon: 'cap', test: s => s.lessonsDone >= 1 },
+  { id: 'a-five', title: 'Beshlik', hint: '5 ta bo\'lim', icon: 'books', test: s => s.lessonsDone >= 5 },
+  { id: 'a-ten-lessons', title: "O'n bo'lim", hint: '10 ta bo\'lim', icon: 'check', test: s => s.lessonsDone >= 10 },
+  { id: 'a-all', title: 'To\'liq kurs', hint: 'Barcha bo\'limlar', icon: 'medal', test: s => s.totalLessons > 0 && s.lessonsDone >= s.totalLessons },
   { id: 'a-ten', title: "O'nlik", hint: '10 ta masala', icon: 'star', test: s => s.solved >= 10 },
   { id: 'a-fifty', title: 'Ellikchi', hint: '50 ta masala', icon: 'gem', test: s => s.solved >= 50 },
   { id: 'a-hundred', title: 'Marafon', hint: '60 ta masala', icon: 'target', test: s => s.solved >= 60 },

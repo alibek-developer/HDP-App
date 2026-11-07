@@ -1,5 +1,4 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import type { ViewStyle } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
@@ -7,6 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
+import { resetToTopics } from '../lib/nav'
 import { findTopic } from '../data/curriculum'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, C, NUM } from '../theme/tokens'
@@ -37,14 +37,13 @@ const ResultScreen = () => {
 
   /**
    * Natijaga kelish yo'li test/to'plam ekrani edi — ular tarixda qolmasin.
-   * Dars testi kurslar ro'yxatiga, mavzu testi mavzuga, to'plam masalalarga
-   * qaytadi; foydalanuvchi boshidan o'tgan video ekraniga tushmaydi.
+   * Mavzu testi mavzuga, to'plam masalalarga qaytadi; foydalanuvchi boshidan
+   * o'tgan test ekraniga tushmaydi.
    */
   const exit = () => {
     triggerHaptic('medium')
-    if (result?.kind === 'lesson-test') navigation.popTo('Courses')
-    else if (result?.kind === 'topic-test') navigation.popTo('Topic', { topicNum })
-    else navigation.popTo('Problems')
+    if (result?.kind === 'topic-test') resetToTopics(navigation, topicNum)
+    else navigation.navigate('Main', { screen: 'Problems' })
   }
 
   if (!result) {
@@ -58,7 +57,7 @@ const ResultScreen = () => {
         <Pressable
           onPress={() => {
             triggerHaptic('light')
-            navigation.navigate('Home')
+            navigation.navigate('Main', { screen: 'Home' })
           }}
           style={({ pressed }) => [LIME_BTN, styles.emptyCta, pressed && { transform: [{ scale: 0.97 }] }]}
         >
@@ -75,7 +74,6 @@ const ResultScreen = () => {
   const wrong = result.answers.filter(a => !a.ok && !a.skipped)
   const percent = total === 0 ? 0 : Math.round((correct / total) * 100)
   const tone = percent >= 80 ? TICK.ok : percent >= 50 ? SKIP_TONE : TICK.bad
-  const done = result.answers.filter(a => a.ok)
 
   return (
     <View style={styles.screen}>
@@ -93,9 +91,7 @@ const ResultScreen = () => {
                   <Text style={styles.kicker}>
                     {result.kind === 'problem-set'
                       ? "To'plam natijasi"
-                      : result.kind === 'topic-test'
-                        ? 'Mavzu yakuniy testi'
-                        : 'Test natijasi'}
+                      : 'Mavzu yakuniy testi'}
                   </Text>
                   <Text style={styles.cardTitle}>{result.title}</Text>
                 </View>
@@ -229,27 +225,8 @@ const ResultScreen = () => {
           </View>
         )}
 
-        {/* ── Bajarilganlar ── */}
-        {correct > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Bajarilganlar</Text>
-              <Text style={[styles.sectionCount, NUM]}>{correct} ta</Text>
-            </View>
-
-            <View style={[styles.card, { overflow: 'hidden' }]}>
-              {done.map((a, i) => (
-                <View key={i} style={[styles.doneRow, i > 0 && styles.doneRowBorder]}>
-                  <Ionicons name="checkmark" size={14} color={TICK.ok} />
-                  <Text style={styles.donePrompt}>{a.prompt}</Text>
-                  <Text style={[styles.doneAnswer, NUM]}>{a.options[a.correct]}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {wrong.length === 0 && skipped.length === 0 && (
+        {/* ── Bajarilganlar o'rniga qisqa yakun ── */}
+        {correct > 0 && wrong.length === 0 && skipped.length === 0 && (
           <View style={styles.section}>
             <View style={styles.perfect}>
               <LinearGradient
@@ -278,7 +255,7 @@ const ResultScreen = () => {
             <Pressable
               onPress={() => {
                 triggerHaptic('light')
-                navigation.navigate('Home')
+                navigation.navigate('Main', { screen: 'Home' })
               }}
               style={({ pressed }) => [OUT_BTN, styles.dockBtn, pressed && { transform: [{ scale: 0.98 }] }]}
             >
@@ -341,7 +318,7 @@ const styles = StyleSheet.create({
 
   cardHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   cardHeadText: { flex: 1 },
-  kicker: { fontSize: 10.5, letterSpacing: 1.47, textTransform: 'uppercase', fontWeight: '800', color: '#6B7C66' },
+  kicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
   cardTitle: { marginTop: 8, fontSize: 14, fontWeight: '800', color: C.ink },
   scoreWrap: { flexDirection: 'row', alignItems: 'baseline' },
   score: { fontSize: 34, lineHeight: 34, fontWeight: '800', color: C.ink },
@@ -368,7 +345,7 @@ const styles = StyleSheet.create({
   ledgerDivider: { width: 1, backgroundColor: '#EDF1E7' },
   ledgerInner: { flex: 1, alignItems: 'center' },
   ledgerValue: { fontSize: 17, lineHeight: 17, fontWeight: '800' },
-  ledgerUnit: { marginTop: 6, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', color: '#9AA995' },
+  ledgerUnit: { marginTop: 6, fontSize: 11, fontWeight: '700', color: '#9AA995' },
 
   prompt: { fontSize: 14, lineHeight: 20, fontWeight: '800', color: C.ink },
   answerRows: { marginTop: 12, gap: 6 },
@@ -379,13 +356,8 @@ const styles = StyleSheet.create({
   answerRight: { fontSize: 12.5, fontWeight: '800', color: '#0B6E4F' },
 
   explainBox: { marginTop: 12, paddingLeft: 12, paddingTop: 10, paddingBottom: 10, paddingRight: 12, backgroundColor: '#FBFCF8', borderLeftWidth: 2, borderLeftColor: '#E1E7DA' },
-  explainKicker: { fontSize: 10.5, letterSpacing: 1.26, textTransform: 'uppercase', fontWeight: '800', color: '#6B7C66', marginBottom: 4 },
+  explainKicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66', marginBottom: 4 },
   explainText: { fontSize: 13, lineHeight: 19, color: C.ink2 },
-
-  doneRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 10 },
-  doneRowBorder: { borderTopWidth: 1, borderTopColor: '#EDF1E7' } as ViewStyle,
-  donePrompt: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '600', color: C.ink2 },
-  doneAnswer: { fontSize: 12, fontWeight: '800', color: '#0B6E4F' },
 
   perfect: { backgroundColor: '#0E1A12', borderRadius: 14, overflow: 'hidden', flexDirection: 'row' },
   perfectBody: { flex: 1, paddingLeft: 15, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },

@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8 },
   metaTitle: { flex: 1, minWidth: 0, fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.85)' },
   metaState: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
-  metaStateText: { fontSize: 10.5, letterSpacing: 0.8, textTransform: 'uppercase', fontWeight: '800' },
+  metaStateText: { fontSize: 11.5, fontWeight: '700' },
 
   note: {
     marginTop: 10,

@@ -10,7 +10,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
-import { useExit } from '../lib/nav'
+import { useExitToTab } from '../lib/nav'
 import { PopIn, Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM } from '../theme/tokens'
@@ -18,7 +18,7 @@ import { GRAD_RAIL } from '../theme/solver'
 import {
   PROBLEM_SETS, daysToEarn, findProduct, type Product, type ProductCat,
 } from '../data/content'
-import { PRODUCT_IMAGES } from '../data/productImages'
+import { PRODUCT_IMAGES, PRODUCT_THUMBS } from '../data/productImages'
 
 /**
  * Mahsulot sahifasi — rasm, to'liq tavsif, xususiyatlar, ombor qoldig'i,
@@ -111,7 +111,8 @@ const ProductArt = ({
   children?: React.ReactNode
 }) => {
   const tone = ART_TONE[product.cat]
-  const img = PRODUCT_IMAGES[product.id]
+  // Hero — 1024 original; kichik nusxalar (56 dp) — 512 thumbnail
+  const img = fill ? PRODUCT_IMAGES[product.id] : PRODUCT_THUMBS[product.id] ?? PRODUCT_IMAGES[product.id]
   return (
     <View
       style={[
@@ -203,7 +204,7 @@ const sh = StyleSheet.create({
   },
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: HAIR, alignSelf: 'center', marginBottom: 12 },
   headRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  title: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4, color: GRAY },
+  title: { fontSize: 15, fontWeight: '800', color: INK },
   closeBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
 })
 
@@ -229,7 +230,7 @@ const StarsRow = ({ value, onChange }: { value: number; onChange: (n: number) =>
       <Pressable
         key={i}
         onPress={() => { triggerHaptic('selection'); onChange(i) }}
-        hitSlop={6}
+        hitSlop={14}
         accessibilityLabel={`${i} yulduz`}
         style={({ pressed }) => [pressed && { transform: [{ scale: 0.9 }] }]}
       >
@@ -248,7 +249,7 @@ const ProductScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'Product'>>()
   const insets = useSafeAreaInsets()
   const id = route.params.id
-  const exit = useExit('Shop')
+  const exit = useExitToTab('shop')
   const product = findProduct(id)
 
   const coin = useApp(s => s.coin)
@@ -285,7 +286,7 @@ const ProductScreen = () => {
         <Text style={styles.notFoundTitle}>Mahsulot topilmadi</Text>
         <Text style={styles.notFoundSub}>Do'kon ro'yxatidan boshqa sovg'a tanlang.</Text>
         <Pressable
-          onPress={() => { triggerHaptic('light'); navigation.navigate('Shop') }}
+          onPress={() => { triggerHaptic('light'); navigation.navigate('Main', { screen: 'Shop' }) }}
           style={({ pressed }) => [styles.notFoundBtn, pressed && { opacity: 0.9 }]}
         >
           <Text style={styles.notFoundBtnText}>Do'konga qaytish</Text>
@@ -351,6 +352,7 @@ const ProductScreen = () => {
             <Pressable
               onPress={exit}
               accessibilityLabel="Orqaga"
+              hitSlop={10}
               style={({ pressed }) => [styles.topBtn, pressed && { transform: [{ scale: 0.94 }] }]}
             >
               <Ionicons name="chevron-back" size={17} color={INK} />
@@ -427,7 +429,7 @@ const ProductScreen = () => {
 
         {/* ── Tavsif ── */}
         <View style={styles.section}>
-          <Text style={styles.kicker}>MAHSULOT HAQIDA</Text>
+          <Text style={styles.kicker}>Mahsulot haqida</Text>
           <View style={styles.descCard}>
             <Text style={styles.descText}>{product.desc}</Text>
 
@@ -640,7 +642,7 @@ const ProductScreen = () => {
       </View>
 
       {/* ── Chek varaqasi ── */}
-      <Sheet open={confirm} onClose={() => setConfirm(false)} title="BUYURTMA · TASDIQLANG">
+      <Sheet open={confirm} onClose={() => setConfirm(false)} title="Buyurtmani tasdiqlang">
         <View style={styles.confirmTop}>
           <ProductArt product={product} size={56} radius={12} iconSize={26} />
           <View style={styles.confirmWho}>
@@ -716,7 +718,7 @@ const ProductScreen = () => {
                     <Text style={styles.doneShopText}>Do'konga</Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => { triggerHaptic('medium'); setDone(false); navigation.navigate('Profile') }}
+                    onPress={() => { triggerHaptic('medium'); setDone(false); navigation.navigate('Main', { screen: 'Profile' }) }}
                     style={({ pressed }) => [styles.doneProfile, pressed && { opacity: 0.9 }]}
                   >
                     <Text style={styles.doneProfileText}>Profilim</Text>
@@ -778,7 +780,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(14,26,18,0.82)',
     borderRadius: 8,
   },
-  artCatText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', color: '#EAF3E2' },
+  artCatText: { fontSize: 11, fontWeight: '800', color: '#EAF3E2' },
   artStock: {
     position: 'absolute',
     right: 12,
@@ -815,7 +817,7 @@ const styles = StyleSheet.create({
   timerRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
   timerText: { fontSize: 11.5, fontWeight: '700', color: GRAY, flex: 1 },
 
-  kicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.4, color: GRAY, marginBottom: 8 },
+  kicker: { fontSize: 12.5, fontWeight: '800', color: GRAY, marginBottom: 8 },
   descCard: {
     backgroundColor: '#FFFFFF',
     borderColor: HAIR,
@@ -895,7 +897,7 @@ const styles = StyleSheet.create({
   composeBottom: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   composeCount: { fontSize: 11, fontWeight: '700' },
   sendBtn: {
-    height: 40,
+    height: 44,
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
@@ -937,7 +939,7 @@ const styles = StyleSheet.create({
     backgroundColor: AMBER_BG,
     borderRadius: 100,
   },
-  boughtBadgeText: { fontSize: 9.5, fontWeight: '800', textTransform: 'uppercase', color: AMBER_INK },
+  boughtBadgeText: { fontSize: 10.5, fontWeight: '800', color: AMBER_INK },
   revText: { marginTop: 8, fontSize: 13, lineHeight: 20, color: '#33452F' },
   revEmpty: {
     backgroundColor: '#FFFFFF',

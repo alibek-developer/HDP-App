@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import type { SessionResult } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
-import { useExit } from '../lib/nav'
+import { useExitToTab } from '../lib/nav'
 import { findProblemSet } from '../data/content'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, C, NUM } from '../theme/tokens'
@@ -35,7 +35,7 @@ const ProblemSetScreen = () => {
   const navigation = useNavigation<Nav>()
   const route = useRoute<RouteProp<RootStackParamList, 'ProblemSet'>>()
   const insets = useSafeAreaInsets()
-  const exit = useExit('Problems')
+  const exit = useExitToTab('problems')
 
   const setId = String(route.params.setId)
   const set = findProblemSet(setId)
@@ -147,15 +147,8 @@ const ProblemSetScreen = () => {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* ── Holat chizig'i: chiqish + hisob + davotar chiziqlari ── */}
+        {/* ── Holat chizig'i: savol hisobi + davotar chiziqlari ── */}
         <View style={styles.statusRow}>
-          <Pressable
-            onPress={exit}
-            accessibilityLabel="Chiqish"
-            style={({ pressed }) => [styles.exitBtn, pressed && { transform: [{ scale: 0.95 }] }]}
-          >
-            <Ionicons name="close" size={14} color="#6B7C66" />
-          </Pressable>
           <Text style={[styles.counter, NUM]}>{cursor + 1}/{total}</Text>
 
           <View style={styles.ticks}>
@@ -262,16 +255,6 @@ const styles = StyleSheet.create({
   lockCtaText: { fontSize: 13.5 },
 
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 4 },
-  exitBtn: {
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E1E7DA',
-    borderWidth: 1,
-    borderRadius: 9,
-  },
   counter: { fontSize: 12, fontWeight: '800', color: C.ink2 },
   ticks: { flex: 1, flexDirection: 'row', gap: 6 },
   tick: { flex: 1, height: 5, borderRadius: 3 },
@@ -281,7 +264,7 @@ const styles = StyleSheet.create({
   qCard: { borderRadius: 16, overflow: 'hidden', flexDirection: 'row', ...{ shadowColor: C.ink, shadowOpacity: 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 2 } },
   qRail: { width: 5 },
   qBody: { flex: 1, paddingLeft: 15, paddingRight: 16, paddingTop: 16, paddingBottom: 16 },
-  qKicker: { fontSize: 10.5, letterSpacing: 1.47, textTransform: 'uppercase', fontWeight: '800', color: '#6B7C66' },
+  qKicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
   qPrompt: { marginTop: 8, fontSize: 17, lineHeight: 24, fontWeight: '600', color: C.ink },
 
   options: { marginTop: 16, gap: 10 },

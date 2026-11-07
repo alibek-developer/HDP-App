@@ -6,20 +6,22 @@ import type { ScrollViewInstance } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
+import type { CompositeNavigationProp } from '@react-navigation/native'
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
-  ACHIEVEMENTS, ALL_SETS, LESSONS, WEEK_LABELS, currentWeekKeys, leagueRank,
+  ACHIEVEMENTS, ALL_SETS, WEEK_LABELS, currentWeekKeys,
   unlockedAchievements, type AchIcon, type AchStats,
 } from '../data/content'
+import { TOPICS, shortTitle } from '../data/curriculum'
 import { triggerHaptic } from '../lib/haptics'
 import { ageOn, gradeFromBirthDate } from '../lib/profile'
-import { useApp, freeLessonCount } from '../store/useStore'
+import { useApp } from '../store/useStore'
 import { BrandMark } from '../components/Brand'
-import { BottomNav, navBottomSpace } from '../components/BottomNav'
-import type { TabKey } from '../components/BottomNav'
+import { navBottomSpace } from '../components/BottomNav'
 import Sheet from '../components/Sheet'
-import type { RootStackParamList } from '../navigation/types'
+import type { RootStackParamList, TabParamList } from '../navigation/types'
 import { ABS_FILL, NUM } from '../theme/tokens'
 
 /**
@@ -28,7 +30,10 @@ import { ABS_FILL, NUM } from '../theme/tokens'
  * Web'ning `ProfileScreen.tsx` ekvivalenti.
  */
 
-type Nav = NativeStackNavigationProp<RootStackParamList>
+type Nav = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList>,
+  NativeStackNavigationProp<RootStackParamList>
+>
 
 const INK = '#0E1A12'
 const CANVAS = '#F3F7EE'
@@ -44,6 +49,8 @@ const RED = '#BA1A1A'
 const RED_SOFT = '#FEE2E2'
 const ROW_HAIR = '#F0F0F0'
 const FAINT = '#9AA995'
+
+const ALL_LESSONS = TOPICS.flatMap(t => t.lessons)
 
 const MONTHS_UZ = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
 
@@ -92,7 +99,6 @@ const ProfileScreen = () => {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const scrollRef = useRef<ScrollViewInstance | null>(null)
-  const settingsY = useRef(0)
 
   const [editOpen, setEditOpen] = useState(false)
   const [bellOpen, setBellOpen] = useState(false)
@@ -111,7 +117,8 @@ const ProfileScreen = () => {
   const telegramId = useApp(s => s.telegramId)
   const photoUrl = useApp(s => s.photoUrl)
   const theme = useApp(s => s.theme)
-  const lessons = useApp(s => s.lessons)
+  const topicLessons = useApp(s => s.topicLessons)
+  const topicTests = useApp(s => s.topicTests)
   const solvedQuestions = useApp(s => s.solvedQuestions)
   const answeredTotal = useApp(s => s.answeredTotal)
   const answeredCorrect = useApp(s => s.answeredCorrect)
@@ -136,8 +143,7 @@ const ProfileScreen = () => {
 
   /* ── Haqiqiy ko'rsatkichlar ── */
 
-  const lessonsDone = LESSONS.filter(l => lessons[l.id]?.testScore != null).length
-  const freeDone = LESSONS.filter(l => l.free && lessons[l.id]?.testScore != null).length
+  const lessonsDone = ALL_LESSONS.filter(l => topicLessons[l.id]?.done).length
 
   const topic = useMemo(() => {
     const t: Record<string, number> = {}
@@ -149,13 +155,11 @@ const ProfileScreen = () => {
   }, [solvedQuestions])
 
   const accuracy = answeredTotal > 0 ? Math.round((answeredCorrect / answeredTotal) * 100) : 0
-  const rank = leagueRank(xp)
-  const nextXp = xp + xpForNext()
   /** `bestStreak` maydoni qo'shilgandan oldingi zanjirlar ham hisobga olinadi */
   const best = Math.max(bestStreak, streak)
 
   const stats: AchStats = {
-    lessonsDone, freeDone, solved: solvedCount, streak,
+    lessonsDone, totalLessons: ALL_LESSONS.length, solved: solvedCount, streak,
     bestStreak: best, level, accuracy, solvedToday,
     orders: orders.length, reviews: reviews.length, favs: favs.length, topic,
   }
@@ -179,8 +183,6 @@ const ProfileScreen = () => {
   const plan = proDays >= 300 ? 'YILLIK' : proDays >= 25 ? 'OYLIK' : 'SINOV'
 
   const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  const olymp = topic['Olimpiada'] ?? 0
-  const statusLabel = olymp > 0 ? 'Olimpiada ishtirokchisi' : "Faol o'quvchi"
 
   const openEdit = () => {
     setDraftName(name)
@@ -196,15 +198,6 @@ const ProfileScreen = () => {
     setEditOpen(false)
   }
 
-  const scrollToSettings = () => {
-    scrollRef.current?.scrollTo({ y: Math.max(0, settingsY.current - 90), animated: true })
-  }
-
-  const onTab = (key: TabKey) => {
-    if (key === 'profile') return
-    navigation.navigate(key === 'home' ? 'Home' : key === 'problems' ? 'Problems' : 'Shop')
-  }
-
   return (
     <View style={p.screen}>
       {/* ── 1. Header ── */}
@@ -212,25 +205,8 @@ const ProfileScreen = () => {
         <View style={p.headerRow}>
           <BrandMark size={28} />
           <View style={p.headerMid}>
-            <Text numberOfLines={1} style={p.headerTitle}>Mening Profilim</Text>
-            <Text style={p.headerSub}>HDP Shaxsiy Kabinet</Text>
-          </View>
-          <View style={p.headerActions}>
-            <Pressable
-              onPress={() => { triggerHaptic('light'); setBellOpen(true) }}
-              accessibilityLabel="Bildirishnomalar"
-              style={({ pressed }) => [p.iconBtn, pressed && { opacity: 0.75 }]}
-            >
-              <Ionicons name="notifications-outline" size={16} color={INK} />
-              {solvedToday === 0 && <View style={p.dot} />}
-            </Pressable>
-            <Pressable
-              onPress={() => { triggerHaptic('light'); scrollToSettings() }}
-              accessibilityLabel="Sozlamalar"
-              style={({ pressed }) => [p.iconBtn, pressed && { opacity: 0.75 }]}
-            >
-              <Ionicons name="menu" size={16} color={INK} />
-            </Pressable>
+            <Text numberOfLines={1} style={p.headerTitle}>Profil</Text>
+            <Text style={p.headerSub}>Hisob va natijalar</Text>
           </View>
         </View>
       </View>
@@ -242,60 +218,58 @@ const ProfileScreen = () => {
       >
         {/* ── 2. Profil kartasi ── */}
         <View style={p.profileCard}>
-          <View style={p.avatarWrap}>
-            <View style={p.avatar}>
-              <LinearGradient colors={GRAD_AVATAR} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[ABS_FILL, { borderRadius: 100 }]}>
-                {photoUrl ? (
-                  <Image source={{ uri: photoUrl }} style={p.avatarImg} />
-                ) : null}
-              </LinearGradient>
-              {!photoUrl && (initials
-                ? <Text style={p.avatarText}>{initials}</Text>
-                : <Ionicons name="person" size={26} color="#1C3214" />)}
+          <View style={p.profileTop}>
+            <View style={p.avatarWrap}>
+              <View style={p.avatar}>
+                <LinearGradient colors={GRAD_AVATAR} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[ABS_FILL, { borderRadius: 100 }]}>
+                  {photoUrl ? (
+                    <Image source={{ uri: photoUrl }} style={p.avatarImg} />
+                  ) : null}
+                </LinearGradient>
+                {!photoUrl && (initials
+                  ? <Text style={p.avatarText}>{initials}</Text>
+                  : <Ionicons name="person" size={24} color="#1C3214" />)}
+              </View>
+              <Pressable
+                onPress={() => { triggerHaptic('light'); openEdit() }}
+                hitSlop={10}
+                accessibilityLabel="Profilni tahrirlash"
+                style={({ pressed }) => [p.editBtn, pressed && { opacity: 0.75 }]}
+              >
+                <Ionicons name="pencil" size={12} color={INK} />
+              </Pressable>
             </View>
-            <Pressable
-              onPress={() => { triggerHaptic('light'); openEdit() }}
-              accessibilityLabel="Profilni tahrirlash"
-              style={({ pressed }) => [p.editBtn, pressed && { opacity: 0.75 }]}
-            >
-              <Ionicons name="pencil" size={12} color={INK} />
-            </Pressable>
+
+            <View style={p.identity}>
+              <View style={p.nameRow}>
+                <Text numberOfLines={1} style={p.name}>{name || 'Ismingizni kiriting'}</Text>
+                {telegramId != null && <Ionicons name="checkmark-circle" size={17} color={'#229ED9'} />}
+              </View>
+              <Text numberOfLines={1} style={p.handle}>
+                {username ? `@${username}` : (email ?? "Profil to'ldirilmagan")}
+              </Text>
+              {!!publicId && <Text style={p.accountNo}>Hisob: {publicId}</Text>}
+            </View>
           </View>
 
-          <View style={p.identity}>
-            <View style={p.nameRow}>
-              <Text numberOfLines={1} style={p.name}>{name || 'Ismingizni kiriting'}</Text>
-              {telegramId != null && <Ionicons name="checkmark-circle" size={17} color={'#229ED9'} />}
+          {(!!birthDate || !!studyGoal) && (
+            <View style={p.chipRow}>
+              {!!birthDate && (
+                <View style={p.chip}>
+                  <Ionicons name="school" size={13} color={GREEN} />
+                  <Text style={p.chipText}>
+                    {`${gradeFromBirthDate(birthDate)} · ${ageOn(birthDate)} yosh`}
+                  </Text>
+                </View>
+              )}
+              {!!studyGoal && (
+                <View style={p.chip}>
+                  <Ionicons name="flag" size={13} color={GREEN} />
+                  <Text style={p.chipText}>{studyGoal}</Text>
+                </View>
+              )}
             </View>
-            <Text numberOfLines={1} style={p.handle}>
-              {email ?? (username ? `@${username}` : 'Profil to\'ldirilmagan')}
-              {publicId ? ` · #${publicId}` : ''}
-            </Text>
-            {telegramId != null && (
-              <View style={[p.statusPill, p.telegramPill]}>
-                <Ionicons name="paper-plane" size={12} color={'#1B87BE'} />
-                <Text style={[p.statusText, { color: '#1B87BE' }]}>Telegram tasdiqlangan</Text>
-              </View>
-            )}
-            <View style={p.statusPill}>
-              <Ionicons name="trophy" size={12} color={GREEN} />
-              <Text style={p.statusText}>{`${statusLabel} · Lv.${level}`}</Text>
-            </View>
-            {!!birthDate && (
-              <View style={[p.statusPill, p.goalPill]}>
-                <Ionicons name="school" size={12} color={GREEN} />
-                <Text style={p.statusText}>
-                  {`${gradeFromBirthDate(birthDate)} · ${ageOn(birthDate)} yosh`}
-                </Text>
-              </View>
-            )}
-            {!!studyGoal && (
-              <View style={[p.statusPill, p.goalPill]}>
-                <Ionicons name="flag" size={12} color={GREEN} />
-                <Text style={p.statusText}>{studyGoal}</Text>
-              </View>
-            )}
-          </View>
+          )}
         </View>
 
         {/* ── 3. Pro kartasi ── */}
@@ -309,7 +283,7 @@ const ProfileScreen = () => {
                   <View style={p.proPlanChip}><Text style={p.proPlanText}>{plan}</Text></View>
                   <Text style={p.proActive}>Faol</Text>
                 </View>
-                <Text style={p.proDesc}>Barcha maxsus darslar va IMO tahlili ochiq.</Text>
+                <Text style={p.proDesc}>Barcha mashq to&apos;plamlari coin sarflamasdan ochiq.</Text>
                 {!!proExpires && (
                   <View style={p.proDateRow}>
                     <Ionicons name="calendar" size={12} color="rgba(255,255,255,0.6)" />
@@ -319,6 +293,7 @@ const ProfileScreen = () => {
               </View>
               <Pressable
                 onPress={() => { triggerHaptic('light'); navigation.navigate('Pro') }}
+                hitSlop={6}
                 style={({ pressed }) => [p.proGhost, pressed && { opacity: 0.7 }]}
               >
                 <Text style={p.proGhostText}>Boshqarish</Text>
@@ -330,17 +305,18 @@ const ProfileScreen = () => {
                 <View style={p.proHead}>
                   <Ionicons name="diamond" size={15} color="rgba(255,255,255,0.55)" />
                   <Text style={p.proTitle}>HDP Pro</Text>
-                  <View style={p.proOffChip}><Text style={p.proOffText}>YO&apos;Q</Text></View>
+                  <View style={p.proOffChip}><Text style={p.proOffText}>Faol emas</Text></View>
                 </View>
                 <Text style={p.proDesc}>
-                  {isPro ? 'Obuna muddati tugagan.' : `${freeLessonCount} ta bepul dars ochiq, qolgani Pro bilan.`}
+                  {isPro ? 'Obuna muddati tugagan.' : 'Barcha mavzular ochiq. Pro mashq to\'plamlarini ochadi.'}
                 </Text>
               </View>
               <Pressable
                 onPress={() => { triggerHaptic('medium'); navigation.navigate('Pro') }}
+                hitSlop={6}
                 style={({ pressed }) => [p.proBuy, pressed && { opacity: 0.85 }]}
               >
-                <Text style={p.proBuyText}>Olish</Text>
+                <Text style={p.proBuyText}>Pro olish</Text>
               </Pressable>
             </View>
           )}
@@ -351,7 +327,7 @@ const ProfileScreen = () => {
           <StatCard
             icon="flame"
             tint={{ background: '#FFE9D6', color: '#B4530A' }}
-            label="Olov Streak"
+            label="Ketma-ket kun"
             value={`${streak} kun`}
             note={streak > 0 && streak === best ? 'Shaxsiy rekord!' : `Rekord: ${best} kun`}
             noteUp={streak > 0 && streak === best}
@@ -359,31 +335,31 @@ const ProfileScreen = () => {
           <StatCard
             icon="flash"
             tint={{ background: BLUE_SOFT, color: BLUE }}
-            label="XP Jam'armasi"
-            value={`${num(xp)} XP`}
-            note={`Keyingi: ${num(nextXp)} XP (+${num(xpForNext())})`}
+            label="Daraja"
+            value={`Lv.${level}`}
+            note={`${num(xp)} XP · yana ${num(xpForNext())} XP`}
           />
           <StatCard
             icon="document-text"
             tint={{ background: GREEN_SOFT, color: GREEN }}
-            label="Yechilgan Masalalar"
+            label="Yechilgan masalalar"
             value={`${solvedCount} ta`}
-            note={answeredTotal > 0 ? `${accuracy}% aniqlik` : 'Aniqlik hisoblanmagan'}
+            note={answeredTotal > 0 ? `${accuracy}% to'g'ri javob` : "Javoblar hali yo'q"}
             noteGood={accuracy >= 80}
           />
           <StatCard
-            icon="trophy"
+            icon="time"
             tint={{ background: '#FEF3C7', color: GOLD }}
-            label="Reyting O'rni"
-            value={`#${rank}`}
-            note={rank <= 100 ? 'Respublika Top-100' : 'Respublika ligasi'}
+            label="Bu hafta"
+            value={`${totalMin} daq`}
+            note="o'qishga sarflandi"
           />
         </View>
 
         {/* ── 5. Haftalik faollik ── */}
         <View style={p.card}>
           <View style={p.cardHead}>
-            <Text style={p.cardTitle}>Haftalik Faollik</Text>
+            <Text style={p.cardTitle}>Haftalik faollik</Text>
             <View style={p.chipGreen}><Text style={p.chipGreenText}>{`Jami ${(totalMin / 60).toFixed(1)} soat`}</Text></View>
           </View>
 
@@ -421,17 +397,17 @@ const ProfileScreen = () => {
         <View style={p.card}>
           <View style={p.medalHead}>
             <View style={p.medalHeadMid}>
-              <Text style={p.cardTitle}>Yutuqlar &amp; Medallar</Text>
+              <Text style={p.cardTitle}>Yutuqlar</Text>
               <Text style={p.cardSub}>
                 {ACHIEVEMENTS.length} tadan {unlocked.length} tasi ochilgan ({pct}%)
               </Text>
             </View>
             <Pressable
               onPress={() => { triggerHaptic('light'); setAllOpen(true) }}
-              hitSlop={8}
+              hitSlop={14}
               style={({ pressed }) => [p.allBtn, pressed && { opacity: 0.7 }]}
             >
-              <Text style={p.allBtnText}>Barchasi</Text>
+              <Text style={p.allBtnText}>Hammasi</Text>
               <Ionicons name="chevron-forward" size={14} color={GREEN} />
             </Pressable>
           </View>
@@ -454,16 +430,13 @@ const ProfileScreen = () => {
         </View>
 
         {/* ── 7. Sozlamalar ro'yxati ── */}
-        <View
-          style={p.settings}
-          onLayout={e => { settingsY.current = e.nativeEvent.layout.y }}
-        >
+        <View style={p.settings}>
           <Row
             icon="document-text"
             tint={GREEN_SOFT}
             iconColor={GREEN}
-            title="Mening natijalarim"
-            sub={lessonsDone > 0 ? `${lessonsDone} ta dars testi yakunlangan` : 'Darsni tugatgach birinchi natija'}
+            title="Natijalarim"
+            sub={lessonsDone > 0 ? `${lessonsDone} ta bo'lim yakunlangan` : "Bo'limni tugatgach birinchi natija"}
             right={<Ionicons name="chevron-forward" size={16} color="#C9D3C4" />}
             onClick={() => { triggerHaptic('light'); setCertOpen(true) }}
           />
@@ -471,7 +444,7 @@ const ProfileScreen = () => {
             icon="notifications"
             tint="#FEF3C7"
             iconColor={GOLD}
-            title="Faollik hisoboti"
+            title="Bugungi faollik"
             sub={solvedToday > 0 ? `Bugun ${solvedToday} ta masala yechildi` : "Bugungi faollikni ko'rish"}
             right={<Ionicons name="chevron-forward" size={16} color="#C9D3C4" />}
             onClick={() => { triggerHaptic('light'); setBellOpen(true) }}
@@ -480,8 +453,8 @@ const ProfileScreen = () => {
             icon="sunny"
             tint="#EDEFF5"
             iconColor={GRAY}
-            title="Ilova Mavzusi"
-            sub={theme === 'light' ? "Yorug' (Toza Oq rejim)" : "Qorong'u (Tun rejimi)"}
+            title="Ko'rinish"
+            sub={theme === 'light' ? "Yorug' rejim yoqilgan" : "Qorong'u rejim yoqilgan"}
             right={<><Pill label="Faol" bg={GREEN_SOFT} ink={GREEN} /><Ionicons name="chevron-forward" size={16} color="#C9D3C4" /></>}
             onClick={() => { triggerHaptic('light'); setThemeOpen(true) }}
           />
@@ -489,7 +462,7 @@ const ProfileScreen = () => {
             icon="help-circle"
             tint={BLUE_SOFT}
             iconColor={BLUE}
-            title="Yordam va Qo'llab-quvvatlash"
+            title="Yordam"
             sub="Ilova qoidalari va ma'lumotlar"
             right={<Ionicons name="chevron-forward" size={16} color="#C9D3C4" />}
             onClick={() => { triggerHaptic('light'); setHelpOpen(true) }}
@@ -499,7 +472,7 @@ const ProfileScreen = () => {
             icon="log-out"
             tint={RED_SOFT}
             iconColor={RED}
-            title="Tizimdan chiqish"
+            title="Chiqish"
             titleColor={RED}
             sub="Hisobdan xavfsiz chiqish"
             subColor="rgba(186,26,26,0.6)"
@@ -515,7 +488,7 @@ const ProfileScreen = () => {
       </ScrollView>
 
       {/* ── Varaqa: profilni tahrirlash ── */}
-      <Sheet open={editOpen} onClose={() => setEditOpen(false)} title="PROFILNI TAHRIRLASH">
+      <Sheet open={editOpen} onClose={() => setEditOpen(false)} title="Profilni tahrirlash">
         <Field label="Ism familiya" value={draftName} onChange={setDraftName} placeholder="Ismingiz" />
         <Field label="Telegram foydalanuvchi nomi" value={draftUser} onChange={setDraftUser} placeholder="username" prefix="@" />
         <Pressable
@@ -534,7 +507,7 @@ const ProfileScreen = () => {
       <Sheet
         open={bellOpen}
         onClose={() => setBellOpen(false)}
-        title="BILDIRISHNOMALAR"
+        title="Faollik hisoboti"
         subtitle="Bugungi faollik va hisob ma'lumotlari."
       >
         <Note label="Bugungi faollik" value={solvedToday > 0 ? `${solvedToday} ta masala yechildi` : 'Hali birorta masala yechilmadi'} />
@@ -553,29 +526,34 @@ const ProfileScreen = () => {
       <Sheet
         open={certOpen}
         onClose={() => setCertOpen(false)}
-        title="NATIJALAR"
-        subtitle="Har bir tugatilgan dars testining natijasi shu yerda saqlanadi."
+        title="Natijalar"
+        subtitle="Har bir mavzu yakuniy testining natijasi shu yerda saqlanadi."
       >
-        {lessonsDone === 0 ? (
+        {TOPICS.every(t => !topicTests[t.meta.num]) ? (
           <Text style={p.sheetText}>
-            Hozircha natija yo&apos;q. Bepul ro&apos;yxatdagi {freeLessonCount} darsdan birinchi testini
-            yakunlang — natija shu yerda paydo bo&apos;ladi.
+            Hozircha natija yo&apos;q. Har mavzu oxiridagi yakuniy testni tugating —
+            natija shu yerda paydo bo&apos;ladi.
           </Text>
         ) : (
-          LESSONS.filter(l => lessons[l.id]?.testScore != null).map(l => (
-            <View key={l.id} style={p.certRow}>
-              <View style={p.certTile}>
-                <Ionicons name="school" size={16} color={GREEN} />
+          TOPICS.filter(t => topicTests[t.meta.num]).map(t => {
+            const test = topicTests[t.meta.num]
+            return (
+              <View key={t.meta.num} style={p.certRow}>
+                <View style={p.certTile}>
+                  <Ionicons name="school" size={16} color={GREEN} />
+                </View>
+                <View style={p.certMid}>
+                  <Text numberOfLines={1} style={p.certTitle}>
+                    Mavzu {t.meta.num} · {shortTitle(t.meta.title)}
+                  </Text>
+                  <Text style={p.certScore}>
+                    {test.score}/{test.total} to&apos;g&apos;ri
+                  </Text>
+                </View>
+                <Ionicons name="checkmark-circle" size={19} color={GREEN} />
               </View>
-              <View style={p.certMid}>
-                <Text numberOfLines={1} style={p.certTitle}>{l.title}</Text>
-                <Text style={p.certScore}>
-                  {lessons[l.id]?.testScore}/{lessons[l.id]?.testTotal} to&apos;g&apos;ri
-                </Text>
-              </View>
-              <Ionicons name="checkmark-circle" size={19} color={GREEN} />
-            </View>
-          ))
+            )
+          })
         )}
         <Text style={p.sheetFoot}>
           Natijalar shu qurilmadagi profilingizda saqlanadi.
@@ -583,7 +561,7 @@ const ProfileScreen = () => {
       </Sheet>
 
       {/* ── Varaqa: mavzu ── */}
-      <Sheet open={themeOpen} onClose={() => setThemeOpen(false)} title="ILOVA MAVZUSI">
+      <Sheet open={themeOpen} onClose={() => setThemeOpen(false)} title="Mavzu">
         {([
           { key: 'light' as const, label: "Yorug' (Toza Oq rejim)", icon: 'sunny' as const, ready: true },
           { key: 'dark' as const, label: "Qorong'u (Tun rejimi)", icon: 'moon' as const, ready: false },
@@ -610,7 +588,7 @@ const ProfileScreen = () => {
       </Sheet>
 
       {/* ── Varaqa: yordam ── */}
-      <Sheet open={helpOpen} onClose={() => setHelpOpen(false)} title="YORDAM VA QO'LLAB-QUVVATLASH">
+      <Sheet open={helpOpen} onClose={() => setHelpOpen(false)} title="Yordam">
         <Text style={p.sheetText}>
           Ilova qanday ishlaydi — asosiy qoidalar shu yerda.
         </Text>
@@ -632,7 +610,7 @@ const ProfileScreen = () => {
       <Sheet
         open={allOpen}
         onClose={() => setAllOpen(false)}
-        title="BARCHA MEDALLAR"
+        title="Barcha yutuqlar"
         subtitle={`${unlocked.length} / ${ACHIEVEMENTS.length} ochilgan`}
       >
         <View style={p.medalGrid}>
@@ -655,7 +633,7 @@ const ProfileScreen = () => {
       </Sheet>
 
       {/* ── Varaqa: chiqish ── */}
-      <Sheet open={outOpen} onClose={() => setOutOpen(false)} title="TIZIMDAN CHIQISH">
+      <Sheet open={outOpen} onClose={() => setOutOpen(false)} title="Chiqish">
         <Text style={p.sheetText}>
           Sessiya yopiladi va boshlang&apos;ich ekranga qaytasiz. Progress — darslar, coin, zanjir va
           buyurtmalar — o&apos;rnida qoladi.
@@ -673,8 +651,6 @@ const ProfileScreen = () => {
           <Text style={p.softBtnText}>Bekor qilish</Text>
         </Pressable>
       </Sheet>
-
-      <BottomNav active="profile" onSelect={onTab} />
     </View>
   )
 }
@@ -787,48 +763,41 @@ const Field = ({
 const p = StyleSheet.create({
   screen: { flex: 1, backgroundColor: CANVAS },
   header: { backgroundColor: CANVAS, borderBottomWidth: 1, borderBottomColor: HAIR },
-  headerRow: { height: 54, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
-  headerMid: { flex: 1, minWidth: 0, alignItems: 'center' },
+  headerRow: { height: 54, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 10 },
+  headerMid: { flex: 1, minWidth: 0 },
   headerTitle: { fontSize: 16, fontWeight: '800', color: INK },
   headerSub: { fontSize: 11, fontWeight: '700', color: GRAY, marginTop: 1 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  iconBtn: {
-    width: 34, height: 34, borderRadius: 100, backgroundColor: '#FFFFFF',
-    borderColor: HAIR, borderWidth: 1, alignItems: 'center', justifyContent: 'center',
-  },
-  dot: {
-    position: 'absolute', top: 6, right: 7, width: 7, height: 7, borderRadius: 100,
-    backgroundColor: '#E23B2B', borderWidth: 1.5, borderColor: '#FFFFFF',
-  },
 
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
 
   profileCard: {
-    ...CARD_BASE, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 16,
+    ...CARD_BASE, borderRadius: 16, padding: 16,
   },
-  avatarWrap: { width: 78, height: 78 },
+  profileTop: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  avatarWrap: { width: 68, height: 68 },
   avatar: {
-    position: 'relative', width: 72, height: 72, borderRadius: 100, overflow: 'hidden',
+    position: 'relative', width: 64, height: 64, borderRadius: 100, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center', backgroundColor: '#006C49',
   },
-  avatarImg: { width: 72, height: 72, borderRadius: 100 },
-  avatarText: { fontSize: 24, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
+  avatarImg: { width: 64, height: 64, borderRadius: 100 },
+  avatarText: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
   editBtn: {
-    position: 'absolute', right: 0, bottom: 2, width: 26, height: 26, borderRadius: 100,
+    position: 'absolute', right: 0, bottom: 0, width: 26, height: 26, borderRadius: 100,
     backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
   identity: { flex: 1, minWidth: 0 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { fontSize: 18, fontWeight: '800', color: INK, flexShrink: 1 },
-  handle: { fontSize: 12, fontWeight: '700', color: GRAY, marginTop: 2 },
-  statusPill: {
-    marginTop: 10, alignSelf: 'flex-start', height: 26, paddingHorizontal: 10, borderRadius: 100,
-    backgroundColor: GREEN_SOFT, flexDirection: 'row', alignItems: 'center', gap: 5,
+  handle: { fontSize: 12.5, fontWeight: '700', color: GRAY, marginTop: 3 },
+  accountNo: { fontSize: 11.5, fontWeight: '700', color: FAINT, marginTop: 2 },
+
+  chipRow: { marginTop: 14, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    height: 30, paddingHorizontal: 10, borderRadius: 100, backgroundColor: '#F3F7EE',
+    flexDirection: 'row', alignItems: 'center', gap: 6,
   },
-  statusText: { fontSize: 12, fontWeight: '800', color: GREEN },
-  goalPill: { marginTop: 6, backgroundColor: '#F3F7EE' },
-  telegramPill: { marginTop: 6, backgroundColor: '#EAF6FD' },
+  chipText: { fontSize: 12, fontWeight: '700', color: GREEN },
 
   proCard: { marginTop: 12, backgroundColor: PRO_BG, borderRadius: 14, padding: 14 },
   proRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -887,10 +856,6 @@ const p = StyleSheet.create({
   medalHint: { marginTop: 2, fontSize: 10, fontWeight: '700', color: GRAY, textAlign: 'center', lineHeight: 13 },
 
   settings: { ...CARD_BASE, borderRadius: 14, marginTop: 12, overflow: 'hidden' },
-  switch: { width: 44, height: 26, borderRadius: 100 },
-  switchKnob: {
-    position: 'absolute', top: 3, width: 20, height: 20, borderRadius: 100, backgroundColor: '#FFFFFF',
-  },
 
   footer: { marginTop: 24, marginBottom: 24, alignItems: 'center' },
   footerTitle: { fontSize: 11, fontWeight: '700', color: GRAY, textAlign: 'center' },

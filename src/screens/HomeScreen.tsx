@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
+import type { CompositeNavigationProp } from '@react-navigation/native'
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
@@ -10,44 +11,27 @@ import {
   DAILY_BONUS, WEEK_LABELS, currentWeekKeys, dailyProblem, leagueRank,
 } from '../data/content'
 import { TOPICS, topicVideoCount } from '../data/curriculum'
+import { SUBJECTS } from '../data/subjects'
 import { triggerHaptic } from '../lib/haptics'
 import { BrandMark } from '../components/Brand'
 import { GridPaper } from '../components/GridPaper'
 import { Reveal } from '../components/Reveal'
-import { BottomNav, navBottomSpace } from '../components/BottomNav'
-import type { TabKey } from '../components/BottomNav'
-import type { NoParamRoute, RootStackParamList } from '../navigation/types'
+import { MidnightClock } from '../components/MidnightClock'
+import { navBottomSpace } from '../components/BottomNav'
+import type { RootStackParamList, TabParamList } from '../navigation/types'
 import { C, NUM, R, shadow } from '../theme/tokens'
-import { GRAD_HEADER, GRAD_LIME } from '../theme/solver'
+import { GRAD_LIME } from '../theme/solver'
 
-type Nav = NativeStackNavigationProp<RootStackParamList>
+type Nav = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList>,
+  NativeStackNavigationProp<RootStackParamList>
+>
 
 const TOTAL_VIDEOS = TOPICS.reduce((n, t) => n + topicVideoCount(t.meta.num), 0)
 const LESSONS = TOPICS.flatMap(t => t.lessons)
-
-type Grad = readonly [string, string, ...string[]]
-
-/* Yuklanmagan kurslar — ilovaning o'z tusi (xp, violet, coin) */
-const COMING: { id: string; name: string; badge: string; colors: Grad }[] = [
-  { id: 'algebra-2', name: 'Algebra II', badge: 'A2', colors: [C.xp, '#3560C4'] },
-  { id: 'geometriya', name: 'Geometriya', badge: 'G', colors: [C.violet, '#5B3FC0'] },
-  { id: 'stereometriya', name: 'Stereometriya', badge: 'S', colors: [C.coin, '#C98A16'] },
-]
+const STUDY_CENTER = require('../assets/study-center.webp')
 
 /** Kunlik masala — yarim tungi yangilanishgacha qolgan vaqt */
-const leftUntilMidnight = () => {
-  const now = new Date()
-  const next = new Date(now)
-  next.setHours(24, 0, 0, 0)
-  return next.getTime() - now.getTime()
-}
-
-const pad = (n: number) => String(n).padStart(2, '0')
-
-const clock = (ms: number) => {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`
-}
 
 const num = (n: number) => n.toLocaleString('en-US')
 
@@ -62,15 +46,14 @@ const HomeScreen = () => {
   const studyMinutes = useApp(s => s.studyMinutes)
   const daily = dailyProblem()
 
-  const [remain, setRemain] = useState(leftUntilMidnight)
-  useEffect(() => {
-    const t = setInterval(() => setRemain(leftUntilMidnight()), 1000)
-    return () => clearInterval(t)
-  }, [])
-
-  const go = (route: NoParamRoute) => {
+  const goProfile = () => {
     triggerHaptic('medium')
-    navigation.navigate(route)
+    navigation.navigate('Profile')
+  }
+
+  const openAlgebra = () => {
+    triggerHaptic('medium')
+    navigation.navigate('Subject', { subjectId: SUBJECTS[0].id })
   }
 
   const initials = name
@@ -80,16 +63,10 @@ const HomeScreen = () => {
     .slice(0, 2)
     .toUpperCase()
 
-  const onTab = (key: TabKey) => {
-    if (key === 'home') return
-    navigation.navigate(key === 'problems' ? 'Problems' : key === 'shop' ? 'Shop' : 'Profile')
-  }
-
   /* ── Davom etish: birinchi tugallanmagan dars ── */
   const doneLessons = LESSONS.filter(l => topicLessons[l.id]?.done).length
   const allDone = doneLessons >= LESSONS.length
   const nextLesson = LESSONS.find(l => !topicLessons[l.id]?.done) ?? LESSONS[LESSONS.length - 1]
-  const nextNo = LESSONS.indexOf(nextLesson) + 1
   const progress = LESSONS.length ? Math.round((doneLessons / LESSONS.length) * 100) : 0
 
   /* ── Hafta: faqat real daqiqalar ── */
@@ -125,7 +102,7 @@ const HomeScreen = () => {
             </Pressable>
 
             <Pressable
-              onPress={() => go('Profile')}
+              onPress={goProfile}
               accessibilityLabel="Profil"
               style={({ pressed }) => [
                 styles.avatarWrap,
@@ -166,66 +143,148 @@ const HomeScreen = () => {
           </View>
         </Reveal>
 
-        {/* ── 2. Algebra I — asosiy karta ── */}
-        <Reveal delay={70} y={26} duration={420} style={styles.sectionTight}>
-          <LinearGradient
-            colors={GRAD_HEADER}
-            start={{ x: 0.1, y: 0 }}
-            end={{ x: 0.55, y: 1 }}
-            style={[styles.hero, shadow(C.ink, 18, 14, 0.22)]}
+        {/* ── 2. HDP o'quv markazi reklamasi ── */}
+        <Reveal delay={70} y={26} duration={420} style={styles.bannerWrap}>
+          <Pressable
+            onPress={openAlgebra}
+            accessibilityLabel="HDP o'quv markazi darslari"
+            style={({ pressed }) => [pressed && { opacity: 0.96 }]}
           >
-            <View style={styles.heroTop}>
-              <View style={styles.heroTag}>
-                <Text style={styles.heroTagText}>DAVOM ETING</Text>
-              </View>
-              <Text style={[styles.heroPct, NUM]}>{progress}%</Text>
-            </View>
-
-            <Text style={styles.heroCourse}>Algebra I</Text>
-            <Text style={styles.heroLesson} numberOfLines={2}>
-              {allDone ? 'Barcha darslar tugallangan' : `${nextNo}-dars: ${nextLesson.title}`}
-            </Text>
-
-            <View style={styles.heroTrack}>
+            <View style={styles.banner}>
+              <Image source={STUDY_CENTER} style={styles.bannerPhoto} resizeMode="cover" />
               <LinearGradient
-                colors={GRAD_LIME}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.heroFill, { width: `${progress}%` }]}
+                colors={['#07281B', '#07281B', 'rgba(7,40,27,0.86)', 'rgba(7,40,27,0)']}
+                locations={[0, 0.42, 0.62, 0.8]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFill}
+                pointerEvents="none"
               />
-            </View>
-            <Text style={[styles.heroMeta, NUM]}>
-              {doneLessons}/{LESSONS.length} dars · {TOTAL_VIDEOS} video
-            </Text>
 
-            <Pressable
-              onPress={() => {
-                triggerHaptic('medium')
-                navigation.navigate('TopicLesson', { lessonId: nextLesson.id })
-              }}
-              style={({ pressed }) => [styles.heroBtnWrap, pressed && { transform: [{ scale: 0.985 }] }]}
-            >
-              <LinearGradient
-                colors={GRAD_LIME}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.heroBtn}
-              >
-                <Text style={styles.heroBtnText}>{allDone ? 'Takrorlash' : 'Davom etish'}</Text>
-                <Ionicons name="arrow-forward" size={18} color={C.inkOnLime} />
-              </LinearGradient>
-            </Pressable>
-          </LinearGradient>
+              <View style={styles.bannerContent}>
+                <View style={styles.bannerBrand}>
+                  <BrandMark size={20} />
+                  <Text style={styles.bannerKicker}>HDP o&apos;quv markazi</Text>
+                </View>
+
+                <Text style={styles.bannerTitle}>Matematikani izchil o&apos;rganing</Text>
+                <Text style={[styles.bannerSub, NUM]}>
+                  {TOPICS.length} mavzu · {TOTAL_VIDEOS} video dars
+                </Text>
+
+                <View style={styles.bannerCta}>
+                  <Text style={styles.bannerCtaText}>Darslarni ko&apos;rish</Text>
+                  <Ionicons name="arrow-forward" size={14} color={C.inkOnLime} />
+                </View>
+              </View>
+            </View>
+          </Pressable>
         </Reveal>
 
-        {/* ── 3. Kunlik masala ── */}
+        {/* ── 3. Fanlar — Algebra I asosiy karta, qolganlari qator ── */}
         <Reveal delay={140} y={26} duration={420} style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>Fanlar</Text>
+            <Pressable
+              onPress={openAlgebra}
+              hitSlop={12}
+              style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={styles.seeAllText}>{TOPICS.length} mavzu</Text>
+              <Ionicons name="chevron-forward" size={14} color={C.brand} />
+            </Pressable>
+          </View>
+
+          {/* Asosiy fan — Algebra I */}
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium')
+              navigation.navigate('Subject', { subjectId: SUBJECTS[0].id })
+            }}
+            accessibilityLabel="Algebra I fanini ochish"
+            style={({ pressed }) => [
+              styles.fanHero,
+              shadow(C.ink, 12, 10, 0.14),
+              pressed && { transform: [{ scale: 0.985 }] },
+            ]}
+          >
+            <Image source={SUBJECTS[0].photo} style={styles.fanHeroPhoto} resizeMode="cover" />
+            <LinearGradient
+              colors={['rgba(5,24,16,0)', 'rgba(5,24,16,0.58)', 'rgba(5,24,16,0.95)']}
+              locations={[0, 0.44, 1]}
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+            />
+
+            <View style={styles.fanHeroTag}>
+              <Text style={styles.fanHeroTagText}>Asosiy fan</Text>
+            </View>
+
+            <View style={styles.fanHeroBody}>
+              <Text style={styles.fanHeroName}>Algebra I</Text>
+              <Text style={[styles.fanHeroMeta, NUM]}>
+                {TOPICS.length} mavzu · {TOTAL_VIDEOS} video dars
+              </Text>
+
+              <View style={styles.fanHeroFoot}>
+                <View style={styles.fanHeroProgress}>
+                  <View style={styles.fanHeroTrack}>
+                    <View style={[styles.fanHeroFill, { width: `${progress}%` }]} />
+                  </View>
+                  <Text style={[styles.fanHeroCount, NUM]}>{doneLessons}/{LESSONS.length} dars</Text>
+                </View>
+
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('medium')
+                    navigation.navigate('TopicLesson', { lessonId: nextLesson.id })
+                  }}
+                  accessibilityLabel="Darsni davom ettirish"
+                  style={({ pressed }) => [styles.fanHeroCta, pressed && { opacity: 0.85 }]}
+                >
+                  <Text style={styles.fanHeroCtaText}>
+                    {doneLessons === 0 ? 'Boshlash' : allDone ? 'Takrorlash' : 'Davom etish'}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={13} color={C.inkOnLime} />
+                </Pressable>
+              </View>
+            </View>
+          </Pressable>
+
+          {/* Qolgan fanlar — mazmuni hali yuklanmagan */}
+          <View style={styles.fanList}>
+            {SUBJECTS.slice(1).map((s, i) => (
+              <Pressable
+                key={s.id}
+                onPress={() => {
+                  triggerHaptic('medium')
+                  navigation.navigate('Subject', { subjectId: s.id })
+                }}
+                style={({ pressed }) => [
+                  styles.fanRow,
+                  i > 0 && styles.fanRowBorder,
+                  pressed && { backgroundColor: '#F7FAF2' },
+                ]}
+              >
+                <Image source={s.thumb} style={styles.fanThumb} resizeMode="cover" />
+                <View style={styles.fanRowText}>
+                  <Text style={styles.fanRowName} numberOfLines={1}>{s.name}</Text>
+                  <Text style={styles.fanRowMeta}>Tez orada</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={15} color={C.ink4} />
+              </Pressable>
+            ))}
+          </View>
+        </Reveal>
+
+        {/* ── 4. Kunlik masala ── */}
+        <Reveal delay={210} y={26} duration={420} style={styles.section}>
           <View style={[styles.daily, shadow(C.ink, 10, 8, 0.05)]}>
             <View style={styles.dailyTop}>
               <Text style={styles.dailyBadgeText}>KUNLIK MASALA</Text>
               <View style={styles.dailyClockRow}>
                 <Ionicons name="alarm-outline" size={13} color={C.ink3} />
-                <Text style={[styles.dailyClock, NUM]}>{clock(remain)}</Text>
+                <MidnightClock style={[styles.dailyClock, NUM]} />
               </View>
             </View>
 
@@ -266,59 +325,13 @@ const HomeScreen = () => {
           </View>
         </Reveal>
 
-        {/* ── 4. Kurslar ── */}
-        <Reveal delay={210} y={26} duration={420} style={styles.section}>
-          <View style={styles.sectionHead}>
-            <Text style={styles.sectionTitle}>Kurslar</Text>
-            <Pressable
-              onPress={() => go('Courses')}
-              style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}
-            >
-              <Text style={styles.seeAllText}>Hammasi</Text>
-              <Ionicons name="chevron-forward" size={14} color={C.brand} />
-            </Pressable>
-          </View>
-
-          <View style={[styles.courseList, shadow(C.ink, 5, 2, 0.04)]}>
-            {COMING.map((c, i) => (
-              <Pressable
-                key={c.id}
-                onPress={() => {
-                  triggerHaptic('medium')
-                  navigation.navigate('Subject', { subjectId: c.id })
-                }}
-                style={({ pressed }) => [
-                  styles.courseRow,
-                  i > 0 && styles.courseRowLine,
-                  pressed && { backgroundColor: C.leafTint },
-                ]}
-              >
-                <LinearGradient
-                  colors={c.colors}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.courseBadge}
-                >
-                  <Text style={styles.courseBadgeText}>{c.badge}</Text>
-                </LinearGradient>
-
-                <View style={styles.courseText}>
-                  <Text style={styles.courseName}>{c.name}</Text>
-                  <Text style={styles.courseSub}>Tez orada</Text>
-                </View>
-
-                <Ionicons name="chevron-forward" size={17} color={C.ink4} />
-              </Pressable>
-            ))}
-          </View>
-        </Reveal>
-
         {/* ── 5. Bu hafta ── */}
         <Reveal delay={280} y={26} duration={420} style={styles.section}>
           <View style={styles.sectionHead}>
             <Text style={styles.sectionTitle}>Bu hafta</Text>
             <Pressable
-              onPress={() => go('Profile')}
+              onPress={goProfile}
+              hitSlop={12}
               style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}
             >
               <Text style={styles.seeAllText}>Profil</Text>
@@ -358,8 +371,6 @@ const HomeScreen = () => {
           </View>
         </Reveal>
       </ScrollView>
-
-      <BottomNav active="home" onSelect={onTab} />
     </LinearGradient>
   )
 }
@@ -416,54 +427,42 @@ const styles = StyleSheet.create({
   xpText: { fontSize: 13, fontWeight: '800', color: '#3560C4' },
 
   section: { marginTop: 20 },
-  sectionTight: { marginTop: 14 },
 
-  hero: { borderRadius: 24, padding: 20, overflow: 'hidden' },
-  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heroTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: R.full,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderColor: 'rgba(205,233,174,0.22)',
-    borderWidth: 1,
+  /* Banner — kontent chekinishi ichida, karta ko'rinishida */
+  bannerWrap: { marginTop: 16, borderRadius: 22, backgroundColor: '#07281B', ...shadow(C.ink, 14, 10, 0.09) },
+  banner: {
+    position: 'relative',
+    minHeight: 160,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    borderRadius: 22,
+    backgroundColor: '#07281B',
   },
-  heroTagText: { fontSize: 10.5, letterSpacing: 1, fontWeight: '800', color: '#CDE9AE' },
-  heroPct: { fontSize: 14, fontWeight: '800', color: '#9BE04B' },
-  heroCourse: {
-    marginTop: 16,
-    fontSize: 29,
-    lineHeight: 33,
-    letterSpacing: -0.7,
+  bannerPhoto: { position: 'absolute', right: 0, top: 0, width: '64%', height: '100%' },
+  bannerContent: { maxWidth: 232, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 },
+  bannerBrand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bannerKicker: { fontSize: 11.5, fontWeight: '700', color: '#CDE9AE' },
+  bannerTitle: {
+    marginTop: 7,
+    fontSize: 19,
+    lineHeight: 24,
+    letterSpacing: -0.4,
     fontWeight: '800',
     color: '#FFFFFF',
   },
-  heroLesson: {
-    marginTop: 6,
-    fontSize: 14.5,
-    lineHeight: 20,
-    fontWeight: '600',
-    color: '#CDE9AE',
-  },
-  heroTrack: {
-    marginTop: 18,
-    height: 8,
-    borderRadius: R.full,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    overflow: 'hidden',
-  },
-  heroFill: { height: 8, borderRadius: R.full },
-  heroMeta: { marginTop: 8, fontSize: 11.5, fontWeight: '700', color: 'rgba(255,255,255,0.55)' },
-  heroBtnWrap: { marginTop: 18, borderRadius: R.full, ...shadow('#5FAF22', 10, 8, 0.3) },
-  heroBtn: {
-    height: 50,
-    borderRadius: R.full,
+  bannerSub: { marginTop: 4, fontSize: 12, lineHeight: 17, fontWeight: '600', color: 'rgba(230,245,220,0.85)' },
+  bannerCta: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    gap: 6,
+    height: 32,
+    paddingHorizontal: 13,
+    borderRadius: R.full,
+    backgroundColor: C.limeBright,
   },
-  heroBtnText: { fontSize: 15, fontWeight: '800', color: C.inkOnLime },
+  bannerCtaText: { fontSize: 12.5, fontWeight: '800', color: C.inkOnLime },
 
   daily: {
     backgroundColor: C.leafTint,
@@ -478,10 +477,8 @@ const styles = StyleSheet.create({
   dailyClock: { fontSize: 12, fontWeight: '800', color: C.ink3 },
   dailyCat: {
     marginTop: 12,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontSize: 11.5,
+    fontWeight: '700',
     color: C.ink3,
   },
   dailyTitle: { marginTop: 4, fontSize: 17.5, lineHeight: 22, fontWeight: '800', color: C.ink },
@@ -522,32 +519,60 @@ const styles = StyleSheet.create({
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   seeAllText: { fontSize: 13, fontWeight: '800', color: C.brand },
 
-  courseList: {
+  /* Fanlar — asosiy fan surati bilan katta karta */
+  fanHero: {
+    height: 196,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#07281B',
+    justifyContent: 'flex-end',
+  },
+  fanHeroPhoto: { position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' },
+  fanHeroTag: {
+    position: 'absolute',
+    left: 14,
+    top: 14,
+    height: 24,
+    paddingHorizontal: 9,
+    borderRadius: R.full,
+    backgroundColor: C.limeBright,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fanHeroTagText: { fontSize: 11, fontWeight: '800', color: C.inkOnLime },
+  fanHeroBody: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 10 },
+  fanHeroName: { fontSize: 23, lineHeight: 27, letterSpacing: -0.5, fontWeight: '800', color: '#FFFFFF' },
+  fanHeroMeta: { marginTop: 3, fontSize: 12, fontWeight: '600', color: 'rgba(235,248,225,0.82)' },
+  fanHeroFoot: { marginTop: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  fanHeroProgress: { flex: 1, minWidth: 0 },
+  fanHeroTrack: { height: 5, borderRadius: R.full, backgroundColor: 'rgba(255,255,255,0.26)', overflow: 'hidden' },
+  fanHeroFill: { height: 5, borderRadius: R.full, backgroundColor: C.limeBright },
+  fanHeroCount: { marginTop: 6, fontSize: 10.5, fontWeight: '700', color: 'rgba(235,248,225,0.8)' },
+  fanHeroCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: R.full,
+    backgroundColor: C.limeBright,
+  },
+  fanHeroCtaText: { fontSize: 12.5, fontWeight: '800', color: C.inkOnLime },
+
+  fanList: {
+    marginTop: 12,
     backgroundColor: C.surface,
     borderColor: C.line,
     borderWidth: 1,
     borderRadius: 16,
     overflow: 'hidden',
   },
-  courseRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-  },
-  courseRowLine: { borderTopWidth: 1, borderTopColor: C.lineSoft },
-  courseBadge: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  courseBadgeText: { fontSize: 13, fontWeight: '800', color: '#FFFFFF' },
-  courseText: { flex: 1 },
-  courseName: { fontSize: 15.5, fontWeight: '800', color: C.ink },
-  courseSub: { marginTop: 2, fontSize: 11.5, fontWeight: '600', color: C.ink3 },
+  fanRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 10, paddingRight: 14, paddingVertical: 9 },
+  fanRowBorder: { borderTopWidth: 1, borderTopColor: C.lineSoft },
+  fanThumb: { width: 52, height: 52, borderRadius: 12 },
+  fanRowText: { flex: 1, minWidth: 0 },
+  fanRowName: { fontSize: 14, fontWeight: '800', color: C.ink },
+  fanRowMeta: { marginTop: 2, fontSize: 11.5, fontWeight: '600', color: C.ink4 },
 
   weekCard: {
     backgroundColor: C.surface,

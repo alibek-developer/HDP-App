@@ -51,7 +51,6 @@ export const TOPIC_1_LESSONS: TopicLesson[] = [
     videos: [
       { id: 'H0WLBu3sT6I', title: '1.1 Matematikaga kirish (Nazariy qism)' },
       { id: '2MGetEnqjH0', title: '1.1 Raqamlar va ular haqida tushuncha (Nazariy qism)' },
-      { id: 'rhrTGdSEruU', title: '1.2 Raqamlar va ular haqida tushuncha (Amaliy qism)' },
     ],
     theory: [
       {
@@ -88,10 +87,21 @@ export const TOPIC_1_LESSONS: TopicLesson[] = [
     minutes: 18,
     videos: [
       { id: 'LBURU5cp7F8', title: '1.2 Son va ular haqida tushuncha. Son bilan raqamning farqi (Nazariy qism)' },
-      { id: 'YOuKXnJ5E34', title: '1.3 Son va ular haqida tushuncha. Son bilan raqamning farqi (Amaliy qism)' },
+      { id: 'rhrTGdSEruU', title: '1.2 Raqamlar va ular haqida tushuncha (Amaliy qism)' },
     ],
     theory: [],
-    practice: [],
+    practice: [
+      {
+        prompt: "O'zingizni sinab ko'ring! 5 786 403 sonining raqamlari yig'indisini toping.",
+        steps: ["5 + 7 + 8 + 6 + 4 + 0 + 3 = 33"],
+        answer: '33',
+      },
+      {
+        prompt: "Amaliy qism. 2497952 sonining raqamlari yig'indisini toping.",
+        steps: ["2 + 4 + 9 + 7 + 9 + 5 + 2 = 38"],
+        answer: '38',
+      },
+    ],
     videoOnly: true,
   },
 
@@ -102,7 +112,7 @@ export const TOPIC_1_LESSONS: TopicLesson[] = [
     goal: "Sonlar haqida tushuncha | Son bilan raqamni bir-biridan farqlash",
     minutes: 22,
     videos: [
-      { id: 'h8Exe2N0Yp0', title: '1.3 Natural sonlar va ular haqida tushuncha (Nazariy qism)' },
+      { id: 'YOuKXnJ5E34', title: '1.3 Son va ular haqida tushuncha. Son bilan raqamning farqi (Amaliy qism)' },
     ],
     theory: [
       {
@@ -198,7 +208,6 @@ export const TOPIC_1_LESSONS: TopicLesson[] = [
     goal: "Natural sonlar haqida tushunchaga ega bo'lish",
     minutes: 16,
     videos: [
-      { id: 'ccUXp9nM8mg', title: '1.4 Natural sonlar ustida turli amallar. Natural sonlarni qo\'shish va ayirish (Nazariy qism)' },
       { id: 'KM_Ku5PA6LE', title: '1.4 Natural sonlar va ular haqida tushuncha (Nazariy qism)' },
       { id: 'JYW3SUbCaeo', title: '1.4 Natural sonlar va ular haqida tushuncha (Amaliy qism)' },
     ],
@@ -240,7 +249,6 @@ export const TOPIC_1_LESSONS: TopicLesson[] = [
     goal: "Natural sonlarni qo'shishni o'rganish",
     minutes: 20,
     videos: [
-      { id: 'HyvzrOg8LGs', title: "1.5 Natural sonlar ustida turli amallar. Natural sonlarni ko'paytirish (Nazariy qism)" },
       { id: '8Mbf-9KnH4c', title: '1.5 Natural sonlar ustida arifmetik amallar. Natural sonlarni qo\'shish (Nazariy qism)' },
       { id: 'gOSjz_WaTEU', title: '1.5 Natural sonlar ustida arifmetik amallar. Natural sonlarni qo\'shish (Amaliy qism)' },
     ],
@@ -410,7 +418,49 @@ export const TOPIC_1_LESSONS: TopicLesson[] = [
         example: '0 : a = 0',
       },
     ],
-    practice: [],
+    practice: [
+      {
+        prompt: "O'zingizni sinab ko'ring! 24000 : 80 ni hisoblang.",
+        steps: ['24000 : 80 = 300'],
+        answer: '300',
+      },
+      {
+        prompt: "O'zingizni sinab ko'ring! 2525 : 25 ni hisoblang.",
+        steps: ['2525 : 25 = 101'],
+        answer: '101',
+      },
+      {
+        prompt: "O'zingizni sinab ko'ring! Burchak usulidan foydalanib, 36036 : 36 ni hisoblang.",
+        steps: ['36036 : 36 = 1001'],
+        answer: '1001',
+      },
+      {
+        prompt: "O'zingizni sinab ko'ring! 0 : 48 : 12 ni hisoblang.",
+        steps: ['0 : 48 = 0', '0 : 12 = 0'],
+        answer: '0',
+      },
+      {
+        prompt:
+          "O'zingizni sinab ko'ring! Do'konda bitta qalam 600 so'm turadi. O'quvchi 7200 so'mga ko'pi bilan qancha qalam sotib olishi mumkin?",
+        steps: ['7200 : 600 = 12'],
+        answer: '12 ta qalam',
+      },
+      {
+        prompt: 'Amaliy qism. Bo\'lish amalini bajaring: 14448 : 12.',
+        steps: ['14448 : 12 = 1204'],
+        answer: '1204',
+      },
+      {
+        prompt: "Amaliy qism. Bo'lish amalini bajaring: 7561500 : 150.",
+        steps: ['7561500 : 150 = 50410'],
+        answer: '50410',
+      },
+      {
+        prompt: "Amaliy qism. Bo'lish amalini bajaring: 678 : 0.",
+        steps: ["Nolga bo'lish amalini bajarib bo'lmaydi — bo'lishning 1-xossasiga ko'ra javob bo'sh to'plam."],
+        answer: 'bo\'lish bajarilmaydi (∅)',
+      },
+    ],
   },
 
   {

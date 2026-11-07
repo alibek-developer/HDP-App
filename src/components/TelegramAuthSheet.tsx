@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { checkTelegramLogin, startTelegramLogin } from '../lib/telegramAuth'
-import { ABS_FILL, C, R, T } from '../theme/tokens'
+import { ABS_FILL, C, R } from '../theme/tokens'
 
 /**
  * Haqiqiy Telegram kirish. Ism kiritilmaydi: ilova botni ochadi, Telegram
@@ -177,16 +177,8 @@ const TelegramAuthSheet = ({ visible, onClose, onDone }: Props) => {
               <TelegramMark size={26} />
             </View>
             <View style={styles.headText}>
-              <Text style={styles.kicker}>TELEGRAM</Text>
               <Text style={styles.title}>Telegram bilan kirish</Text>
             </View>
-            <Pressable
-              onPress={() => { triggerHaptic('light'); onClose() }}
-              accessibilityLabel="Yopish"
-              style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.6 }]}
-            >
-              <Text style={styles.closeText}>✕</Text>
-            </Pressable>
           </View>
 
           <View style={[styles.statusCard, phase === 'error' && styles.statusCardBad]}>
@@ -291,17 +283,7 @@ const styles = StyleSheet.create({
     borderColor: '#CBE8F8',
   },
   headText: { flex: 1, minWidth: 0 },
-  kicker: { ...T.tiny, color: C.ink4, letterSpacing: 1.2 },
-  title: { marginTop: 3, fontSize: 18, lineHeight: 23, fontWeight: '800', color: C.ink },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F2F5F1',
-  },
-  closeText: { fontSize: 15, fontWeight: '800', color: C.ink3 },
+  title: { fontSize: 18, lineHeight: 23, fontWeight: '800', color: C.ink },
 
   statusCard: {
     marginTop: 16,

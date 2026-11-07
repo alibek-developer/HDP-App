@@ -11,7 +11,7 @@ import { TOPIC_LESSON_REWARD, useApp } from '../store/useStore'
 import { findTopicByLesson, findTopicLesson } from '../data/curriculum'
 import type { Stack } from '../data/topicTypes'
 import { triggerHaptic } from '../lib/haptics'
-import { useExit } from '../lib/nav'
+import { useExitToTopics } from '../lib/nav'
 import { LessonVideo } from '../components/LessonVideo'
 import { Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
@@ -39,12 +39,22 @@ const LABEL_STYLE: Record<string, { bg: string; fg: string }> = {
 
 const labelStyle = (kind: string) => LABEL_STYLE[kind] ?? LABEL_STYLE.ESLATISH
 
+/** «1.3 Son va raqamning farqi (Amaliy qism)» → «Son va raqamning farqi (Amaliy qism)» */
+const partTitle = (lessonId: string, title: string) => {
+  const prefix = `${lessonId} `
+  return title.startsWith(prefix) ? title.slice(prefix.length) : title
+}
+
+const partKind = (title: string) => {
+  const kind = title.match(/\((Naz[^)]*|Amal[^)]*)\)/i)?.[1]
+  if (!kind) return 'Qism'
+  return /^naz/i.test(kind) ? 'Nazariy' : 'Amaliy'
+}
+
 const kicker: TextStyle = {
-  fontSize: 10,
-  lineHeight: 13,
-  letterSpacing: 1.4,
-  textTransform: 'uppercase',
-  fontWeight: '800',
+  fontSize: 11.5,
+  lineHeight: 14,
+  fontWeight: '700',
   color: '#6B7C66',
 }
 
@@ -71,7 +81,7 @@ const TopicLessonScreen = () => {
   const lesson = findTopicLesson(route.params.lessonId)
   const topic = findTopicByLesson(route.params.lessonId)
   const topicNum = topic?.meta.num ?? 1
-  const exit = useExit('Topic', topicNum)
+  const exit = useExitToTopics(topicNum)
 
   const stateOf = useApp(s => s.topicLessonState)
   const markVideoSeen = useApp(s => s.markTopicVideoSeen)
@@ -82,6 +92,7 @@ const TopicLessonScreen = () => {
    *  store'ga faqat barcha videolar tugagach yoziladi */
   const [seen, setSeen] = useState<Record<string, boolean>>({})
   const [unavailable, setUnavailable] = useState<Record<string, boolean>>({})
+  const [activePart, setActivePart] = useState(0)
   const [open, setOpen] = useState<number[]>([])
   const [openEx, setOpenEx] = useState<number[]>([])
   const lessons = topic?.lessons ?? []
@@ -92,12 +103,22 @@ const TopicLessonScreen = () => {
     beginSession()
   }, [beginSession])
 
+  /** Keyingi bo'lim «replace» bilan ochiladi — ekran qayta mount bo'lmasligi
+   *  mumkin, shuning uchun holat bo'lim identifikatori bo'yicha tozalanadi */
+  useEffect(() => {
+    setSeen({})
+    setUnavailable({})
+    setActivePart(0)
+    setOpen([])
+    setOpenEx([])
+  }, [route.params.lessonId])
+
   if (!lesson) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.missing}>
           <Pressable onPress={exit} style={({ pressed }) => [CARD, styles.missingBtn, pressed && { opacity: 0.85 }]}>
-            <Text style={styles.missingText}>Mavzuga qaytish</Text>
+            <Text style={styles.missingText}>Mavzularga qaytish</Text>
           </Pressable>
         </View>
       </View>
@@ -105,6 +126,8 @@ const TopicLessonScreen = () => {
   }
 
   const st = stateOf(lesson.id)
+  /** Bir vaqtda faqat bitta pleyer ochiladi — qismlar ro'yxatdan tanlanadi */
+  const active = lesson.videos[activePart] ?? lesson.videos[0]
   /** Ochilmagan (bloklangan) video bo'lim sharti hisoblanmaydi — aks holda
    *  o'quvchi tashqi sabab bilan bo'limni tuza olmaydi */
   const watchable = lesson.videos.filter(v => !unavailable[v.id])
@@ -158,6 +181,7 @@ const TopicLessonScreen = () => {
           <Pressable
             onPress={exit}
             accessibilityLabel="Orqaga"
+            hitSlop={10}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
             <Ionicons name="chevron-back" size={17} color="#33452F" />
@@ -177,17 +201,71 @@ const TopicLessonScreen = () => {
         </View>
 
         {/* ── Video dars ── */}
-        {lesson.videos.map(v => (
-          <View key={v.id} style={styles.videoWrap}>
-            <LessonVideo
-              videoId={v.id}
-              title={v.title}
-              watched={st.videoSeen || Boolean(seen[v.id])}
-              onWatched={() => markWatched(v.id)}
-              onUnavailable={() => markUnavailable(v.id)}
-            />
+        {active && (
+          <View style={styles.videoSection}>
+            <View style={styles.videoHead}>
+              <Text style={kicker}>Video dars</Text>
+              <Text style={[styles.videoCount, NUM]}>{lesson.videos.length} qism</Text>
+            </View>
+
+            {lesson.videos.length > 1 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.partRow}
+              >
+                {lesson.videos.map((v, i) => {
+                  const on = i === activePart
+                  const watchedPart = st.videoSeen || Boolean(seen[v.id])
+                  return (
+                    <Pressable
+                      key={v.id}
+                      onPress={() => {
+                        if (i !== activePart) triggerHaptic('selection')
+                        setActivePart(i)
+                      }}
+                      accessibilityLabel={`${i + 1}-qism: ${partTitle(lesson.id, v.title)}`}
+                      style={({ pressed }) => [
+                        styles.partChip,
+                        on ? styles.partChipOn : null,
+                        pressed && { transform: [{ scale: 0.98 }] },
+                      ]}
+                    >
+                      <View style={[styles.partIndex, on ? styles.partIndexOn : null]}>
+                        <Text style={[styles.partIndexText, NUM, on ? styles.partIndexTextOn : null]}>
+                          {i + 1}
+                        </Text>
+                      </View>
+                      <View style={styles.partBody}>
+                        <Text style={[styles.partKind, on ? styles.partKindOn : null]}>{partKind(v.title)}</Text>
+                        <Text
+                          numberOfLines={1}
+                          style={[styles.partName, on ? styles.partNameOn : null]}
+                        >
+                          {partTitle(lesson.id, v.title)}
+                        </Text>
+                      </View>
+                      {watchedPart && (
+                        <Ionicons name="checkmark" size={14} color={on ? '#9BE04B' : '#5FAF22'} />
+                      )}
+                    </Pressable>
+                  )
+                })}
+              </ScrollView>
+            )}
+
+            <View style={styles.videoWrap}>
+              <LessonVideo
+                key={active.id}
+                videoId={active.id}
+                title={partTitle(lesson.id, active.title)}
+                watched={st.videoSeen || Boolean(seen[active.id])}
+                onWatched={() => markWatched(active.id)}
+                onUnavailable={() => markUnavailable(active.id)}
+              />
+            </View>
           </View>
-        ))}
+        )}
 
         {lesson.videoOnly && (
           <Text style={styles.videoOnlyNote}>Bu bo&apos;limning nazariy qismi video darsda berilgan.</Text>
@@ -384,22 +462,17 @@ const TopicLessonScreen = () => {
           </View>
         )}
 
-        {/* ── Keyingi bo'limga o'tish ── */}
-        {st.done && (
-          <Pressable
-            onPress={finish}
-            style={({ pressed }) => [CARD, styles.nextRow, pressed && { transform: [{ scale: 0.99 }] }]}
-          >
-            <View style={styles.nextIcon}>
-              <Ionicons name={nextId ? 'chevron-forward' : 'compass'} size={16} color="#0B6E4F" />
-            </View>
-            <View style={styles.nextBody}>
-              <Text style={styles.nextTitle}>{nextId ? `Keyingi bo'lim ${nextId}` : 'Mavzu yakuniy testi'}</Text>
-              <Text style={styles.nextSub}>{nextId ? 'davom etamiz' : `${topic?.test.total ?? 0} savol — barcha bo'limlar tugadi`}</Text>
-            </View>
-          </Pressable>
+        {/* ── Kitobda mashq bo'lmagan bo'lim ── */}
+        {lesson.practice.length === 0 && !(lesson.exercises && lesson.exercises.length > 0) && (
+          <View style={[CARD, styles.noPractice]}>
+            <Ionicons name="information-circle-outline" size={16} color="#6B7C66" />
+            <Text style={styles.noPracticeText}>
+              Bu bo&apos;limda kitobda amaliy mashq berilmagan — nazariyani o&apos;zlashtirib, bo&apos;limni yakunlang.
+            </Text>
+          </View>
         )}
 
+        {/* ── Keyingi bo'limga o'tish ── */}
         <View style={styles.dockSpace} />
       </ScrollView>
 
@@ -416,7 +489,9 @@ const TopicLessonScreen = () => {
         >
           {st.done ? (
             <>
-              <Text style={[styles.dockBtnText, { color: '#1C3214' }]}>Mavzuga qaytish</Text>
+              <Text style={[styles.dockBtnText, { color: '#1C3214' }]}>
+                {nextId ? "Keyingi bo'lim" : 'Mavzu yakuniy testi'}
+              </Text>
               <Ionicons name="chevron-forward" size={16} color="#1C3214" />
             </>
           ) : canFinish ? (
@@ -444,7 +519,7 @@ const TopicLessonScreen = () => {
         {st.done && !!nextId && (
           <Pressable onPress={exit} style={({ pressed }) => [styles.dockList, pressed && { opacity: 0.7 }]}>
             <Ionicons name="refresh" size={12} color="#6B7C66" />
-            <Text style={styles.dockListText}>Bo&apos;limlar ro&apos;yxati</Text>
+            <Text style={styles.dockListText}>Mavzular ro&apos;yxati</Text>
           </Pressable>
         )}
       </View>
@@ -471,14 +546,29 @@ const styles = StyleSheet.create({
   goalIcon: { flexShrink: 0 },
   goalText: { flex: 1, fontSize: 12.5, lineHeight: 18, fontWeight: '700', color: C.ink2 },
 
-  videoWrap: { marginTop: 16 },
+  videoSection: { marginTop: 16 },
+  videoHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
+  videoCount: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
+  partRow: { gap: 8, paddingTop: 10, paddingBottom: 2, paddingRight: 16 },
+  partChip: { minHeight: 48, maxWidth: 236, flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 10, paddingRight: 14, paddingVertical: 8, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
+  partChipOn: { backgroundColor: '#0E1A12', borderColor: '#0E1A12' },
+  partIndex: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#F1F4EE' },
+  partIndexOn: { backgroundColor: 'rgba(155,224,75,0.16)' },
+  partIndexText: { fontSize: 11.5, fontWeight: '900', color: '#6B7C66' },
+  partIndexTextOn: { color: '#9BE04B' },
+  partBody: { flexShrink: 1, minWidth: 0 },
+  partKind: { fontSize: 10.5, fontWeight: '800', color: '#5FAF22' },
+  partKindOn: { color: '#9BE04B' },
+  partName: { marginTop: 2, fontSize: 12, fontWeight: '700', color: '#33452F' },
+  partNameOn: { color: '#FFFFFF' },
+  videoWrap: { marginTop: 12 },
   videoOnlyNote: { marginTop: 12, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66' },
 
   block: { borderRadius: 14, marginTop: 16, flexDirection: 'row', overflow: 'hidden' },
   blockRail: { ...cardRail, width: 4 },
   blockBody: { flex: 1, paddingLeft: 16, paddingRight: 14, paddingVertical: 14 },
   tag: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  tagText: { fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: '900' },
+  tagText: { fontSize: 11, fontWeight: '800' },
   blockText: { marginTop: 10, fontSize: 14, lineHeight: 22, color: C.ink2 },
 
   listCard: { borderRadius: 14, marginTop: 16, overflow: 'hidden' },
@@ -490,10 +580,10 @@ const styles = StyleSheet.create({
   listItemText: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '600', color: C.ink2 },
 
   props: { borderRadius: 14, marginTop: 16, overflow: 'hidden' },
-  propsHead: { paddingHorizontal: 14, paddingVertical: 12, fontSize: 12.5, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '800', color: '#6B7C66', borderBottomWidth: 1, borderBottomColor: '#EDF1E7' },
+  propsHead: { paddingHorizontal: 14, paddingVertical: 12, fontSize: 12.5, fontWeight: '800', color: '#6B7C66', borderBottomWidth: 1, borderBottomColor: '#EDF1E7' },
   propRow: { paddingHorizontal: 14, paddingVertical: 12 },
   propTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  propName: { fontSize: 11, textTransform: 'uppercase', fontWeight: '900', color: '#5FAF22' },
+  propName: { fontSize: 12.5, fontWeight: '800', color: '#5FAF22' },
   propDetail: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '600', color: C.ink },
   propExample: { marginTop: 8, fontSize: 13, fontWeight: '700', color: '#0B6E4F', fontFamily: 'monospace' },
 
@@ -507,7 +597,7 @@ const styles = StyleSheet.create({
   stepNum: { fontSize: 11.5, fontWeight: '900', color: '#9BE04B', width: 18 },
   stepText: { flex: 1, fontSize: 13, lineHeight: 19, color: 'rgba(255,255,255,0.82)' },
   answerRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(205,233,174,0.16)', paddingTop: 12 },
-  answerLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '800', color: 'rgba(205,233,174,0.6)' },
+  answerLabel: { fontSize: 11, fontWeight: '800', color: 'rgba(205,233,174,0.7)' },
   answerValue: { fontSize: 16, fontWeight: '800', color: '#9BE04B' },
 
   stack: { paddingLeft: 12, marginTop: 8 },
@@ -531,13 +621,10 @@ const styles = StyleSheet.create({
   solutionStep: { fontSize: 13, lineHeight: 20, color: C.ink2 },
   solutionAnswer: { marginTop: 8, fontSize: 14, fontWeight: '800', color: '#0B6E4F' },
   toggleBtn: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderTopWidth: 1, borderTopColor: '#EDF1E7' },
-  toggleText: { fontSize: 11.5, letterSpacing: 0.8, textTransform: 'uppercase', fontWeight: '800' },
+  toggleText: { fontSize: 12, fontWeight: '800' },
 
-  nextRow: { marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14, borderRadius: 14 },
-  nextIcon: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DDF3DC', borderRadius: 10 },
-  nextBody: { flex: 1 },
-  nextTitle: { fontSize: 13, fontWeight: '800', color: C.ink },
-  nextSub: { marginTop: 2, fontSize: 11.5, fontWeight: '600', color: '#6B7C66' },
+  noPractice: { marginTop: 20, flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 14, paddingVertical: 14, borderRadius: 14 },
+  noPracticeText: { flex: 1, fontSize: 12.5, lineHeight: 19, fontWeight: '600', color: '#6B7C66' },
 
   dockSpace: { height: 96 },
   dock: {

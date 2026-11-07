@@ -1,6 +1,32 @@
+import type { NavigatorScreenParams } from '@react-navigation/native'
+import type { TabKey } from '../components/BottomNav'
+
+/** Pastki tab'lar — `MainTabs` navigatorining marshrutlari */
+export type TabParamList = {
+  Home: undefined
+  Problems: undefined
+  Shop: undefined
+  Profile: undefined
+}
+
+/** `BottomNav` tugmasi → tab marshruti nomi */
+export const TAB_ROUTE: Record<TabKey, keyof TabParamList> = {
+  home: 'Home',
+  problems: 'Problems',
+  shop: 'Shop',
+  profile: 'Profile',
+}
+
+export const ROUTE_TAB: Record<keyof TabParamList, TabKey> = {
+  Home: 'home',
+  Problems: 'problems',
+  Shop: 'shop',
+  Profile: 'profile',
+}
+
 /**
  * Root stack — web'dagi `webapp/src/App.tsx` yo'llarining React Native
- * ekvivalenti. Parametr nomlar web'dagi `:id`'lar bilan bir xil.
+ * ekvivalenti. Parametr nomlari web'dagi `:id`'lar bilan bir xil.
  */
 export type RootStackParamList = {
   Onboarding: undefined
@@ -12,18 +38,11 @@ export type RootStackParamList = {
   Goal: undefined
   BirthDate: { goal: string }
 
-  // Tab'lar
-  Home: undefined
-  Problems: undefined
-  Shop: undefined
-  Profile: undefined
+  /** Pastki tab'lar shu bitta ekran ichida — stack to'rtta tab bilan to'lmaydi */
+  Main: NavigatorScreenParams<TabParamList> | undefined
 
   // Kurs zanjiri
-  Courses: undefined
   Subject: { subjectId: string }
-  Lesson: { id: string }
-  LessonExample: { id: string }
-  LessonTest: { id: string }
   Result: undefined
 
   // Masala zanjiri
@@ -43,5 +62,5 @@ export type RootStackParamList = {
 
 /** Parametr talab qilmaydigan yo'lar — `navigate(route)` uchun xavfli variant */
 export type NoParamRoute = {
-  [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never
+  [K in keyof RootStackParamList]: undefined extends RootStackParamList[K] ? K : never
 }[keyof RootStackParamList]

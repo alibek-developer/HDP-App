@@ -148,7 +148,7 @@ const OnboardingScreen = ({ navigation }: NativeStackScreenProps<RootStackParamL
             <Wordmark size={22} />
           </View>
           <Pressable onPress={goLogin} hitSlop={12} style={({ pressed }) => [pressed && { opacity: 0.5 }]}>
-            <Text style={styles.skip}>Skip</Text>
+            <Text style={styles.skip}>O&apos;tkazib yuborish</Text>
           </Pressable>
         </View>
 
@@ -185,7 +185,7 @@ const OnboardingScreen = ({ navigation }: NativeStackScreenProps<RootStackParamL
               <View key={s.key} style={[styles.dot, i === index && styles.dotOn]} />
             ))}
           </View>
-          <LimeButton label="Keyingi" onPress={next} />
+          <LimeButton label={last ? 'Boshlash' : 'Keyingi'} onPress={next} />
         </View>
       </View>
     </Fade>

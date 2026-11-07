@@ -122,7 +122,7 @@ export const TapText = ({
   onPress: () => void
   style?: StyleProp<TextStyle>
 }) => (
-  <Pressable onPress={onPress} style={({ pressed }) => [pressed && { opacity: 0.6 }]}>
+  <Pressable onPress={onPress} hitSlop={12} style={({ pressed }) => [pressed && { opacity: 0.6 }]}>
     <Text style={style}>{children}</Text>
   </Pressable>
 )
@@ -158,10 +158,12 @@ const styles = StyleSheet.create({
   },
   fieldInput: {
     flex: 1,
+    alignSelf: 'stretch',
     fontSize: 15,
     fontWeight: '600',
     color: C.ink,
     paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   divider: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 24, marginBottom: 16 },
   dividerLine: { flex: 1, height: 1, backgroundColor: C.line },

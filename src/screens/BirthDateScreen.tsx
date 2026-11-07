@@ -47,13 +47,18 @@ const Wheel = ({
   const settled = useRef(index)
   const programmatic = useRef(false)
   const guard = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const retry = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const jumpTo = (i: number) => {
     settled.current = i
     programmatic.current = true
-    ref.current?.scrollTo({ y: i * ITEM_H, animated: false })
+    const apply = () => ref.current?.scrollTo({ y: i * ITEM_H, animated: false })
+    apply()
+    /* Web'da birinchi `scrollTo` kontent o'lchanguncha e'tiborsiz qolishi mumkin */
+    if (retry.current) clearTimeout(retry.current)
+    retry.current = setTimeout(apply, 100)
     if (guard.current) clearTimeout(guard.current)
-    guard.current = setTimeout(() => { programmatic.current = false }, 140)
+    guard.current = setTimeout(() => { programmatic.current = false }, 260)
   }
 
   useEffect(() => {
@@ -61,7 +66,10 @@ const Wheel = ({
     jumpTo(index)
   }, [index])
 
-  useEffect(() => () => { if (guard.current) clearTimeout(guard.current) }, [])
+  useEffect(() => () => {
+    if (guard.current) clearTimeout(guard.current)
+    if (retry.current) clearTimeout(retry.current)
+  }, [])
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (programmatic.current) return
@@ -85,6 +93,7 @@ const Wheel = ({
         contentContainerStyle={{ paddingVertical: ITEM_H * ((VISIBLE_ROWS - 1) / 2) }}
         onScroll={onScroll}
         onLayout={() => jumpTo(index)}
+        onContentSizeChange={() => jumpTo(index)}
       >
         {items.map((label, i) => {
           const on = i === index
@@ -160,7 +169,7 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
   const done = () => {
     triggerHaptic('success')
     saveStudyProfile(goal, birthDate)
-    navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] })
   }
 
   return (

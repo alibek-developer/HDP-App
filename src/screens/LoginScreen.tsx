@@ -53,7 +53,7 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
           <View style={[styles.topBar, { paddingTop: insets.top + 16 }]}>
             <Pressable
-              onPress={() => navigation.goBack()}
+              onPress={() => navigation.replace('Onboarding')}
               hitSlop={10}
               style={({ pressed }) => [styles.back, pressed && { transform: [{ scale: 0.95 }] }]}
               accessibilityLabel="Orqaga"
@@ -72,9 +72,22 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
               <Text style={{ color: C.ink4, fontWeight: '400' }}>Hisobingizga </Text>
               <Text style={{ color: C.ink, fontWeight: '800' }}>kirish</Text>
             </Text>
-            <Text style={styles.sub}>Xush kelibsiz — kirish usulini tanlang.</Text>
+            <Text style={styles.sub}>Telegram bilan bir tegda kiring — yoki email va parol bilan.</Text>
 
             <View style={styles.form}>
+              <SocialTile
+                style={styles.telegramTile}
+                onPress={() => { triggerHaptic('light'); setTgOpen(true) }}
+              >
+                <TelegramMark />
+                <Text style={styles.socialText}>Telegram bilan kirish</Text>
+                <View style={styles.socialTag}>
+                  <Text style={styles.socialTagText}>Parolsiz</Text>
+                </View>
+              </SocialTile>
+
+              <OrDivider label="yoki email bilan" />
+
               <Field
                 icon={<Ionicons name="mail-outline" size={17} color={C.ink4} />}
                 value={email}
@@ -92,7 +105,7 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
                 secureTextEntry={!showPassword}
                 right={
                   <Pressable
-                    hitSlop={8}
+                    hitSlop={13}
                     onPress={() => { triggerHaptic('light'); setShowPassword(v => !v) }}
                     accessibilityLabel={showPassword ? 'Parolni yashirish' : "Parolni ko'rsatish"}
                   >
@@ -116,19 +129,6 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
               <Text style={styles.keepNote}>
                 Hisob bu qurilmada saqlanadi — keyingi ochilishda kirmasdan davom etasiz.
               </Text>
-
-              <OrDivider label="yoki quyidagilar orqali" />
-
-              <SocialTile
-                style={styles.telegramTile}
-                onPress={() => { triggerHaptic('light'); setTgOpen(true) }}
-              >
-                <TelegramMark />
-                <Text style={styles.socialText}>Telegram bilan kirish</Text>
-                <View style={styles.socialTag}>
-                  <Text style={styles.socialTagText}>Parolsiz</Text>
-                </View>
-              </SocialTile>
 
               <View style={styles.footer}>
                 <Text style={styles.footerText}>Hisobingiz yo'qmi? </Text>

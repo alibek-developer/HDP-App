@@ -13,7 +13,7 @@ import type { RootStackParamList } from '../navigation/types'
 import { PROBLEM_SETS } from '../data/content'
 import { ABS_FILL, C, NUM, shadow } from '../theme/tokens'
 import {
-  CARD, GRAD_HEADER, GRAD_LIME, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT, OUT_BTN, OUT_TEXT, SOLVER_BODY,
+  CARD, GRAD_HEADER, GRAD_LIME, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT, SOLVER_BODY,
 } from '../theme/solver'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -125,7 +125,7 @@ const FormulasScreen = () => {
     const setId = detail ? PROBLEM_SETS.find(s => s.topic === detail.cat)?.id : undefined
     setDetail(null)
     if (setId) navigation.navigate('ProblemSet', { setId })
-    else navigation.navigate('Problems')
+    else navigation.navigate('Main', { screen: 'Problems' })
   }
 
   return (
@@ -207,7 +207,7 @@ const FormulasScreen = () => {
                 style={({ pressed }) => [styles.chipBase, styles.chip, chipStyle, pressed && { transform: [{ scale: 0.97 }] }]}
               >
                 <View style={[styles.chipRail, { backgroundColor: g.rail }]} />
-                <Text style={[styles.chipLabel, labelStyle]}>{g.cat.toUpperCase()}</Text>
+                <Text style={[styles.chipLabel, labelStyle]}>{g.cat}</Text>
               </Pressable>
             )
           })}
@@ -217,7 +217,7 @@ const FormulasScreen = () => {
         {filtered.map(group => (
           <View key={group.cat} style={styles.group}>
             <View style={styles.groupHead}>
-              <Text style={styles.groupTitle}>{group.cat.toUpperCase()}</Text>
+              <Text style={styles.groupTitle}>{group.cat}</Text>
               <View style={styles.groupLine} />
               <View style={[styles.groupCount, { backgroundColor: group.tint }]}>
                 <Text style={[styles.groupCountText, NUM, { color: group.ink }]}>{group.items.length}</Text>
@@ -300,7 +300,7 @@ const FormulasScreen = () => {
                 <View style={styles.handle} />
 
                 <View style={[styles.sheetCat, { backgroundColor: detail.tint }]}>
-                  <Text style={[styles.sheetCatText, NUM, { color: detail.ink }]}>{detail.cat.toUpperCase()}</Text>
+                  <Text style={[styles.sheetCatText, NUM, { color: detail.ink }]}>{detail.cat}</Text>
                 </View>
                 <Text style={styles.sheetTitle}>{detail.title}</Text>
                 <Text style={styles.sheetDesc}>{detail.desc}</Text>
@@ -321,13 +321,6 @@ const FormulasScreen = () => {
                   <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
                   <Ionicons name="calculator" size={16} color="#1C3214" style={styles.fg} />
                   <Text style={[styles.solveText, LIME_TEXT, styles.fg]}>Bu mavzuda masala yechish</Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => setDetail(null)}
-                  style={({ pressed }) => [OUT_BTN, styles.closeBtn, pressed && { transform: [{ scale: 0.985 }] }]}
-                >
-                  <Text style={[styles.closeText, OUT_TEXT]}>Yopish</Text>
                 </Pressable>
               </View>
             </Reveal>
@@ -364,7 +357,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   titleBlock: { flex: 1, minWidth: 0, paddingHorizontal: 12, alignItems: 'center' },
-  kicker: { fontSize: 10.5, letterSpacing: 1.68, fontWeight: '800', textTransform: 'uppercase', color: '#6B7C66' },
+  kicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
   h1: { marginTop: 2, fontSize: 15, lineHeight: 18, fontWeight: '800', color: C.ink },
   blitzBtn: {
     flexDirection: 'row',
@@ -377,7 +370,7 @@ const styles = StyleSheet.create({
     borderColor: '#E8A33D',
     borderRadius: 12,
   },
-  blitzText: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', color: '#B87A22' },
+  blitzText: { fontSize: 11.5, fontWeight: '800', color: '#B87A22' },
 
   searchWrap: { marginBottom: 12 },
   searchCard: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, height: 48 },
@@ -387,7 +380,7 @@ const styles = StyleSheet.create({
   chipBase: { height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   chipAll: { paddingHorizontal: 12 },
   chipAllIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
-  chipAllText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.66, textTransform: 'uppercase' },
+  chipAllText: { fontSize: 11.5, fontWeight: '800' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 8, paddingRight: 12, borderWidth: 1 },
   chipIdle: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA' },
   chipRail: { width: 5, height: 16, borderRadius: 3 },
@@ -395,7 +388,7 @@ const styles = StyleSheet.create({
 
   group: { marginBottom: 20 },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8, paddingHorizontal: 4 },
-  groupTitle: { fontSize: 10.5, letterSpacing: 1.47, fontWeight: '800', textTransform: 'uppercase', color: '#33452F' },
+  groupTitle: { fontSize: 12.5, fontWeight: '800', color: '#33452F' },
   groupLine: { flex: 1, height: 1, backgroundColor: '#CFD9C6' },
   groupCount: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   groupCountText: { fontSize: 10, fontWeight: '800' },
@@ -449,20 +442,18 @@ const styles = StyleSheet.create({
   },
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#E1E7DA', alignSelf: 'center', marginBottom: 16 },
   sheetCat: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, marginBottom: 8 },
-  sheetCatText: { fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  sheetCatText: { fontSize: 11, fontWeight: '800' },
   sheetTitle: { fontSize: 18, lineHeight: 23, fontWeight: '800', color: C.ink },
   sheetDesc: { marginTop: 6, fontSize: 12.5, fontWeight: '600', color: '#6B7C66' },
 
   detailBox: { marginTop: 16, borderRadius: 16, overflow: 'hidden' },
   detailRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   detailInner: { paddingLeft: 20, paddingRight: 16, paddingTop: 20, paddingBottom: 20 },
-  detailKicker: { fontSize: 10, letterSpacing: 1.47, fontWeight: '800', textTransform: 'uppercase', color: 'rgba(205,233,174,0.5)' },
+  detailKicker: { fontSize: 11.5, fontWeight: '700', color: 'rgba(205,233,174,0.5)' },
   detailFormula: { marginTop: 10, fontFamily: 'monospace', fontSize: 15, lineHeight: 22, fontWeight: '700', textAlign: 'center', color: '#F7FCED' },
 
   solveBtn: { marginTop: 16, height: 52, gap: 8, overflow: 'hidden' },
   solveText: { fontSize: 14.5 },
-  closeBtn: { marginTop: 10, height: 46 },
-  closeText: { fontSize: 13.5 },
   fg: { position: 'relative' },
 
   toastWrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center' },

@@ -87,7 +87,7 @@ const SignUpScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList,
               <Text style={{ color: C.ink4, fontWeight: '400' }}>Yangi hisob </Text>
               <Text style={{ color: C.ink, fontWeight: '800' }}>ochish</Text>
             </Text>
-            <Text style={styles.sub}>Bir daqiqada ro'yxatdan o'ting — 10 ta dars darhol bepul.</Text>
+            <Text style={styles.sub}>Bir daqiqada ro&apos;yxatdan o&apos;ting — barcha mavzular ochiq.</Text>
 
             <View style={styles.form}>
               <Field
@@ -116,7 +116,7 @@ const SignUpScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList,
                 secureTextEntry={!showPassword}
                 right={
                   <Pressable
-                    hitSlop={8}
+                    hitSlop={13}
                     onPress={() => { triggerHaptic('light'); setShowPassword(v => !v) }}
                     accessibilityLabel={showPassword ? 'Parolni yashirish' : "Parolni ko'rsatish"}
                   >
@@ -127,7 +127,7 @@ const SignUpScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList,
 
               <Pressable
                 onPress={() => { triggerHaptic('light'); setTerms(v => !v) }}
-                hitSlop={8}
+                hitSlop={12}
                 style={styles.terms}
               >
                 <View style={[styles.checkbox, terms && styles.checkboxOn]}>

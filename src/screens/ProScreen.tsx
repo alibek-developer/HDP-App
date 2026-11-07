@@ -13,7 +13,7 @@ import { PopIn } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM } from '../theme/tokens'
 import {
-  CARD, GRAD_HEADER, GRAD_LIME, GRAD_RAIL, GRAD_AMBER,
+  CARD, GRAD_HEADER, GRAD_LIME, GRAD_RAIL,
   INK_BTN, LIME_BTN, OUT_BTN,
 } from '../theme/solver'
 
@@ -35,9 +35,8 @@ const PLANS: { id: PlanId; label: string; months: number; perMonth: number; badg
 ]
 
 const FEATURES: { icon: keyof typeof Ionicons.glyphMap; title: string; desc: string }[] = [
-  { icon: 'book', title: "6 ta qo'shimcha dars", desc: '11–16-darslar: DTM darajasidagi mavzular' },
   { icon: 'layers', title: "Pro masala to'plamlari", desc: 'Coin sarflamasdan ochiladi' },
-  { icon: 'infinite', title: 'Obuna davomida cheksiz kirish', desc: 'Muddat tugagach bepul darslar saqlanadi' },
+  { icon: 'infinite', title: 'Obuna davomida cheksiz kirish', desc: "Muddat tugagach to'lov avtomatik olinmaydi" },
 ]
 
 /** 177000 → «177 000» — O'zbekistonda bo'shaqli yozuv ishlatiladi */
@@ -86,7 +85,7 @@ const HeroGrid = () => {
 const ProScreen = () => {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
-  const exit = useExit('Home')
+  const exit = useExit('Main')
   const [selected, setSelected] = useState<PlanId>('3m')
   const [showSuccess, setShowSuccess] = useState(false)
 
@@ -117,6 +116,7 @@ const ProScreen = () => {
           <Pressable
             onPress={exit}
             accessibilityLabel="Orqaga"
+            hitSlop={10}
             style={({ pressed }) => [s.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
             <Ionicons name="chevron-back" size={17} color="#33452F" />
@@ -125,12 +125,7 @@ const ProScreen = () => {
             <Text style={s.headKicker}>Obuna</Text>
             <Text style={s.headTitle}>HDP Pro</Text>
           </View>
-          <View style={s.crownTile}>
-            {isPro ? (
-              <LinearGradient colors={GRAD_AMBER} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[ABS_FILL, { borderRadius: 12 }]} />
-            ) : null}
-            <Ionicons name="ribbon" size={17} color={AMBER} style={s.crownIcon} />
-          </View>
+          <View style={s.headSpacer} />
         </View>
 
         {/* ── Hero: siyoh varaq ── */}
@@ -145,15 +140,6 @@ const ProScreen = () => {
             <Text style={s.heroSub}>
               DTM va olimpiada matematikasi uchun izchil kurs — konspekt, misol va test bir yo&apos;lda.
             </Text>
-
-            <View style={s.factRow}>
-              {['6 ta Pro dars', "Pro to'plamlar", 'Cheksiz kirish'].map(t => (
-                <View key={t} style={s.factChip}>
-                  <Ionicons name="checkmark" size={11} color="#9BE04B" />
-                  <Text style={s.factText}>{t}</Text>
-                </View>
-              ))}
-            </View>
           </View>
         </View>
 
@@ -247,7 +233,7 @@ const ProScreen = () => {
                   <Ionicons name="ribbon" size={15} color={AMBER} />
                   <Text style={s.activeTitle}>Pro faol</Text>
                 </View>
-                <Text style={s.activeSub}>Barcha darslar va to'plamlar ochiq.</Text>
+                <Text style={s.activeSub}>Barcha mashq to&apos;plamlari ochiq.</Text>
                 {!!proExpires && (
                   <View style={s.activeDateRow}>
                     <Ionicons name="calendar" size={14} color="#0B4A34" />
@@ -257,7 +243,7 @@ const ProScreen = () => {
               </View>
             </View>
             <Pressable
-              onPress={() => { cancelPro(); triggerHaptic('warning'); navigation.replace('Home') }}
+              onPress={() => { cancelPro(); triggerHaptic('warning'); navigation.navigate('Main') }}
               style={({ pressed }) => [s.cancelPro, pressed && { opacity: 0.8 }]}
             >
               <Text style={s.cancelProText}>Obunani bekor qilish</Text>
@@ -333,17 +319,11 @@ const ProScreen = () => {
                   <Text style={s.receiptNote}>To&apos;lov olinmadi — sinov faollashtirishi.</Text>
 
                   <Pressable
-                    onPress={() => { setShowSuccess(false); navigation.replace('Home') }}
+                    onPress={() => { setShowSuccess(false); navigation.navigate('Main') }}
                     style={({ pressed }) => [s.goBtn, pressed && { opacity: 0.9 }]}
                   >
                     <Text style={s.goText}>Darslarga o'tish</Text>
                     <Ionicons name="chevron-forward" size={16} color="#CDE9AE" />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => setShowSuccess(false)}
-                    style={({ pressed }) => [s.closeBtn, pressed && { opacity: 0.8 }]}
-                  >
-                    <Text style={s.closeText}>Yopish</Text>
                   </Pressable>
                 </View>
               </View>
@@ -365,13 +345,9 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 12,
   },
   headCenter: { alignItems: 'center' },
-  headKicker: { fontSize: 10.5, letterSpacing: 1.7, fontWeight: '800', color: GRAY, textTransform: 'uppercase' },
+  headKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
   headTitle: { marginTop: 2, fontSize: 15, fontWeight: '800', color: INK },
-  crownTile: {
-    width: 38, height: 38, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FCF1DC', borderColor: '#E8A33D', borderWidth: 1, borderRadius: 12,
-  },
-  crownIcon: { color: AMBER },
+  headSpacer: { width: 38 },
 
   hero: {
     position: 'relative', overflow: 'hidden', borderRadius: 20, minHeight: 210,
@@ -385,20 +361,10 @@ const s = StyleSheet.create({
   },
   heroH1: { marginTop: 16, fontSize: 24, lineHeight: 28, fontWeight: '800', letterSpacing: -0.5, color: '#F7FCED' },
   heroSub: { marginTop: 10, fontSize: 13, lineHeight: 18, fontWeight: '500', color: 'rgba(205,233,174,0.72)' },
-  factRow: {
-    marginTop: 16, paddingTop: 14, flexDirection: 'row', alignItems: 'center', gap: 8,
-    borderTopWidth: 1, borderTopColor: 'rgba(205,233,174,0.16)',
-  },
-  factChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8,
-    backgroundColor: 'rgba(205,233,174,0.1)',
-  },
-  factText: { fontSize: 10.5, fontWeight: '700', color: '#CDE9AE' },
 
   sectionLabel: {
-    fontSize: 10.5, letterSpacing: 1.4, fontWeight: '800', color: GRAY,
-    textTransform: 'uppercase', marginBottom: 10, paddingLeft: 4,
+    fontSize: 13, fontWeight: '800', color: INK,
+    marginBottom: 10, paddingLeft: 4,
   },
   plans: { gap: 10, marginBottom: 20 },
 
@@ -420,13 +386,13 @@ const s = StyleSheet.create({
   planTotal: { marginTop: 6, fontSize: 11.5, fontWeight: '700', color: GRAY },
   planRight: { alignItems: 'flex-end' },
   planPrice: { fontSize: 19, fontWeight: '800', lineHeight: 21 },
-  planUnit: { marginTop: 2, fontSize: 10, fontWeight: '700', color: FAINT, textTransform: 'uppercase' },
+  planUnit: { marginTop: 2, fontSize: 10.5, fontWeight: '700', color: FAINT },
   saveChip: { marginTop: 6, backgroundColor: '#DDF3DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   saveChipText: { fontSize: 11, fontWeight: '800', color: BRAND },
   badgeLime: { backgroundColor: '#EDF7DE', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  badgeLimeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.6, color: BRAND, textTransform: 'uppercase' },
+  badgeLimeText: { fontSize: 10, fontWeight: '800', color: BRAND },
   badgeAmber: { backgroundColor: '#FCF1DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  badgeAmberText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.6, color: AMBER, textTransform: 'uppercase' },
+  badgeAmberText: { fontSize: 10, fontWeight: '800', color: AMBER },
 
   features: { ...CARD, borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   feature: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 16, paddingVertical: 14 },
@@ -461,7 +427,7 @@ const s = StyleSheet.create({
   },
   dockHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dockLeft: { flex: 1, minWidth: 0 },
-  dockLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1.2, color: FAINT, textTransform: 'uppercase' },
+  dockLabel: { fontSize: 11, fontWeight: '700', color: FAINT },
   dockTotal: { marginTop: 4, fontSize: 21, fontWeight: '800', lineHeight: 22, color: INK },
   dockCur: { color: GRAY, fontSize: 21 },
   dockOld: { color: FAINT, fontSize: 12, fontWeight: '700', textDecorationLine: 'line-through' },
@@ -502,8 +468,6 @@ const s = StyleSheet.create({
     ...INK_BTN, height: 52, marginTop: 20, gap: 6,
   },
   goText: { fontSize: 14.5, fontWeight: '800', color: '#CDE9AE' },
-  closeBtn: { ...OUT_BTN, height: 44, marginTop: 10 },
-  closeText: { fontSize: 13, fontWeight: '800', color: GRAY },
 })
 
 export default ProScreen

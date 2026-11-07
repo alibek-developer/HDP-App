@@ -40,7 +40,7 @@ const FAINT = '#9AA995'
 const BlitzScreen = () => {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
-  const exit = useExit('Home')
+  const exit = useExit('Main')
   const creditBlitz = useApp(s => s.creditBlitz)
   const best = useApp(s => s.blitzBest)
   const plays = useApp(s => s.blitzPlays)
@@ -53,6 +53,8 @@ const BlitzScreen = () => {
   const [flash, setFlash] = useState<'ok' | 'bad' | null>(null)
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null)
   const credited = useRef(false)
+  /** Natija yozilishidan oldingi rekord — «birinchi o'yin»ni ajratish uchun */
+  const prevBest = useRef(0)
 
   useEffect(() => {
     if (phase !== 'game') return undefined
@@ -70,7 +72,8 @@ const BlitzScreen = () => {
     if (phase !== 'result' || credited.current) return
     credited.current = true
     const hits = myScore / 10
-    if (myScore > useApp.getState().blitzBest) setRecord(true)
+    prevBest.current = useApp.getState().blitzBest
+    if (myScore > prevBest.current) setRecord(true)
     creditBlitz(hits * COIN_PER_HIT, hits * XP_PER_HIT, myScore)
   }, [phase, myScore, creditBlitz])
 
@@ -99,6 +102,7 @@ const BlitzScreen = () => {
             <Pressable
               onPress={exit}
               accessibilityLabel="Orqaga"
+              hitSlop={10}
               style={({ pressed }) => [s.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
             >
               <Ionicons name="chevron-back" size={17} color="#33452F" />
@@ -114,31 +118,14 @@ const BlitzScreen = () => {
 
           <Text style={s.h1}>Blitz sprint</Text>
           <Text style={s.h1Sub}>
-            {TIME_LIMIT} soniya ichida imkon qadar ko'p savolga to'g'ri javob bering.
+            {TIME_LIMIT} soniya ichida imkon qadar ko&apos;p savolga to&apos;g&apos;ri javob bering.
+            Har to&apos;g&apos;ri javob: +10 ball va +{COIN_PER_HIT} coin.
           </Text>
 
           {/* Shaxsiy rekord */}
-          <View style={s.rivalCard}>
-            <View style={s.rivalRail} />
-            <View style={s.rivalInner}>
-              <View style={s.rivalAvatar}>
-                <Ionicons name="stopwatch" size={18} color="#B87A22" />
-              </View>
-              <View style={s.rivalMid}>
-                <Text style={s.rivalTitle}>
-                  {best > 0 ? `Rekord: ${best} ball` : 'Hali rekord yo\'q'}
-                </Text>
-                <Text style={s.rivalSub}>
-                  {plays > 0
-                    ? `${plays} marta o'ynalgan · ${QUESTIONS.length} savol`
-                    : `Birinchi urinish · ${QUESTIONS.length} savol`}
-                </Text>
-              </View>
-              <View style={s.rivalTag}>
-                <Text style={[s.rivalTagText, NUM]}>Sprint</Text>
-              </View>
-            </View>
-          </View>
+          <Text style={s.recordLine}>
+            {best > 0 ? `Rekord: ${best} ball · ${plays} marta o'ynalgan` : `Hali rekord yo'q · ${QUESTIONS.length} savol`}
+          </Text>
 
           <Pressable
             onPress={() => { triggerHaptic('medium'); setPhase('game') }}
@@ -196,7 +183,9 @@ const BlitzScreen = () => {
               {hits === 0
                 ? "Vaqt tugadi. Formulalarni takrorlab, yana urinib ko'ring."
                 : record
-                  ? "Oldingi natijadan o'tdingiz — rekord yangilandi."
+                  ? prevBest.current > 0
+                    ? "Oldingi rekorddan o'tdingiz — yangilandi."
+                    : "Birinchi natijangiz — rekord o'rnatildi."
                   : `Eng yaxshi natija: ${best} ball. Yana bir urinib ko'ring.`}
             </Text>
 
@@ -223,7 +212,7 @@ const BlitzScreen = () => {
           <Text style={s.startText}>Qayta o'ynash</Text>
         </Pressable>
         <Pressable
-          onPress={() => { triggerHaptic('light'); navigation.replace('Home') }}
+          onPress={() => { triggerHaptic('light'); navigation.navigate('Main') }}
           style={({ pressed }) => [s.homeBtn, pressed && { opacity: 0.85 }]}
         >
           <Text style={s.homeBtnText}>Asosiyga qaytish</Text>
@@ -239,22 +228,9 @@ const BlitzScreen = () => {
   return (
     <ScrollView
       style={s.screen}
-      contentContainerStyle={[s.gamePad, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40 }]}
+      contentContainerStyle={[s.gamePad, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Chiqish — duel davomida ham ko'rinadi */}
-      <View style={s.gameHead}>
-        <Pressable
-          onPress={() => { triggerHaptic('light'); exit() }}
-          accessibilityLabel="Chiqish"
-          style={({ pressed }) => [s.exitBtn, pressed && { transform: [{ scale: 0.95 }] }]}
-        >
-          <Ionicons name="close" size={14} color={GRAY} />
-        </Pressable>
-        <Text style={s.gameKicker}>Blitz sprint</Text>
-        <View style={s.headSpacer} />
-      </View>
-
       {/* Hisob varaqasi: ball / to'g'ri javob / taymer */}
       <View style={s.scoreboard}>
         <View style={s.scoreRow}>
@@ -360,7 +336,7 @@ const s = StyleSheet.create({
     width: 38, height: 38, alignItems: 'center', justifyContent: 'center',
     backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 12,
   },
-  lobbyKicker: { fontSize: 10.5, letterSpacing: 1.7, fontWeight: '800', color: GRAY, textTransform: 'uppercase' },
+  lobbyKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
   headSpacer: { width: 38 },
 
   mark: {
@@ -371,19 +347,7 @@ const s = StyleSheet.create({
   h1: { marginTop: 16, fontSize: 26, lineHeight: 32, fontWeight: '800', color: INK },
   h1Sub: { marginTop: 6, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: GRAY },
 
-  rivalCard: { position: 'relative', overflow: 'hidden', marginTop: 24, ...CARD, borderRadius: 14 },
-  rivalRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: '#E8A33D' },
-  rivalInner: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 16, paddingRight: 14, paddingVertical: 14 },
-  rivalAvatar: {
-    width: 38, height: 38, borderRadius: 12, backgroundColor: '#FCF1DC',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  rivalAvatarText: { fontSize: 15, fontWeight: '800', color: '#B87A22' },
-  rivalMid: { flex: 1, minWidth: 0 },
-  rivalTitle: { fontSize: 13.5, fontWeight: '800', color: INK },
-  rivalSub: { marginTop: 2, fontSize: 11.5, fontWeight: '600', color: GRAY },
-  rivalTag: { backgroundColor: '#DDF3DC', borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },
-  rivalTagText: { fontSize: 10.5, fontWeight: '800', color: '#0B6E4F', textTransform: 'uppercase' },
+  recordLine: { marginTop: 20, fontSize: 12.5, fontWeight: '700', color: GRAY },
 
   startBtn: {
     ...LIME_BTN, position: 'relative', overflow: 'hidden', marginTop: 20, height: 52, gap: 8,
@@ -406,7 +370,7 @@ const s = StyleSheet.create({
   resultRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6 },
   resultInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 20 },
   resultHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  resultKicker: { fontSize: 10.5, letterSpacing: 1.4, fontWeight: '800', color: GRAY, textTransform: 'uppercase' },
+  resultKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
   resultH1: { marginTop: 8, fontSize: 24, lineHeight: 26, fontWeight: '800', color: INK },
   resultSub: { marginTop: 8, fontSize: 13, fontWeight: '500', color: GRAY },
 
@@ -414,12 +378,6 @@ const s = StyleSheet.create({
   homeBtnText: { fontSize: 13.5, fontWeight: '800', color: '#33452F' },
 
   gamePad: { paddingHorizontal: 16, paddingTop: 20 },
-  gameHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  gameKicker: { fontSize: 10.5, letterSpacing: 1.7, fontWeight: '800', color: GRAY, textTransform: 'uppercase' },
-  exitBtn: {
-    width: 32, height: 32, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 10,
-  },
   scoreboard: {
     ...CARD, borderRadius: 14, flexDirection: 'row', alignItems: 'stretch',
     paddingHorizontal: 8, paddingVertical: 10,
@@ -430,7 +388,7 @@ const s = StyleSheet.create({
   scoreCell: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
   scoreValue: { fontSize: 19, lineHeight: 20, fontWeight: '800' },
   scoreValueBig: { fontSize: 20, lineHeight: 21, fontWeight: '800' },
-  scoreUnit: { marginTop: 6, fontSize: 10, fontWeight: '700', color: FAINT, textTransform: 'uppercase' },
+  scoreUnit: { marginTop: 6, fontSize: 10.5, fontWeight: '700', color: FAINT },
   timerWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   timer: {
     height: 40, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -445,7 +403,7 @@ const s = StyleSheet.create({
   questionCard: { position: 'relative', overflow: 'hidden', ...CARD, borderRadius: 16 },
   questionRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   questionInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  questionKicker: { fontSize: 10.5, letterSpacing: 1.4, fontWeight: '800', color: GRAY, textTransform: 'uppercase' },
+  questionKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
   questionText: { marginTop: 8, fontSize: 17, lineHeight: 24, fontWeight: '600', color: INK },
 
   options: { marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: GAP },

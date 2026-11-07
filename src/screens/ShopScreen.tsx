@@ -1,25 +1,26 @@
-import { useMemo, useState } from 'react'
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { useDeferredValue, useMemo, useState } from 'react'
+import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
+import type { CompositeNavigationProp } from '@react-navigation/native'
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
-import { BottomNav, navBottomSpace } from '../components/BottomNav'
-import type { TabKey } from '../components/BottomNav'
+import { navBottomSpace } from '../components/BottomNav'
 import { Reveal } from '../components/Reveal'
 import Sheet from '../components/Sheet'
 import StudyAids from '../components/StudyAids'
-import type { RootStackParamList } from '../navigation/types'
+import type { RootStackParamList, TabParamList } from '../navigation/types'
 import { ABS_FILL, AMBER_BTN_GRAD, NUM } from '../theme/tokens'
 import { GRAD_LIME } from '../theme/solver'
 import {
   PRODUCTS, PRODUCT_CATS, daysToEarn,
   type Product, type ProductCat,
 } from '../data/content'
-import { PRODUCT_IMAGES } from '../data/productImages'
+import { PRODUCT_IMAGES, PRODUCT_THUMBS } from '../data/productImages'
 
 /**
  * Do'kon — sovg'a bozori. Coinlar haqiqiy narsa oladi: telefon, sumka, kitob.
@@ -30,7 +31,10 @@ import { PRODUCT_IMAGES } from '../data/productImages'
  * kovagi `StudyAids` komponentida.
  */
 
-type Nav = NativeStackNavigationProp<RootStackParamList>
+type Nav = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList>,
+  NativeStackNavigationProp<RootStackParamList>
+>
 
 const INK = '#0E1A12'
 const CANVAS = '#F3F7EE'
@@ -43,7 +47,7 @@ type Filter = 'all' | ProductCat | 'fav'
 type Sort = 'yangi' | 'arzon' | 'qimmat'
 
 const SORTS: { key: Sort; label: string }[] = [
-  { key: 'yangi', label: 'Ombordagi kabi' },
+  { key: 'yangi', label: 'Odatiy tartib' },
   { key: 'arzon', label: 'Arzonlari oldinda' },
   { key: 'qimmat', label: 'Qimmatlari oldinda' },
 ]
@@ -118,7 +122,7 @@ const ProductArt = ({
   children?: React.ReactNode
 }) => {
   const tone = ART_TONE[product.cat]
-  const img = PRODUCT_IMAGES[product.id]
+  const img = PRODUCT_THUMBS[product.id] ?? PRODUCT_IMAGES[product.id]
   return (
     <View
       style={[
@@ -166,6 +170,7 @@ const ShopScreen = () => {
   const insets = useSafeAreaInsets()
   const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
+  const deferredQuery = useDeferredValue(query)
   const [searchOpen, setSearchOpen] = useState(false)
   const [sort, setSort] = useState<Sort>('yangi')
   const [sortOpen, setSortOpen] = useState(false)
@@ -185,13 +190,13 @@ const ShopScreen = () => {
     let items = PRODUCTS
     if (filter === 'fav') items = items.filter(p => favs.includes(p.id))
     else if (filter !== 'all') items = items.filter(p => p.cat === filter)
-    const q = query.trim().toLowerCase()
+    const q = deferredQuery.trim().toLowerCase()
     if (q) items = items.filter(p => (p.title + ' ' + p.blurb + ' ' + p.cat).toLowerCase().includes(q))
     const sorted = [...items]
     if (sort === 'arzon') sorted.sort((a, b) => a.price - b.price)
     if (sort === 'qimmat') sorted.sort((a, b) => b.price - a.price)
     return sorted
-  }, [filter, favs, query, sort])
+  }, [filter, favs, deferredQuery, sort])
 
   const goal = goalId ? PRODUCTS.find(p => p.id === goalId) ?? null : null
   const spent = orders.reduce((n, o) => n + o.price, 0)
@@ -202,11 +207,6 @@ const ShopScreen = () => {
     if (left(p) === 0) continue
     available++
     counts[p.cat] = (counts[p.cat] ?? 0) + 1
-  }
-
-  const onTab = (key: TabKey) => {
-    if (key === 'shop') return
-    navigation.navigate(key === 'home' ? 'Home' : key === 'problems' ? 'Problems' : 'Profile')
   }
 
   const chip = (key: Filter, label: string) => {
@@ -241,7 +241,7 @@ const ShopScreen = () => {
           <ProductArt product={p} fill radius={12} iconSize={62}>
             <Pressable
               onPress={() => { triggerHaptic('light'); toggleFav(p.id) }}
-              hitSlop={6}
+              hitSlop={8}
               accessibilityLabel="Sevimli"
               style={({ pressed }) => [styles.favBtn, pressed && { transform: [{ scale: 0.9 }] }]}
             >
@@ -281,18 +281,12 @@ const ShopScreen = () => {
     )
   }
 
-  return (
-    <View style={styles.screen}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: navBottomSpace(insets.bottom) }]}
-      >
-        {/* ── Sarlavha ── */}
-        <View style={styles.head}>
-          <Text style={styles.h1}>Do'kon</Text>
+  const header = (
+    <View style={styles.head}>
+          <Text style={styles.h1}>Do&apos;kon</Text>
+          <Text style={styles.h1Sub}>Coin yig&apos;ing — sovg&apos;aga almashtiring</Text>
 
-          {/* Balans + qidiruv / sevimli / tarix */}
+          {/* Balans + amallar */}
           <View style={styles.balRow}>
             <Pressable
               onPress={() => { triggerHaptic('light'); navigation.navigate('Profile') }}
@@ -311,38 +305,38 @@ const ShopScreen = () => {
                 <Text style={[styles.balValue, NUM]}>{num(coin)}</Text>
               </Reveal>
             </Pressable>
+          </View>
 
-            <View style={styles.iconRow}>
-              <Pressable
-                onPress={() => { triggerHaptic('selection'); setSearchOpen(v => !v); setQuery('') }}
-                accessibilityLabel="search"
-                style={({ pressed }) => [
-                  styles.iconBtn,
-                  searchOpen ? styles.iconBtnOn : styles.iconBtnIdle,
-                  pressed && { transform: [{ scale: 0.94 }] },
-                ]}
-              >
-                <Ionicons name="search" size={17} color={searchOpen ? '#FFFFFF' : INK} />
-              </Pressable>
-              <Pressable
-                onPress={() => { triggerHaptic('selection'); setFilter(f => (f === 'fav' ? 'all' : 'fav')) }}
-                accessibilityLabel="fav"
-                style={({ pressed }) => [
-                  styles.iconBtn,
-                  filter === 'fav' ? styles.iconBtnOn : styles.iconBtnIdle,
-                  pressed && { transform: [{ scale: 0.94 }] },
-                ]}
-              >
-                <Ionicons name="heart" size={17} color={filter === 'fav' ? '#FFFFFF' : INK} />
-              </Pressable>
-              <Pressable
-                onPress={() => { triggerHaptic('selection'); setHistoryOpen(true) }}
-                accessibilityLabel="history"
-                style={({ pressed }) => [styles.iconBtn, styles.iconBtnIdle, pressed && { transform: [{ scale: 0.94 }] }]}
-              >
-                <Ionicons name="time" size={17} color={INK} />
-              </Pressable>
-            </View>
+          <View style={styles.actionRow}>
+            <Pressable
+              onPress={() => { triggerHaptic('selection'); setSearchOpen(v => !v); setQuery('') }}
+              style={({ pressed }) => [
+                styles.actionPill,
+                searchOpen && styles.actionPillOn,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Ionicons name="search" size={15} color={searchOpen ? '#FFFFFF' : INK} />
+              <Text style={[styles.actionText, searchOpen && styles.actionTextOn]}>Qidirish</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => { triggerHaptic('selection'); setFilter(f => (f === 'fav' ? 'all' : 'fav')) }}
+              style={({ pressed }) => [
+                styles.actionPill,
+                filter === 'fav' && styles.actionPillOn,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Ionicons name="heart" size={15} color={filter === 'fav' ? '#FFFFFF' : INK} />
+              <Text style={[styles.actionText, filter === 'fav' && styles.actionTextOn]}>Sevimli</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => { triggerHaptic('selection'); setHistoryOpen(true) }}
+              style={({ pressed }) => [styles.actionPill, pressed && { opacity: 0.85 }]}
+            >
+              <Ionicons name="time" size={15} color={INK} />
+              <Text style={styles.actionText}>Tarix</Text>
+            </Pressable>
           </View>
 
           {searchOpen && (
@@ -382,7 +376,8 @@ const ShopScreen = () => {
                 pressed && { opacity: 0.9 },
               ]}
             >
-              <Ionicons name="options" size={17} color={sort === 'yangi' ? INK : '#FFFFFF'} />
+              <Ionicons name="options" size={15} color={sort === 'yangi' ? INK : '#FFFFFF'} />
+              <Text style={[styles.sortText, sort !== 'yangi' && { color: '#FFFFFF' }]}>Tartib</Text>
             </Pressable>
 
             <ScrollView
@@ -427,9 +422,19 @@ const ShopScreen = () => {
           )}
         </View>
 
-        {/* ── Ikki ustunli tovar ── */}
-        <View style={styles.gridWrap}>
-          {list.length === 0 ? (
+  )
+
+  return (
+    <View style={styles.screen}>
+      <FlatList
+        data={list}
+        keyExtractor={p => p.id}
+        numColumns={2}
+        renderItem={({ item }) => card(item)}
+        ListHeaderComponent={header}
+        columnWrapperStyle={styles.gridRow}
+        ListEmptyComponent={
+          <View style={styles.gridWrap}>
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>
                 {filter === 'fav' ? 'Sevimlilar bo\'sh' : 'Bu javonda hozircha yo\'q'}
@@ -440,19 +445,23 @@ const ShopScreen = () => {
                   : 'Boshqa janrni tanlang yoki qidiruvni tozalang.'}
               </Text>
             </View>
-          ) : (
-            <View style={styles.grid}>{list.map(card)}</View>
-          )}
-        </View>
-
-        {/* ── O'qish uchun: yordamchilar, ochishlar, Pro ── */}
-        <View style={styles.aidsWrap}>
-          <StudyAids />
-        </View>
-      </ScrollView>
+          </View>
+        }
+        ListFooterComponent={
+          <View style={styles.aidsWrap}>
+            <StudyAids />
+          </View>
+        }
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: navBottomSpace(insets.bottom) }]}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+      />
 
       {/* ── Saralash varaqasi ── */}
-      <Sheet open={sortOpen} onClose={() => setSortOpen(false)} title="SARALASH">
+      <Sheet open={sortOpen} onClose={() => setSortOpen(false)} title="Saralash">
         <View style={styles.sortList}>
           {SORTS.map(o => (
             <Pressable
@@ -472,7 +481,7 @@ const ShopScreen = () => {
       </Sheet>
 
       {/* ── Buyurtmalar tarixi ── */}
-      <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title="BUYURTMALAR">
+      <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title="Buyurtmalar">
         {orders.length === 0 ? (
           <Text style={styles.histEmpty}>
             Hali birorta sovg'a buyurtma qilinmagan. Kartani ochib, ichidan «Buyurtma berish» tugmasi bilan olasiz.
@@ -499,8 +508,6 @@ const ShopScreen = () => {
           Buyurtmalar shu qurilmadagi Profilingizda saqlanadi.
         </Text>
       </Sheet>
-
-      <BottomNav active="shop" onSelect={onTab} />
     </View>
   )
 }
@@ -509,20 +516,32 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: CANVAS },
   content: { paddingTop: 20 },
 
-  head: { paddingHorizontal: 16 },
+  head: { paddingHorizontal: 16, marginBottom: 16 },
   h1: { textAlign: 'center', fontSize: 20, fontWeight: '800', letterSpacing: -0.4, color: INK },
+  h1Sub: { marginTop: 4, textAlign: 'center', fontSize: 12, fontWeight: '600', color: GRAY },
 
-  balRow: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  balRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   balBtn: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   balLabel: { fontSize: 15, fontWeight: '800', color: INK },
   balCoin: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   coinBadge: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 100 },
   balValue: { fontSize: 17, fontWeight: '800', color: AMBER_INK },
 
-  iconRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 100 },
-  iconBtnIdle: { backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1 },
-  iconBtnOn: { backgroundColor: INK, borderColor: INK, borderWidth: 1 },
+  actionRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  actionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 44,
+    paddingHorizontal: 13,
+    borderRadius: 100,
+    backgroundColor: '#FFFFFF',
+    borderColor: HAIR,
+    borderWidth: 1,
+  },
+  actionPillOn: { backgroundColor: INK, borderColor: INK },
+  actionText: { fontSize: 12.5, fontWeight: '700', color: INK },
+  actionTextOn: { color: '#FFFFFF' },
 
   searchWrap: { marginTop: 12 },
   searchBox: {
@@ -539,12 +558,20 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: INK, paddingVertical: 0 },
 
   chipRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sortBtn: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+  sortBtn: {
+    height: 44,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 100,
+  },
+  sortText: { fontSize: 12, fontWeight: '700', color: INK },
   sortBtnIdle: { backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1 },
   sortBtnOn: { backgroundColor: INK, borderColor: INK, borderWidth: 1 },
   chipFlex: { flex: 1 },
   chipScroll: { alignItems: 'center', gap: 4, paddingBottom: 2 },
-  chip: { height: 38, paddingHorizontal: 16, borderRadius: 100, flexDirection: 'row', alignItems: 'center' },
+  chip: { height: 44, paddingHorizontal: 16, borderRadius: 100, flexDirection: 'row', alignItems: 'center' },
   chipIdle: { backgroundColor: 'transparent' },
   chipOn: { backgroundColor: INK },
   chipText: { fontSize: 13, fontWeight: '700' },
@@ -561,18 +588,18 @@ const styles = StyleSheet.create({
   goalTrack: { marginTop: 8, backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 100, height: 5 },
   goalNote: { marginTop: 6, fontSize: 10.5, fontWeight: '700', color: 'rgba(205,233,174,0.55)' },
 
-  gridWrap: { marginTop: 16, paddingHorizontal: 16 },
+  gridWrap: { paddingHorizontal: 16 },
   aidsWrap: { marginTop: 24, paddingHorizontal: 16 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  gridRow: { paddingHorizontal: 10 },
 
-  cardCell: { width: '50%', paddingHorizontal: 6, paddingBottom: 12 },
+  cardCell: { flex: 1, maxWidth: '50%', paddingHorizontal: 6, paddingBottom: 12 },
   cardInner: { backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1, borderRadius: 16, padding: 8 },
   favBtn: {
     position: 'absolute',
     right: 6,
     top: 6,
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 100,
@@ -588,7 +615,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(14,26,18,0.82)',
     borderRadius: 6,
   },
-  catBadgeText: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase', color: '#EAF3E2' },
+  catBadgeText: { fontSize: 10.5, fontWeight: '800', color: '#EAF3E2' },
 
   cardBody: { paddingTop: 9, paddingHorizontal: 3, paddingBottom: 2 },
   cardTitle: { fontSize: 13.5, fontWeight: '800', color: INK },
@@ -607,7 +634,7 @@ const styles = StyleSheet.create({
   cardPrice: { fontSize: 13, fontWeight: '800', color: AMBER_INK },
   cardRateRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cardRate: { fontSize: 12, fontWeight: '800', color: INK },
-  cardNew: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.4, color: GRAY, textTransform: 'uppercase' },
+  cardNew: { fontSize: 11, fontWeight: '700', color: GRAY },
 
   empty: {
     backgroundColor: '#FFFFFF',

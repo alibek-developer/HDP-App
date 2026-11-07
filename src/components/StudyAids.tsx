@@ -470,7 +470,7 @@ const st = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: GREEN_TILE,
     borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
   },
-  stampText: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2, color: GREEN_TILE, textTransform: 'uppercase' },
+  stampText: { fontSize: 11, fontWeight: '800', color: GREEN_TILE },
 
   earnCta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   earnCtaText: { fontSize: 11.5, fontWeight: '800', color: GREEN_TILE },

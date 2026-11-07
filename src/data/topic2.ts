@@ -231,11 +231,6 @@ const THEORY_2_4: TheoryBlock[] = [
 
 const EX_2_4: TopicExercise[] = [
   {
-    prompt:
-      "O'zingizni sinab ko'ring! Quyidagi so'zlar bilan berilgan kasrlarni sonlar bilan yozing: 1) yettidan uch   2) o'n uchdan ikki   3) yuzdan yetti   4) yetmish ikkidan o'n to'rt",
-    answer: '1) 3/7   2) 2/13   3) 7/100   4) 14/72',
-  },
-  {
     prompt: "O'zingizni sinab ko'ring! Bo'linmani kasr ko'rinishida yozing: 1) 15:24   2) 7:8   3) 2:3   4) 3:42",
     answer: '1) 15/24   2) 7/8   3) 2/3   4) 3/42',
   },
@@ -658,7 +653,14 @@ export const TOPIC_2_LESSONS: TopicLesson[] = [
       },
     ],
     theory: THEORY_2_3,
-    practice: [],
+    practice: [
+      {
+        prompt:
+          "O'zingizni sinab ko'ring! So'zlar bilan berilgan kasrlarni sonlar bilan yozing: 1) yettidan uch  2) o'n uchdan ikki  3) yuzdan yetti  4) yetmish ikkidan o'n to'rt.",
+        steps: ['1) 3/7', '2) 2/13', '3) 7/100', '4) 14/72'],
+        answer: '3/7;  2/13;  7/100;  14/72',
+      },
+    ],
   },
 
   {

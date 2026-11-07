@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import type { ViewStyle } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -8,11 +8,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
-import { useExit } from '../lib/nav'
+import { useExitToTab } from '../lib/nav'
 import { SUBJECTS, findSubject, topicLessonIds, topicTestCount, topicVideoCount } from '../data/subjects'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, C, NUM } from '../theme/tokens'
-import { CARD, GRAD_HEADER, SOLVER_BODY } from '../theme/solver'
+import { CARD, SOLVER_BODY } from '../theme/solver'
 import { Reveal } from '../components/Reveal'
 
 /**
@@ -26,7 +26,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>
 const SubjectScreen = () => {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
-  const exit = useExit('Courses')
+  const exit = useExitToTab('home')
 
   const route = useRoute<RouteProp<RootStackParamList, 'Subject'>>()
   const subject = findSubject(route.params.subjectId)
@@ -39,7 +39,7 @@ const SubjectScreen = () => {
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.missing}>
           <Pressable onPress={exit} style={({ pressed }) => [styles.missingBtn, pressed && { opacity: 0.8 }]}>
-            <Text style={styles.missingText}>Kurslarga qaytish</Text>
+            <Text style={styles.missingText}>Asosiy sahifaga qaytish</Text>
           </Pressable>
         </View>
       </View>
@@ -61,6 +61,7 @@ const SubjectScreen = () => {
           <Pressable
             onPress={exit}
             accessibilityLabel="Orqaga"
+            hitSlop={10}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
             <Ionicons name="chevron-back" size={17} color="#33452F" />
@@ -76,7 +77,7 @@ const SubjectScreen = () => {
           <Pressable
             onPress={() => {
               triggerHaptic('light')
-              navigation.navigate('Shop')
+              navigation.navigate('Main', { screen: 'Shop' })
             }}
             accessibilityLabel="Hamyon"
             style={({ pressed }) => [styles.wallet, pressed && { transform: [{ scale: 0.96 }] }]}
@@ -86,39 +87,21 @@ const SubjectScreen = () => {
           </Pressable>
         </View>
 
-        {/* ── Fan varaqasi ── */}
-        <View style={styles.section}>
-          <LinearGradient
-            colors={GRAD_HEADER}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.subjectSheet}
-          >
-            <LinearGradient
-              colors={['rgba(155,224,75,0.22)', 'rgba(155,224,75,0)']}
-              start={{ x: 0.35, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              pointerEvents="none"
-              style={styles.subjectGlow}
-            />
-            <View style={styles.subjectRow}>
-              <View style={styles.subjectBadge}>
-                <Text style={[styles.subjectBadgeText, NUM]}>{subject.badge}</Text>
-              </View>
-              <View style={styles.subjectMeta}>
-                <Text style={styles.subjectName}>{subject.name}</Text>
-                <Text style={styles.subjectCount}>
-                  {loaded.length > 0 ? `${loaded.length} ta mavzu yuklangan` : 'Darslar yuklanmagan'}
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
-
         {/* ── Mavzular ── */}
         {loaded.length > 0 ? (
           <View style={[styles.section, styles.topicSection]}>
-            <Text style={styles.topicHeading}>Mavzular</Text>
+            {/* ── Qisqa yo'riqnoma ── */}
+            <View style={styles.hint}>
+              <Ionicons name="information-circle-outline" size={15} color="#6B7C66" />
+              <Text style={styles.hintText}>
+                Mavzuni tanlang — ichida <Text style={styles.hintStrong}>video → misol → test</Text> bor.
+              </Text>
+            </View>
+
+            <View style={styles.topicHead}>
+              <Text style={styles.topicHeading}>Mavzular</Text>
+              <Text style={[styles.topicCount, NUM]}>{loaded.length} ta</Text>
+            </View>
             <View style={styles.topicList}>
               {loaded.map((t, i) => {
                 const { done, total } = progressOf(t.num)
@@ -180,24 +163,37 @@ const SubjectScreen = () => {
           /* ── Bo'sh holat: mazmun yuklanmagan ── */
           <View style={[styles.section, styles.topicSection]}>
             <View style={styles.emptyCard}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="book" size={22} color="#5FAF22" />
+              <View style={styles.emptyMedia}>
+                <Image source={subject.photo} style={styles.emptyPhoto} resizeMode="cover" />
+                <LinearGradient
+                  colors={['rgba(9,32,21,0.04)', 'rgba(9,32,21,0.5)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                  pointerEvents="none"
+                />
+                <View style={styles.emptyBadge}>
+                  <Text style={styles.emptyBadgeText}>{subject.badge}</Text>
+                </View>
               </View>
-              <Text style={styles.emptyTitle}>{subject.name} uchun darslar yuklanmagan</Text>
-              <Text style={styles.emptyBody}>
-                Video darslar, nazariya va yakuniy test shu bo'limda paydo bo'ladi. Hozircha {SUBJECTS[0].name} bo'yicha
-                davom etishingiz mumkin.
-              </Text>
-              <Pressable
-                onPress={() => {
-                  triggerHaptic('medium')
-                  navigation.navigate('Subject', { subjectId: SUBJECTS[0].id })
-                }}
-                style={({ pressed }) => [styles.emptyCta, pressed && { opacity: 0.9 }]}
-              >
-                <Ionicons name="compass" size={15} color="#CDE9AE" />
-                <Text style={styles.emptyCtaText}>{SUBJECTS[0].name} mavzulariga o'tish</Text>
-              </Pressable>
+
+              <View style={styles.emptyBodyWrap}>
+                <Text style={styles.emptyTitle}>{subject.name} uchun darslar yuklanmagan</Text>
+                <Text style={styles.emptyBody}>
+                  Video darslar, nazariya va yakuniy test shu bo'limda paydo bo'ladi. Hozircha {SUBJECTS[0].name} bo'yicha
+                  davom etishingiz mumkin.
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('medium')
+                    navigation.navigate('Subject', { subjectId: SUBJECTS[0].id })
+                  }}
+                  style={({ pressed }) => [styles.emptyCta, pressed && { opacity: 0.9 }]}
+                >
+                  <Ionicons name="compass" size={15} color="#CDE9AE" />
+                  <Text style={styles.emptyCtaText}>{SUBJECTS[0].name} mavzulariga o'tish</Text>
+                </Pressable>
+              </View>
             </View>
 
             <View style={styles.emptyHint}>
@@ -226,7 +222,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
   backBtn: { ...headerBtn, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
   headerTitle: { flex: 1, minWidth: 0, alignItems: 'center', paddingHorizontal: 8 },
-  headerKicker: { fontSize: 10, letterSpacing: 1.6, fontWeight: '800', color: '#6B7C66', textTransform: 'uppercase' },
+  headerKicker: { fontSize: 11, letterSpacing: 0.2, fontWeight: '700', color: '#6B7C66' },
   headerName: { marginTop: 2, fontSize: 15, fontWeight: '800', color: C.ink, lineHeight: 19 },
   wallet: { ...headerBtn, backgroundColor: '#FCF1DC', borderWidth: 1, borderColor: '#E8A33D', gap: 1 },
   walletText: { fontSize: 9.5, fontWeight: '800', color: '#B87A22' },
@@ -238,25 +234,13 @@ const styles = StyleSheet.create({
   missingBtn: { ...CARD, height: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   missingText: { fontSize: 13, fontWeight: '800', color: '#0E1A12' },
 
-  subjectSheet: { borderRadius: 16, overflow: 'hidden' },
-  subjectGlow: { position: 'absolute', right: -18, top: -24, width: 120, height: 120, borderRadius: 60 },
-  subjectRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 16 },
-  subjectBadge: {
-    width: 46,
-    height: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 14,
-    backgroundColor: 'rgba(155,224,75,0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(155,224,75,0.4)',
-  },
-  subjectBadgeText: { fontSize: 19, fontWeight: '800', color: '#9BE04B' },
-  subjectMeta: { flex: 1, minWidth: 0 },
-  subjectName: { fontSize: 15, fontWeight: '800', color: '#FFFFFF', lineHeight: 20 },
-  subjectCount: { marginTop: 4, fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, color: 'rgba(205,233,174,0.6)', textTransform: 'uppercase' },
+  hint: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 4, marginBottom: 14 },
+  hintText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
+  hintStrong: { fontWeight: '800', color: C.ink2 },
 
-  topicHeading: { fontSize: 15.5, fontWeight: '800', color: C.ink, paddingHorizontal: 4, marginBottom: 10 },
+  topicHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 10 },
+  topicHeading: { fontSize: 15.5, fontWeight: '800', color: C.ink },
+  topicCount: { fontSize: 11, fontWeight: '700', color: '#9AA995' },
   topicList: { gap: 12 },
   topicCard: { ...CARD, borderRadius: 16, overflow: 'hidden' },
   topicTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 12, paddingTop: 14 },
@@ -266,7 +250,7 @@ const styles = StyleSheet.create({
   topicNumText: { fontSize: 13, fontWeight: '800', color: '#9BE04B' },
   topicMeta: { flex: 1, minWidth: 0 },
   topicTitle: { fontSize: 13.5, fontWeight: '800', color: C.ink, lineHeight: 19 },
-  topicStats: { marginTop: 4, fontSize: 10.5, fontWeight: '700', letterSpacing: 0.2, color: '#9AA995', textTransform: 'uppercase' },
+  topicStats: { marginTop: 4, fontSize: 11, fontWeight: '600', color: '#9AA995' },
   topicChevron: { marginTop: 8, flexShrink: 0 },
 
   topicFoot: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 },
@@ -274,12 +258,27 @@ const styles = StyleSheet.create({
   railFill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 3, overflow: 'hidden' },
   railCount: { fontSize: 11, fontWeight: '800', color: '#6B7C66' },
   railCountReady: { color: '#0B6E4F' },
-  railLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, color: '#9AA995', textTransform: 'uppercase' },
+  railLabel: { fontSize: 10.5, fontWeight: '800', color: '#9AA995' },
   railLabelReady: { color: '#0B6E4F' },
 
-  emptyCard: { ...CARD, borderRadius: 16, alignItems: 'center', paddingHorizontal: 20, paddingVertical: 28 },
-  emptyIcon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EDF7DE', borderRadius: 18 },
-  emptyTitle: { marginTop: 14, fontSize: 14, fontWeight: '800', color: C.ink, textAlign: 'center', lineHeight: 20 },
+  emptyCard: { ...CARD, borderRadius: 16, overflow: 'hidden' },
+  emptyMedia: { height: 132, backgroundColor: '#0E1A12' },
+  emptyPhoto: { width: '100%', height: '100%' },
+  emptyBadge: {
+    position: 'absolute',
+    left: 14,
+    bottom: 12,
+    minWidth: 30,
+    height: 24,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#9BE04B',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyBadgeText: { fontSize: 11.5, fontWeight: '800', color: C.inkOnLime },
+  emptyBodyWrap: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20 },
+  emptyTitle: { fontSize: 14, fontWeight: '800', color: C.ink, textAlign: 'center', lineHeight: 20 },
   emptyBody: { marginTop: 8, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66', textAlign: 'center' },
   emptyCta: {
     marginTop: 16,

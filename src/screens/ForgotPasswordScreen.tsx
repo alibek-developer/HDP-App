@@ -73,10 +73,6 @@ const ForgotPasswordScreen = ({ navigation }: NativeStackScreenProps<RootStackPa
                   </Text>
                 </View>
 
-                <Text style={styles.note}>
-                  Havola avtomatik yuborilmaydi. Hisobingiz shu qurilmada saqlanib qoladi.
-                </Text>
-
                 <LimeButton
                   label="Kirishga qaytish"
                   onPress={() => { triggerHaptic('light'); navigation.replace('Login') }}
@@ -86,7 +82,7 @@ const ForgotPasswordScreen = ({ navigation }: NativeStackScreenProps<RootStackPa
             ) : (
               <>
                 <Text style={styles.sub}>
-                  Emailingizni kiriting — parolni yangilash havolasini yuboramiz.
+                  Emailingizni kiriting — parolni tiklash bo&apos;yicha yo&apos;riqnoma beriladi.
                 </Text>
 
                 <View style={styles.form}>
@@ -160,7 +156,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#7ED321',
   },
   okText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '600', color: C.ink2 },
-  note: { marginTop: 14, paddingHorizontal: 4, fontSize: 12, lineHeight: 17, fontWeight: '600', color: C.ink4 },
   submit: { marginTop: 24 },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
   footerText: { ...T.bodyMd, color: C.ink3 },

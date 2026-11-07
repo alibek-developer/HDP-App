@@ -11,7 +11,7 @@ import { findTopic } from '../data/curriculum'
 import type { SessionResult } from '../store/useStore'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
-import { useExit } from '../lib/nav'
+import { useExitToTopics } from '../lib/nav'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, C, NUM } from '../theme/tokens'
 import { CARD, GRAD_LIME, GRAD_RAIL, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
@@ -34,7 +34,7 @@ const TopicTestScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TopicTest'>>()
   const topicNum = route.params.topicNum
   const entry = findTopic(topicNum)
-  const exit = useExit('Topic', topicNum)
+  const exit = useExitToTopics(topicNum)
 
   const canEnter = useApp(s => s.canEnterTopicTest)
   /** Oldingi eng yaxshi natija — faqat undan oshgan savollar to'lanadi */
@@ -89,7 +89,7 @@ const TopicTestScreen = () => {
             }}
             style={({ pressed }) => [styles.gateBtn, LIME_BTN, pressed && { transform: [{ scale: 0.97 }] }]}
           >
-            <Text style={[styles.gateBtnText, LIME_TEXT]}>Bo&apos;limlarga qaytish</Text>
+            <Text style={[styles.gateBtnText, LIME_TEXT]}>Mavzularga qaytish</Text>
           </Pressable>
         </View>
       </View>
@@ -164,22 +164,11 @@ const TopicTestScreen = () => {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* ── Holat chizig'i: hisob + 30 bo'linma + narx ── */}
+        {/* ── Holat chizig'i: hisob + 30 bo'linma ── */}
         <View style={styles.statusRow}>
-          <Pressable
-            onPress={exit}
-            accessibilityLabel="Chiqish"
-            style={({ pressed }) => [styles.exitBtn, pressed && { transform: [{ scale: 0.95 }] }]}
-          >
-            <Ionicons name="close" size={14} color="#6B7C66" />
-          </Pressable>
           <Text style={[styles.counter, NUM]}>
-            {cursor + 1}/{total}
+            Mavzu {topicNum} · savol {cursor + 1}/{total}
           </Text>
-          <View style={styles.priceChip}>
-            <Ionicons name="cash" size={12} color="#E8A33D" />
-            <Text style={[styles.priceText, NUM]}>+{test.coinPerSolve}</Text>
-          </View>
         </View>
 
         <View style={styles.rail}>
@@ -205,7 +194,6 @@ const TopicTestScreen = () => {
             <LinearGradient colors={GRAD_RAIL} style={ABS_FILL} />
           </View>
           <View style={styles.qBody}>
-            <Text style={styles.qKicker}>Mavzu {topicNum} · savol {cursor + 1}</Text>
             <Text style={styles.qPrompt}>{question.prompt}</Text>
           </View>
         </View>
@@ -335,11 +323,8 @@ const styles = StyleSheet.create({
   gateBtn: { marginTop: 8, height: 46, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   gateBtnText: { fontSize: 13.5 },
 
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 20, paddingBottom: 4 },
-  exitBtn: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 9 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 20, paddingBottom: 4 },
   counter: { fontSize: 12, fontWeight: '800', color: '#33452F' },
-  priceChip: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  priceText: { fontSize: 11.5, fontWeight: '800', color: '#B87A22' },
 
   rail: { gap: 3, marginTop: 8 },
   railRow: { flexDirection: 'row', gap: 3 },
@@ -349,7 +334,6 @@ const styles = StyleSheet.create({
   qCard: { borderRadius: 16, flexDirection: 'row', overflow: 'hidden', marginTop: 12 },
   qRailWrap: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   qBody: { flex: 1, paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  qKicker: { fontSize: 10, lineHeight: 13, letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: '800', color: '#6B7C66' },
   qPrompt: { marginTop: 8, fontSize: 17, lineHeight: 24, fontWeight: '600', color: C.ink },
 
   options: { marginTop: 16, gap: 10 },
@@ -362,7 +346,7 @@ const styles = StyleSheet.create({
   explainRail: { width: 4 },
   explainBody: { flex: 1, paddingLeft: 16, paddingRight: 14, paddingVertical: 14 },
   explainHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  explainVerdict: { fontSize: 12, letterSpacing: 0.8, textTransform: 'uppercase', fontWeight: '800' },
+  explainVerdict: { fontSize: 12.5, fontWeight: '800' },
   explainPrice: { fontSize: 12, fontWeight: '800' },
   explainText: { marginTop: 8, fontSize: 13.5, lineHeight: 21, color: C.ink2 },
 

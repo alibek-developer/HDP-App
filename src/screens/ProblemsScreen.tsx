@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import type { ScrollViewInstance } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
+import type { CompositeNavigationProp } from '@react-navigation/native'
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
-import { BottomNav, navBottomSpace } from '../components/BottomNav'
-import type { TabKey } from '../components/BottomNav'
-import type { RootStackParamList } from '../navigation/types'
+import { navBottomSpace } from '../components/BottomNav'
+import { MidnightClock } from '../components/MidnightClock'
+import type { RootStackParamList, TabParamList } from '../navigation/types'
 import { ABS_FILL, C, NUM } from '../theme/tokens'
 import { Bar } from '../components/Bar'
 import { DAILY_BONUS, EXAM_SET, MISSION_REWARDS, PROBLEM_SETS, dailyProblem, type ProblemSet } from '../data/content'
@@ -24,7 +25,10 @@ import {
  * qatorlar, ledger ustunlari, ticket-karta). Home doira/pill morfologiyasida.
  */
 
-type Nav = NativeStackNavigationProp<RootStackParamList>
+type Nav = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList>,
+  NativeStackNavigationProp<RootStackParamList>
+>
 
 const DIFF_RAIL: Record<string, string> = {
   oson: '#7ED321',
@@ -47,17 +51,6 @@ const TIERS = [
   { name: 'Olimpiada', need: 20 },
 ]
 
-const pad = (n: number) => String(n).padStart(2, '0')
-const clock = (ms: number) => {
-  const t = Math.max(0, Math.floor(ms / 1000))
-  return `${pad(Math.floor(t / 3600))}:${pad(Math.floor((t % 3600) / 60))}:${pad(t % 60)}`
-}
-const msToMidnight = () => {
-  const now = new Date()
-  const next = new Date(now)
-  next.setHours(24, 0, 0, 0)
-  return next.getTime() - now.getTime()
-}
 /** Store bilan bir xil mahalliy sana kaliti (UTC siljishi kunlik bonusni buzmasin) */
 const todayKey = () => {
   const d = new Date()
@@ -68,9 +61,6 @@ const num = (n: number) => n.toLocaleString('en-US')
 const ProblemsScreen = () => {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
-  const scrollRef = useRef<ScrollViewInstance>(null)
-  const bodyY = useRef(0)
-  const listY = useRef(0)
 
   const coin = useApp(s => s.coin)
   const streak = useApp(s => s.streak)
@@ -88,14 +78,11 @@ const ProblemsScreen = () => {
   const dailyBonusOn = useApp(s => s.dailyBonusOn)
 
   const [cat, setCat] = useState('Barchasi')
-  const [remain, setRemain] = useState(msToMidnight)
   /** Coin evaziga ochiladigan to'plam — avval tasdiqlash varag'i */
   const [unlockTarget, setUnlockTarget] = useState<ProblemSet | null>(null)
 
   useEffect(() => {
     rollDay()
-    const t = setInterval(() => setRemain(msToMidnight()), 1000)
-    return () => clearInterval(t)
   }, [rollDay])
 
   const daily = useMemo(() => dailyProblem(), [])
@@ -166,7 +153,7 @@ const ProblemsScreen = () => {
       icon: 'flash' as const,
       tile: '#FCF1DC',
       fg: '#B87A22',
-      name: 'Tezkor Blitz',
+      name: 'Tezkor blits',
       desc: '30 soniyada 5 ta savol',
       coin: 25,
       pro: false,
@@ -180,8 +167,8 @@ const ProblemsScreen = () => {
       icon: 'flame' as const,
       tile: '#FDE8E4',
       fg: '#C2410C',
-      name: 'Streak Seriya',
-      desc: 'Ketma-ket 10 ta — 2x bonus',
+      name: 'Ketma-ket seriya',
+      desc: "10 ta ketma-ket to'g'ri javob — 2x coin",
       coin: 100,
       pro: false,
       run: () => {
@@ -190,27 +177,12 @@ const ProblemsScreen = () => {
       },
     },
     {
-      key: 'topic',
-      icon: 'clipboard-outline' as const,
-      tile: '#DDF3DC',
-      fg: '#0B6E4F',
-      name: "Mavzu bo'yicha",
-      desc: "O'zingiz mavzuni tanlang",
-      coin: 25,
-      pro: false,
-      run: () => {
-        triggerHaptic('selection')
-        setCat('Barchasi')
-        scrollRef.current?.scrollTo({ y: Math.max(0, bodyY.current + listY.current - 12), animated: true })
-      },
-    },
-    {
       key: 'exam',
       icon: 'trophy' as const,
       tile: '#E5ECFE',
       fg: '#3560C4',
-      name: 'Sinov',
-      desc: `${EXAM_SET.questions.length} ta savollik to'liq test`,
+      name: 'Sinov testi',
+      desc: `${EXAM_SET.questions.length} ta savollik to'liq imtihon`,
       coin: 150,
       pro: true,
       run: () => {
@@ -225,15 +197,16 @@ const ProblemsScreen = () => {
     },
   ]
 
-  const onTab = (key: TabKey) => {
-    if (key === 'problems') return
-    navigation.navigate(key === 'home' ? 'Home' : key === 'shop' ? 'Shop' : 'Profile')
-  }
+  const tierIdx = Math.max(0, TIERS.reduce((acc, t, i) => (solvedCount >= t.need ? i : acc), 0))
+  const tier = TIERS[tierIdx]
+  const nextTier = TIERS[tierIdx + 1]
+  const tierPct = nextTier
+    ? Math.min(100, Math.round(((solvedCount - tier.need) / (nextTier.need - tier.need)) * 100))
+    : 100
 
   return (
     <View style={styles.screen}>
       <ScrollView
-        ref={scrollRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, { paddingTop: 0, paddingBottom: navBottomSpace(insets.bottom) }]}
       >
@@ -251,7 +224,7 @@ const ProblemsScreen = () => {
               </View>
               <View>
                 <Text style={styles.h1}>Masalalar</Text>
-                <Text style={styles.h1Sub}>YECH · MUSTAHKAMLA · COIN YIG'</Text>
+                <Text style={styles.h1Sub}>Kunlik masaladan boshlang</Text>
               </View>
             </View>
 
@@ -269,7 +242,7 @@ const ProblemsScreen = () => {
 
           <View style={styles.ledger}>
             {[
-              { v: `${streak}`, u: 'kunlik streak', icon: 'flame' as const, c: '#F3C88A' },
+              { v: `${streak}`, u: 'kun ketma-ket', icon: 'flame' as const, c: '#F3C88A' },
               { v: `${solvedCount}`, u: 'ta yechilgan', icon: 'checkmark' as const, c: '#9BE04B' },
               { v: `${solvedToday}`, u: 'bugun', icon: 'flash' as const, c: '#CDE9AE' },
             ].map((cell, i) => (
@@ -285,24 +258,31 @@ const ProblemsScreen = () => {
               </View>
             ))}
           </View>
+
+          <View style={styles.tierRow}>
+            <View style={styles.tierTrack}>
+              <View style={[styles.tierTrackFill, { width: `${tierPct}%` }]} />
+            </View>
+            <Text style={styles.tierText}>
+              <Text style={styles.tierStrong}>{tier.name}</Text>
+              {nextTier
+                ? ` · ${nextTier.name} darajasiga ${nextTier.need - solvedCount} ta masala`
+                : ' · eng yuqori daraja'}
+            </Text>
+          </View>
           <View style={styles.headerTail} />
         </LinearGradient>
 
-        <View
-          style={styles.body}
-          onLayout={e => {
-            bodyY.current = e.nativeEvent.layout.y
-          }}
-        >
-          {/* ── 2. Kunlik mega masala — ticket ── */}
+        <View style={styles.body}>
+          {/* ── 2. Bugungi masala — ticket ── */}
           <View style={[CARD_LIFT, styles.ticket]}>
             <LinearGradient colors={GRAD_RAIL} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.ticketRail} />
             <View style={styles.ticketBody}>
               <View style={styles.ticketHead}>
-                <Text style={styles.ticketKicker}>KUNLIK MEGA MASALA</Text>
+                <Text style={styles.ticketKicker}>Bugungi masala</Text>
                 <View style={styles.clockChip}>
                   <Ionicons name="time-outline" size={12} color="#9AA995" />
-                  <Text style={[styles.clockText, NUM]}>{clock(remain)}</Text>
+                  <MidnightClock style={[styles.clockText, NUM]} />
                 </View>
               </View>
 
@@ -324,7 +304,7 @@ const ProblemsScreen = () => {
                 <View style={styles.rewardLedger}>
                   <View style={styles.rewardCol}>
                     <Text style={[styles.rewardCoin, NUM]}>+{DAILY_BONUS.coin}</Text>
-                    <Text style={styles.rewardUnit}>COIN</Text>
+                    <Text style={styles.rewardUnit}>coin</Text>
                   </View>
                   <View style={styles.rewardDivider} />
                   <View style={[styles.rewardCol, { paddingLeft: 12, paddingRight: 0 }]}>
@@ -346,179 +326,36 @@ const ProblemsScreen = () => {
             </View>
           </View>
 
-          {/* ── 3. Kategoriyalar ── */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow} contentContainerStyle={styles.chipRowInner}>
-            {categories.map(c => {
-              const active = cat === c
-              const count = c === 'Barchasi' ? PROBLEM_SETS.length : PROBLEM_SETS.filter(s => s.topic === c).length
-              return (
-                <Pressable
-                  key={c}
-                  onPress={() => {
-                    triggerHaptic('selection')
-                    setCat(c)
-                  }}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    active ? styles.chipActive : styles.chipIdle,
-                    pressed && { opacity: 0.85 },
-                  ]}
-                >
-                  <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextIdle]}>{c}</Text>
-                  <Text style={[styles.chipCount, NUM, { color: active ? '#CDE9AE' : '#9AA995' }]}>{count}</Text>
-                </Pressable>
-              )
-            })}
-          </ScrollView>
-
-          {/* ── 4. Mashq rejimlari ── */}
+          {/* ── 3. Masala to'plamlari ── */}
           <View style={styles.section}>
             <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Mashq rejimlari</Text>
-              <Text style={styles.sectionHint}>4 ta</Text>
+              <Text style={styles.sectionTitle}>Masala to&apos;plamlari</Text>
+              <Text style={[styles.sectionCount, NUM]}>{list.length} ta</Text>
             </View>
 
-            <View style={[CARD, styles.modesPanel]}>
-              {modes.map((m, i) => {
-                const proLocked = m.pro && !isPro
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow} contentContainerStyle={styles.chipRowInner}>
+              {categories.map(c => {
+                const active = cat === c
+                const count = c === 'Barchasi' ? PROBLEM_SETS.length : PROBLEM_SETS.filter(s => s.topic === c).length
                 return (
                   <Pressable
-                    key={m.key}
-                    onPress={m.run}
+                    key={c}
+                    onPress={() => {
+                      triggerHaptic('selection')
+                      setCat(c)
+                    }}
                     style={({ pressed }) => [
-                      styles.modeCell,
-                      i % 2 === 0 && styles.modeCellRightBorder,
-                      i > 1 && styles.modeCellTopBorder,
-                      proLocked && { backgroundColor: '#FBFCF8' },
-                      pressed && { backgroundColor: '#F3F7EE' },
+                      styles.chip,
+                      active ? styles.chipActive : styles.chipIdle,
+                      pressed && { opacity: 0.85 },
                     ]}
                   >
-                    <View style={styles.modeTop}>
-                      <View style={[styles.modeTile, { backgroundColor: m.tile }]}>
-                        <Ionicons name={m.icon} size={17} color={m.fg} />
-                      </View>
-                      {proLocked && (
-                        <View style={styles.proBadge}>
-                          <Text style={styles.proBadgeText}>PRO</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.modeName}>{m.name}</Text>
-                    <Text style={styles.modeDesc}>{m.desc}</Text>
-                    <Text style={[styles.modeCoin, NUM]}>+{m.coin} coin</Text>
+                    <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextIdle]}>{c}</Text>
+                    <Text style={[styles.chipCount, NUM, { color: active ? '#CDE9AE' : '#9AA995' }]}>{count}</Text>
                   </Pressable>
                 )
               })}
-            </View>
-          </View>
-
-          {/* ── 5. O'sish yo'li ── */}
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>O'sish yo'li</Text>
-              <Text style={[styles.sectionCount, NUM]}>{solvedCount} ta yechildi</Text>
-            </View>
-
-            <View style={[CARD, styles.tiersCard]}>
-              <View style={styles.tierBars}>
-                {TIERS.map((t, i) => {
-                  const done = solvedCount >= t.need
-                  const current = !done && solvedCount >= (TIERS[i - 1]?.need ?? 0)
-                  return (
-                    <View key={t.name} style={styles.tierBarCell}>
-                      {done ? (
-                        <LinearGradient colors={GRAD_RAIL} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.tierBarFill} />
-                      ) : (
-                        <View style={[styles.tierBarFill, { backgroundColor: current ? '#E8A33D' : '#EAEEE3' }]} />
-                      )}
-                    </View>
-                  )
-                })}
-              </View>
-              <View style={styles.tierLabels}>
-                {TIERS.map((t, i) => {
-                  const done = solvedCount >= t.need
-                  const current = !done && solvedCount >= (TIERS[i - 1]?.need ?? 0)
-                  return (
-                    <View key={t.name} style={styles.tierLabelCell}>
-                      <Text style={[styles.tierName, { color: done ? '#0B6E4F' : current ? '#B87A22' : '#9AA995' }]}>
-                        {t.name}
-                      </Text>
-                      <Text style={[styles.tierNeed, NUM]}>{done ? 'ochiq' : `${t.need}+ masala`}</Text>
-                    </View>
-                  )
-                })}
-              </View>
-            </View>
-          </View>
-
-          {/* ── 6. Kundalik vazifalar ── */}
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Kundalik vazifalar</Text>
-              <Text style={styles.sectionHint}>tungi 00:00 gacha</Text>
-            </View>
-
-            <View style={[CARD, styles.missionsPanel]}>
-              {missions.map((m, i) => {
-                const claimed = claimedMissions.includes(m.key)
-                const done = m.ratio >= 1
-                return (
-                  <View key={m.key} style={[styles.missionRow, i > 0 && styles.missionRowBorder]}>
-                    <View style={[styles.missionBox, done ? styles.missionBoxOn : styles.missionBoxOff]}>
-                      {done && <Ionicons name="checkmark" size={13} color="#1C3214" />}
-                    </View>
-
-                    <View style={styles.missionBody}>
-                      <Text style={styles.missionLabel}>{m.label}</Text>
-                      <View style={styles.missionBarRow}>
-                        <Bar ratio={m.ratio} color={done ? '#5FAF22' : '#E8A33D'} />
-                        <Text style={[styles.missionDetail, NUM]}>{m.detail}</Text>
-                        <Text style={[styles.missionReward, NUM]}>+{m.reward}</Text>
-                      </View>
-                    </View>
-
-                    <Pressable
-                      disabled={!done || claimed}
-                      onPress={() => {
-                        triggerHaptic('success')
-                        claimMission(m.key, m.reward)
-                      }}
-                      style={({ pressed }) => [
-                        styles.missionCta,
-                        claimed
-                          ? [OUT_BTN, { opacity: 1 }]
-                          : done
-                            ? [LIME_BTN, pressed && { transform: [{ scale: 0.97 }] }]
-                            : [OUT_BTN, { opacity: 0.5 }],
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.missionCtaText,
-                          claimed ? OUT_TEXT : done ? LIME_TEXT : [OUT_TEXT, { color: '#9AA995' }],
-                        ]}
-                      >
-                        {claimed ? 'Olindi' : 'Olish'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                )
-              })}
-            </View>
-          </View>
-
-          {/* ── 7. Barcha masalalar ── */}
-          <View
-            style={styles.section}
-            onLayout={e => {
-              listY.current = e.nativeEvent.layout.y
-            }}
-          >
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Barcha Masalalar</Text>
-              <Text style={[styles.sectionCount, NUM]}>{list.length} ta to'plam</Text>
-            </View>
+            </ScrollView>
 
             <View style={styles.setList}>
               {list.map(set => {
@@ -595,6 +432,103 @@ const ProblemsScreen = () => {
             </View>
           </View>
 
+          {/* ── 4. Bugungi vazifalar ── */}
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <Text style={styles.sectionTitle}>Bugungi vazifalar</Text>
+              <Text style={styles.sectionHint}>har kuni yangilanadi</Text>
+            </View>
+
+            <View style={[CARD, styles.missionsPanel]}>
+              {missions.map((m, i) => {
+                const claimed = claimedMissions.includes(m.key)
+                const done = m.ratio >= 1
+                return (
+                  <View key={m.key} style={[styles.missionRow, i > 0 && styles.missionRowBorder]}>
+                    <View style={[styles.missionBox, done ? styles.missionBoxOn : styles.missionBoxOff]}>
+                      {done && <Ionicons name="checkmark" size={13} color="#1C3214" />}
+                    </View>
+
+                    <View style={styles.missionBody}>
+                      <Text style={styles.missionLabel}>{m.label}</Text>
+                      <View style={styles.missionBarRow}>
+                        <Bar ratio={m.ratio} color={done ? '#5FAF22' : '#E8A33D'} />
+                        <Text style={[styles.missionDetail, NUM]}>{m.detail}</Text>
+                        <Text style={[styles.missionReward, NUM]}>+{m.reward}</Text>
+                      </View>
+                    </View>
+
+                    <Pressable
+                      disabled={!done || claimed}
+                      onPress={() => {
+                        triggerHaptic('success')
+                        claimMission(m.key, m.reward)
+                      }}
+                      style={({ pressed }) => [
+                        styles.missionCta,
+                        claimed
+                          ? [OUT_BTN, { opacity: 1 }]
+                          : done
+                            ? [LIME_BTN, pressed && { transform: [{ scale: 0.97 }] }]
+                            : [OUT_BTN, { opacity: 0.5 }],
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.missionCtaText,
+                          claimed ? OUT_TEXT : done ? LIME_TEXT : [OUT_TEXT, { color: '#9AA995' }],
+                        ]}
+                      >
+                        {claimed ? 'Olindi' : 'Olish'}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )
+              })}
+            </View>
+          </View>
+
+          {/* ── 5. Qo'shimcha rejimlar ── */}
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <Text style={styles.sectionTitle}>Qo&apos;shimcha rejimlar</Text>
+            </View>
+
+            <View style={[CARD, styles.modesPanel]}>
+              {modes.map((m, i) => {
+                const proLocked = m.pro && !isPro
+                return (
+                  <Pressable
+                    key={m.key}
+                    onPress={m.run}
+                    style={({ pressed }) => [
+                      styles.modeRow,
+                      i > 0 && styles.modeRowBorder,
+                      proLocked && { backgroundColor: '#FBFCF8' },
+                      pressed && { backgroundColor: '#F3F7EE' },
+                    ]}
+                  >
+                    <View style={[styles.modeTile, { backgroundColor: m.tile }]}>
+                      <Ionicons name={m.icon} size={16} color={m.fg} />
+                    </View>
+                    <View style={styles.modeBody}>
+                      <Text style={styles.modeName}>{m.name}</Text>
+                      <Text style={styles.modeDesc}>{m.desc}</Text>
+                    </View>
+                    {proLocked ? (
+                      <View style={styles.proBadge}>
+                        <Text style={styles.proBadgeText}>Pro</Text>
+                      </View>
+                    ) : (
+                      <Text style={[styles.modeCoin, NUM]}>+{m.coin} coin</Text>
+                    )}
+                    <Ionicons name="chevron-forward" size={15} color="#9AA995" />
+                  </Pressable>
+                )
+              })}
+            </View>
+          </View>
+
           {/* ── Formulalar qo'llanmasi ── */}
           <Pressable
             onPress={() => {
@@ -618,8 +552,6 @@ const ProblemsScreen = () => {
           </Pressable>
         </View>
       </ScrollView>
-
-      <BottomNav active="problems" onSelect={onTab} />
 
       {/* ── Coin evaziga ochish — tasdiqlash varag'i ── */}
       <Modal
@@ -718,7 +650,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(205,233,174,0.22)',
   },
   h1: { fontSize: 21, lineHeight: 25, fontWeight: '800', letterSpacing: -0.6, color: '#F7FCED' },
-  h1Sub: { marginTop: 2, fontSize: 10.5, letterSpacing: 1.26, fontWeight: '800', color: 'rgba(205,233,174,0.5)' },
+  h1Sub: { marginTop: 2, fontSize: 11.5, letterSpacing: 0.1, fontWeight: '600', color: 'rgba(205,233,174,0.72)' },
   coinChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -739,19 +671,29 @@ const styles = StyleSheet.create({
   ledgerValue: { fontSize: 20, lineHeight: 20, fontWeight: '800', color: '#F7FCED' },
   ledgerLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
   ledgerLabel: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: 'rgba(205,233,174,0.55)',
+    letterSpacing: 0.1,
+    color: 'rgba(205,233,174,0.62)',
   },
+  tierRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  tierTrack: {
+    flex: 1,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(205,233,174,0.16)',
+    overflow: 'hidden',
+  },
+  tierTrackFill: { height: '100%', borderRadius: 3, backgroundColor: '#9BE04B' },
+  tierText: { fontSize: 11, fontWeight: '600', color: 'rgba(205,233,174,0.72)' },
+  tierStrong: { fontWeight: '800', color: '#CDE9AE' },
   headerTail: { height: 16 },
 
   ticket: { marginTop: -4, borderRadius: 16, overflow: 'hidden', flexDirection: 'row' },
   ticketRail: { width: 6 },
   ticketBody: { flex: 1, paddingLeft: 14, paddingRight: 16, paddingTop: 16, paddingBottom: 16 },
   ticketHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  ticketKicker: { fontSize: 10.5, letterSpacing: 1.47, fontWeight: '800', color: '#6B7C66' },
+  ticketKicker: { fontSize: 11.5, letterSpacing: 0.2, fontWeight: '800', color: '#6B7C66' },
   clockChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -807,7 +749,7 @@ const styles = StyleSheet.create({
   ticketCta: { height: 42, paddingHorizontal: 16, gap: 6, overflow: 'hidden' },
   ticketCtaText: { fontSize: 13 },
 
-  chipRow: { marginTop: 24, marginHorizontal: -20 },
+  chipRow: { marginHorizontal: -20, marginBottom: 14 },
   chipRowInner: { paddingHorizontal: 20, gap: 8 },
   chip: {
     flexDirection: 'row',
@@ -830,33 +772,29 @@ const styles = StyleSheet.create({
   sectionHint: { fontSize: 11, fontWeight: '700', color: '#9AA995' },
   sectionCount: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
 
-  modesPanel: { flexDirection: 'row', flexWrap: 'wrap', overflow: 'hidden' },
-  modeCell: { width: '50%', padding: 14 },
-  modeCellRightBorder: { borderRightWidth: 1, borderRightColor: '#EDF1E7' },
-  modeCellTopBorder: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
-  modeTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  modesPanel: { overflow: 'hidden' },
+  modeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  modeRowBorder: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
   modeTile: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  modeBody: { flex: 1, minWidth: 0 },
   proBadge: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
     paddingVertical: 4,
     borderRadius: 6,
     backgroundColor: '#FCF1DC',
     borderWidth: 1,
     borderColor: 'rgba(232,163,61,0.4)',
   },
-  proBadgeText: { fontSize: 9.5, letterSpacing: 0.76, fontWeight: '900', color: '#B87A22' },
-  modeName: { marginTop: 10, fontSize: 13.5, lineHeight: 17, fontWeight: '800', color: C.ink },
-  modeDesc: { marginTop: 4, fontSize: 11, lineHeight: 15, fontWeight: '500', color: C.ink3 },
-  modeCoin: { marginTop: 8, fontSize: 12, fontWeight: '800', color: '#B87A22' },
-
-  tiersCard: { paddingHorizontal: 14, paddingVertical: 16 },
-  tierBars: { flexDirection: 'row', gap: 6 },
-  tierBarCell: { flex: 1, height: 7 },
-  tierBarFill: { flex: 1, borderRadius: 4 },
-  tierLabels: { flexDirection: 'row', gap: 6, marginTop: 12 },
-  tierLabelCell: { flex: 1 },
-  tierName: { fontSize: 11, lineHeight: 14, fontWeight: '800' },
-  tierNeed: { marginTop: 2, fontSize: 10, fontWeight: '700', color: '#9AA995' },
+  proBadgeText: { fontSize: 10, fontWeight: '800', color: '#B87A22' },
+  modeName: { fontSize: 13.5, lineHeight: 17, fontWeight: '800', color: C.ink },
+  modeDesc: { marginTop: 2, fontSize: 11, lineHeight: 15, fontWeight: '500', color: C.ink3 },
+  modeCoin: { fontSize: 11.5, fontWeight: '800', color: '#B87A22' },
 
   missionsPanel: { overflow: 'hidden' },
   missionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
