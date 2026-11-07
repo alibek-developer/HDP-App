@@ -1,0 +1,19 @@
+name = "hdp-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+[vars]
+TELEGRAM_BOT_USERNAME = "hdpappbot"
+
+# Maxfiy qiymatlar faylda emas: `wrangler secret put BOT_TOKEN`
+# va `wrangler secret put TELEGRAM_WEBHOOK_SECRET`.
+
+[[kv_namespaces]]
+binding = "AUTH"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hdp"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
