@@ -43,7 +43,7 @@ export const LimeButton = ({
     onPress={onPress}
     disabled={disabled || busy}
     style={({ pressed }) => [
-      { opacity: disabled ? 0.8 : 1, transform: [{ scale: pressed ? 0.975 : 1 }] },
+      { opacity: disabled ? 0.45 : 1, transform: [{ scale: pressed && !disabled ? 0.975 : 1 }] },
       style,
     ]}
   >
@@ -51,7 +51,7 @@ export const LimeButton = ({
       colors={['#9BE04B', '#7ED321']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.lime, { height }, styles.limeShadow]}
+      style={[styles.lime, { height }, !disabled && styles.limeShadow]}
     >
       {busy ? <ActivityIndicator size="small" color={C.inkOnLime} /> : null}
       <Text style={styles.limeText}>{busy ? busyLabel : label}</Text>
@@ -59,22 +59,83 @@ export const LimeButton = ({
   </Pressable>
 )
 
-/** Maydoncha: ikon + input (+ o'ngda ko'z tugmasi) */
+/** Maydoncha: yorliq + ikon + input (+ o'ngda ko'z tugmasi) + xato matni */
 export const Field = ({
   icon,
   right,
+  label,
+  error,
   style,
   ...input
-}: TextInputProps & { icon?: React.ReactNode; right?: React.ReactNode; style?: StyleProp<ViewStyle> }) => (
-  <View style={[styles.field, style]}>
-    {icon}
-    <TextInput
-      {...input}
-      placeholderTextColor={C.ink4}
-      style={styles.fieldInput}
-      autoCapitalize={input.autoCapitalize ?? 'none'}
-    />
-    {right}
+}: TextInputProps & {
+  icon?: React.ReactNode
+  right?: React.ReactNode
+  label?: string
+  error?: string | null
+  style?: StyleProp<ViewStyle>
+}) => (
+  <View style={style}>
+    {label ? <Text style={styles.fieldLabel}>{label}</Text> : null}
+    <View style={[styles.field, !!error && styles.fieldBad]}>
+      {icon}
+      <TextInput
+        {...input}
+        placeholderTextColor={C.ink4}
+        style={styles.fieldInput}
+        autoCapitalize={input.autoCapitalize ?? 'none'}
+      />
+      {right}
+    </View>
+    {error ? <Text style={styles.fieldErrorText}>{error}</Text> : null}
+  </View>
+)
+
+/** Kirish ↔ Ro'yxatdan o'tish — bitta qarashda tanlanadigan rejim */
+export const AuthSwitch = ({
+  active,
+  onSwitch,
+  style,
+}: {
+  active: 'login' | 'signup'
+  onSwitch: (mode: 'login' | 'signup') => void
+  style?: StyleProp<ViewStyle>
+}) => (
+  <View style={[styles.switch, style]}>
+    {([
+      { key: 'login' as const, label: 'Kirish' },
+      { key: 'signup' as const, label: "Ro'yxatdan o'tish" },
+    ]).map(tab => {
+      const on = tab.key === active
+      return (
+        <Pressable
+          key={tab.key}
+          onPress={() => { if (!on) onSwitch(tab.key) }}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: on }}
+          style={styles.switchTab}
+        >
+          {on && (
+            <LinearGradient
+              colors={['#9BE04B', '#7ED321']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[StyleSheet.absoluteFill, { borderRadius: R.full }]}
+            />
+          )}
+          <Text style={[styles.switchText, on && styles.switchTextOn]}>{tab.label}</Text>
+        </Pressable>
+      )
+    })}
+  </View>
+)
+
+/** Onboarding savollari uchun oddiy qadam ko'rsatkichi (1/2, 2/2) */
+export const StepHeader = ({ step, total = 2 }: { step: number; total?: number }) => (
+  <View style={styles.stepHead}>
+    <View style={styles.stepTrack}>
+      <View style={[styles.stepFill, { width: `${(step / total) * 100}%` }]} />
+    </View>
+    <Text style={styles.stepText}>{step}/{total}</Text>
   </View>
 )
 
@@ -145,6 +206,7 @@ const styles = StyleSheet.create({
     elevation: 14,
   },
   limeText: { ...T.h3, fontSize: 16, fontWeight: '600', color: C.inkOnLime },
+  fieldLabel: { ...T.label, fontWeight: '600', color: C.ink2, marginBottom: 6, marginLeft: 4 },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,6 +218,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E4E9DD',
   },
+  fieldBad: { borderColor: '#E4A6A0', backgroundColor: '#FFFBFA' },
+  fieldErrorText: { marginTop: 6, marginLeft: 4, fontSize: 12.5, lineHeight: 17, fontWeight: '500', color: '#C2453D' },
+  switch: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: R.full,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(28,50,20,0.08)',
+  },
+  switchTab: {
+    flex: 1,
+    height: 44,
+    borderRadius: R.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  switchText: { fontSize: 14, fontWeight: '600', color: C.ink3 },
+  switchTextOn: { color: C.inkOnLime },
+  stepHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  stepTrack: { flex: 1, height: 6, borderRadius: R.full, backgroundColor: '#DCE6D4', overflow: 'hidden' },
+  stepFill: { height: '100%', borderRadius: R.full, backgroundColor: C.limeDeep },
+  stepText: { ...T.label, fontWeight: '600', color: C.brand, fontVariant: ['tabular-nums'] },
   fieldInput: {
     flex: 1,
     alignSelf: 'stretch',

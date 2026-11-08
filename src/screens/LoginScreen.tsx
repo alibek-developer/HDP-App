@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { BrandMark, Wordmark } from '../components/Brand'
 import { Fade } from '../components/Reveal'
 import TelegramAuthSheet, { TelegramMark } from '../components/TelegramAuthSheet'
-import { Field, LimeButton, OrDivider, ScreenBg, SocialTile, TapText } from '../components/ui'
+import { AuthSwitch, Field, LimeButton, OrDivider, ScreenBg, SocialTile, TapText } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
 import { useApp } from '../store/useStore'
 import type { RootStackParamList } from '../navigation/types'
@@ -15,8 +15,8 @@ import { C, R, T } from '../theme/tokens'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 /**
- * 2-qadam: Login. Email+parol va Telegram kirishi ishlaydi. Hisob shu
- * qurilmada saqlanadi: ilova qayta ochilganda «Kirish» ekrani chiqmaydi.
+ * Kirish — Telegram bir tegda, yoki email + parol. Yuqoridagi tanlov
+ * orqali ro'yxatdan o'tishga o'tiladi; xatolar har maydon ostida ko'rinadi.
  */
 const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 'Login'>) => {
   const insets = useSafeAreaInsets()
@@ -26,21 +26,19 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
   const [email, setEmail] = useState(savedEmail ?? '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
+  const [emailErr, setEmailErr] = useState<string | null>(null)
+  const [passErr, setPassErr] = useState<string | null>(null)
   const [tgOpen, setTgOpen] = useState(false)
 
   const emailEnter = () => {
-    if (!EMAIL_RE.test(email.trim())) {
+    const e = EMAIL_RE.test(email.trim()) ? null : "Email manzilini to'g'ri kiriting (misol: ali@mail.com)."
+    const p = password.length >= 6 ? null : "Parol kamida 6 belgidan iborat bo'lsin."
+    setEmailErr(e)
+    setPassErr(p)
+    if (e || p) {
       triggerHaptic('warning')
-      setErr("Email manzili noto'g'ri ko'rinishda.")
       return
     }
-    if (password.length < 6) {
-      triggerHaptic('warning')
-      setErr('Parol kamida 6 belgi bo‘lishi kerak.')
-      return
-    }
-    setErr(null)
     signInEmail(email.trim())
     triggerHaptic('success')
     navigation.replace('Goal')
@@ -64,15 +62,18 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
 
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.brandRow}>
-              <BrandMark size={38} />
-              <Wordmark size={26} />
+              <BrandMark size={34} />
+              <Wordmark size={22} />
             </View>
 
-            <Text style={styles.title}>
-              <Text style={{ color: C.ink4, fontWeight: '400' }}>Hisobingizga </Text>
-              <Text style={{ color: C.ink, fontWeight: '600' }}>kirish</Text>
-            </Text>
-            <Text style={styles.sub}>Telegram bilan bir tegda kiring — yoki email va parol bilan.</Text>
+            <AuthSwitch
+              active="login"
+              onSwitch={() => { triggerHaptic('light'); navigation.replace('SignUp') }}
+              style={styles.switch}
+            />
+
+            <Text style={styles.title}>Hisobingizga kirish</Text>
+            <Text style={styles.sub}>Telegram bilan bir tegda — yoki email va parol bilan.</Text>
 
             <View style={styles.form}>
               <SocialTile
@@ -89,20 +90,24 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
               <OrDivider label="yoki email bilan" />
 
               <Field
+                label="Email"
                 icon={<Ionicons name="mail-outline" size={17} color={C.ink4} />}
                 value={email}
-                onChangeText={setEmail}
-                placeholder="Email kiriting"
+                onChangeText={v => { setEmail(v); setEmailErr(null) }}
+                placeholder="misol: ali@mail.com"
                 keyboardType="email-address"
+                error={emailErr}
               />
 
               <Field
-                style={styles.mt12}
+                style={styles.mt14}
+                label="Parol"
                 icon={<Ionicons name="lock-closed-outline" size={17} color={C.ink4} />}
                 value={password}
-                onChangeText={setPassword}
-                placeholder="Parol kiriting"
+                onChangeText={v => { setPassword(v); setPassErr(null) }}
+                placeholder="Parolingizni kiriting"
                 secureTextEntry={!showPassword}
+                error={passErr}
                 right={
                   <Pressable
                     hitSlop={13}
@@ -114,8 +119,6 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
                 }
               />
 
-              {!!err && <Text style={styles.err}>{err}</Text>}
-
               <View style={styles.row}>
                 <TapText
                   onPress={() => { triggerHaptic('light'); navigation.navigate('Forgot') }}
@@ -126,19 +129,6 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
               </View>
 
               <LimeButton label="Kirish" onPress={emailEnter} style={styles.submit} />
-              <Text style={styles.keepNote}>
-                Hisob bu qurilmada saqlanadi — keyingi ochilishda kirmasdan davom etasiz.
-              </Text>
-
-              <View style={styles.footer}>
-                <Text style={styles.footerText}>Hisobingiz yo'qmi? </Text>
-                <TapText
-                  onPress={() => { triggerHaptic('light'); navigation.navigate('SignUp') }}
-                  style={styles.footerLink}
-                >
-                  Ro'yxatdan o'tish
-                </TapText>
-              </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -168,23 +158,19 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(28,50,20,0.08)',
   },
   scroll: { flexGrow: 1, justifyContent: 'flex-start', paddingBottom: 32 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 20 },
-  title: { ...T.h1, textAlign: 'center', marginTop: 24, paddingHorizontal: 32, color: C.ink },
-  sub: { ...T.bodyMd, color: C.ink3, textAlign: 'center', marginTop: 8, paddingHorizontal: 32 },
-  form: { paddingHorizontal: 24, marginTop: 28 },
-  mt12: { marginTop: 12 },
-  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#C2453D' },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 14, paddingHorizontal: 4 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 12 },
+  switch: { marginHorizontal: 24, marginTop: 18 },
+  title: { ...T.h2, textAlign: 'center', marginTop: 22, paddingHorizontal: 32, color: C.ink },
+  sub: { ...T.bodyMd, color: C.ink3, textAlign: 'center', marginTop: 6, paddingHorizontal: 32 },
+  form: { paddingHorizontal: 24, marginTop: 22 },
+  mt14: { marginTop: 14 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 12, paddingHorizontal: 4 },
   forgot: { ...T.bodySm, fontWeight: '600', color: C.brand },
-  submit: { marginTop: 24 },
-  keepNote: { ...T.bodySm, marginTop: 10, paddingHorizontal: 4, textAlign: 'center', color: C.ink4 },
+  submit: { marginTop: 20 },
   socialText: { fontSize: 15, fontWeight: '500', color: C.ink },
   telegramTile: { backgroundColor: '#F2FAFE', borderColor: '#CFE8F7', justifyContent: 'flex-start', paddingHorizontal: 16 },
   socialTag: { marginLeft: 'auto', height: 24, paddingHorizontal: 9, borderRadius: R.full, backgroundColor: '#E1F3FC', alignItems: 'center', justifyContent: 'center' },
   socialTagText: { fontSize: 11, fontWeight: '600', color: '#1B87BE' },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
-  footerText: { ...T.bodyMd, color: C.ink3 },
-  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '600' },
 })
 
 export default LoginScreen
