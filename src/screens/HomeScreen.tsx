@@ -19,7 +19,7 @@ import { Reveal } from '../components/Reveal'
 import { MidnightClock } from '../components/MidnightClock'
 import { navBottomSpace } from '../components/BottomNav'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { C, NUM, R, shadow } from '../theme/tokens'
+import { C, NUM, R, shadow, ABS_FILL, MATH_FONT } from '../theme/tokens'
 import { GRAD_LIME } from '../theme/solver'
 
 type Nav = CompositeNavigationProp<
@@ -67,7 +67,7 @@ const HomeScreen = () => {
   const doneLessons = LESSONS.filter(l => topicLessons[l.id]?.done).length
   const allDone = doneLessons >= LESSONS.length
   const nextLesson = LESSONS.find(l => !topicLessons[l.id]?.done) ?? LESSONS[LESSONS.length - 1]
-  const progress = LESSONS.length ? Math.round((doneLessons / LESSONS.length) * 100) : 0
+  const startLabel = doneLessons === 0 ? 'Boshlash' : allDone ? 'Takrorlash' : 'Davom etish'
 
   /* ── Hafta: faqat real daqiqalar ── */
   const weekKeys = currentWeekKeys()
@@ -195,85 +195,48 @@ const HomeScreen = () => {
             </Pressable>
           </View>
 
-          {/* Asosiy fan — Algebra I */}
-          <Pressable
-            onPress={() => {
-              triggerHaptic('medium')
-              navigation.navigate('Subject', { subjectId: SUBJECTS[0].id })
-            }}
-            accessibilityLabel="Algebra I fanini ochish"
-            style={({ pressed }) => [
-              styles.fanHero,
-              shadow(C.ink, 12, 10, 0.14),
-              pressed && { transform: [{ scale: 0.985 }] },
-            ]}
-          >
-            <Image source={SUBJECTS[0].photo} style={styles.fanHeroPhoto} resizeMode="cover" />
-            <LinearGradient
-              colors={['rgba(5,24,16,0)', 'rgba(5,24,16,0.58)', 'rgba(5,24,16,0.95)']}
-              locations={[0, 0.44, 1]}
-              style={StyleSheet.absoluteFill}
-              pointerEvents="none"
-            />
-
-            <View style={styles.fanHeroTag}>
-              <Text style={styles.fanHeroTagText}>Asosiy fan</Text>
-            </View>
-
-            <View style={styles.fanHeroBody}>
-              <Text style={styles.fanHeroName}>Algebra I</Text>
-              <Text style={[styles.fanHeroMeta, NUM]}>
-                {TOPICS.length} mavzu · {TOTAL_VIDEOS} video dars
-              </Text>
-
-              <View style={styles.fanHeroFoot}>
-                <View style={styles.fanHeroProgress}>
-                  <View style={styles.fanHeroTrack}>
-                    <View style={[styles.fanHeroFill, { width: `${progress}%` }]} />
-                  </View>
-                  <Text style={[styles.fanHeroCount, NUM]}>{doneLessons}/{LESSONS.length} dars</Text>
-                </View>
-
+          {/* Fanlar — ikkitadan, rasmli kartalar */}
+          <View style={styles.fanGrid}>
+            {SUBJECTS.map(s => {
+              const primary = s.id === SUBJECTS[0].id
+              return (
                 <Pressable
+                  key={s.id}
                   onPress={() => {
                     triggerHaptic('medium')
-                    navigation.navigate('TopicLesson', { lessonId: nextLesson.id })
+                    /* Asosiy karta — darsni ochadi; fan ro'yxati banner va «10 mavzu»dan */
+                    if (primary) navigation.navigate('TopicLesson', { lessonId: nextLesson.id })
+                    else navigation.navigate('Subject', { subjectId: s.id })
                   }}
-                  accessibilityLabel="Darsni davom ettirish"
-                  style={({ pressed }) => [styles.fanHeroCta, pressed && { opacity: 0.85 }]}
+                  accessibilityLabel={primary ? `${s.name} — ${startLabel}` : `${s.name} fanini ochish`}
+                  style={({ pressed }) => [styles.fanCard, pressed && { transform: [{ scale: 0.98 }] }]}
                 >
-                  <Text style={styles.fanHeroCtaText}>
-                    {doneLessons === 0 ? 'Boshlash' : allDone ? 'Takrorlash' : 'Davom etish'}
-                  </Text>
-                  <Ionicons name="arrow-forward" size={13} color={C.inkOnLime} />
-                </Pressable>
-              </View>
-            </View>
-          </Pressable>
+                  <Image source={s.thumb} style={styles.fanCardPhoto} resizeMode="cover" />
+                  <LinearGradient
+                    colors={['rgba(5,24,16,0)', 'rgba(5,24,16,0.62)', 'rgba(5,24,16,0.94)']}
+                    locations={[0, 0.38, 0.78]}
+                    style={ABS_FILL}
+                    pointerEvents="none"
+                  />
 
-          {/* Qolgan fanlar — mazmuni hali yuklanmagan */}
-          <View style={styles.fanList}>
-            {SUBJECTS.slice(1).map((s, i) => (
-              <Pressable
-                key={s.id}
-                onPress={() => {
-                  triggerHaptic('medium')
-                  navigation.navigate('Subject', { subjectId: s.id })
-                }}
-                style={({ pressed }) => [
-                  styles.fanRow,
-                  i > 0 && styles.fanRowBorder,
-                  pressed && { backgroundColor: '#F7FAF2' },
-                ]}
-              >
-                <Image source={s.thumb} style={styles.fanThumb} resizeMode="cover" />
-                <View style={styles.fanRowText}>
-                  <Text style={styles.fanRowName} numberOfLines={1}>{s.name}</Text>
-                  <Text style={styles.fanRowMeta}>Tez orada</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={15} color={C.ink4} />
-              </Pressable>
-            ))}
+                  <View style={styles.fanCardBody}>
+                    <Text style={styles.fanCardName} numberOfLines={1}>{s.name}</Text>
+                    <Text style={[styles.fanCardMeta, NUM]}>
+                      {primary
+                        ? `${TOPICS.length} mavzu · ${doneLessons}/${LESSONS.length} dars`
+                        : 'Tez orada'}
+                    </Text>
+
+                    {primary && (
+                      <View style={styles.fanCta}>
+                        <Text style={styles.fanCtaText}>{startLabel}</Text>
+                        <Ionicons name="arrow-forward" size={12} color={C.inkOnLime} />
+                      </View>
+                    )}
+                  </View>
+                </Pressable>
+              )
+            })}
           </View>
         </Reveal>
 
@@ -281,7 +244,7 @@ const HomeScreen = () => {
         <Reveal delay={210} y={26} duration={420} style={styles.section}>
           <View style={[styles.daily, shadow(C.ink, 10, 8, 0.05)]}>
             <View style={styles.dailyTop}>
-              <Text style={styles.dailyBadgeText}>KUNLIK MASALA</Text>
+              <Text style={styles.dailyBadgeText}>Kunlik masala</Text>
               <View style={styles.dailyClockRow}>
                 <Ionicons name="alarm-outline" size={13} color={C.ink3} />
                 <MidnightClock style={[styles.dailyClock, NUM]} />
@@ -365,7 +328,7 @@ const HomeScreen = () => {
               <Text style={[styles.weekTotal, NUM]}>{weekTotal} daqiqa</Text>
               <View style={styles.weekLeague}>
                 <Ionicons name="trophy" size={13} color={C.coin} />
-                <Text style={[styles.weekLeagueText, NUM]}>Liga · #{leagueRank(xp)}</Text>
+                <Text style={[styles.weekLeagueText, NUM]}>O&apos;rin · #{leagueRank(xp)}/500</Text>
               </View>
             </View>
           </View>
@@ -382,10 +345,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 9, flexShrink: 1 },
   brandText: {
-    fontFamily: 'Georgia',
+    fontFamily: MATH_FONT,
     fontSize: 19,
     lineHeight: 23,
-    fontWeight: '700',
+    fontWeight: '400',
     color: C.brandDeep,
   },
   avatarWrap: { width: 44, height: 44, borderRadius: 22, ...shadow('#5FAF22', 8, 6, 0.3) },
@@ -398,7 +361,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.6)',
   },
-  avatarText: { fontSize: 14, fontWeight: '800', color: C.inkOnLime },
+  avatarText: { fontSize: 14, fontWeight: '600', color: C.inkOnLime },
 
   walletRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 14 },
   coinPill: {
@@ -412,7 +375,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(232,163,61,0.38)',
     borderWidth: 1,
   },
-  coinText: { fontSize: 13, fontWeight: '800', color: '#B87A22' },
+  coinText: { fontSize: 13, fontWeight: '600', color: '#B87A22' },
   xpPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -424,7 +387,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(76,125,240,0.3)',
     borderWidth: 1,
   },
-  xpText: { fontSize: 13, fontWeight: '800', color: '#3560C4' },
+  xpText: { fontSize: 13, fontWeight: '600', color: '#3560C4' },
 
   section: { marginTop: 20 },
 
@@ -441,16 +404,16 @@ const styles = StyleSheet.create({
   bannerPhoto: { position: 'absolute', right: 0, top: 0, width: '64%', height: '100%' },
   bannerContent: { maxWidth: 232, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 },
   bannerBrand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bannerKicker: { fontSize: 11.5, fontWeight: '700', color: '#CDE9AE' },
+  bannerKicker: { fontSize: 12, fontWeight: '500', color: '#CDE9AE' },
   bannerTitle: {
     marginTop: 7,
     fontSize: 19,
     lineHeight: 24,
     letterSpacing: -0.4,
-    fontWeight: '800',
+    fontWeight: '600',
     color: '#FFFFFF',
   },
-  bannerSub: { marginTop: 4, fontSize: 12, lineHeight: 17, fontWeight: '600', color: 'rgba(230,245,220,0.85)' },
+  bannerSub: { marginTop: 4, fontSize: 12, lineHeight: 17, fontWeight: '500', color: 'rgba(230,245,220,0.85)' },
   bannerCta: {
     marginTop: 12,
     alignSelf: 'flex-start',
@@ -462,7 +425,7 @@ const styles = StyleSheet.create({
     borderRadius: R.full,
     backgroundColor: C.limeBright,
   },
-  bannerCtaText: { fontSize: 12.5, fontWeight: '800', color: C.inkOnLime },
+  bannerCtaText: { fontSize: 12.5, fontWeight: '600', color: C.inkOnLime },
 
   daily: {
     backgroundColor: C.leafTint,
@@ -472,17 +435,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   dailyTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dailyBadgeText: { fontSize: 10.5, letterSpacing: 1, fontWeight: '800', color: C.brand },
+  dailyBadgeText: { fontSize: 11.5, letterSpacing: 0.6, fontWeight: '600', color: C.brand },
   dailyClockRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  dailyClock: { fontSize: 12, fontWeight: '800', color: C.ink3 },
+  dailyClock: { fontSize: 12, fontWeight: '600', color: C.ink3 },
   dailyCat: {
     marginTop: 12,
     fontSize: 11.5,
-    fontWeight: '700',
+    fontWeight: '500',
     color: C.ink3,
   },
-  dailyTitle: { marginTop: 4, fontSize: 17.5, lineHeight: 22, fontWeight: '800', color: C.ink },
-  dailyFormula: { marginTop: 6, fontSize: 15.5, fontWeight: '700', color: C.brand },
+  dailyTitle: { marginTop: 4, fontSize: 17.5, lineHeight: 22, fontWeight: '600', color: C.ink },
+  dailyFormula: { marginTop: 6, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 16, lineHeight: 23, color: C.brand },
   dailyBottom: {
     marginTop: 14,
     flexDirection: 'row',
@@ -501,8 +464,8 @@ const styles = StyleSheet.create({
   },
   dailyCoinPill: { backgroundColor: C.coinSoft },
   dailyXpPill: { backgroundColor: C.xpSoft },
-  dailyCoinText: { fontSize: 11.5, fontWeight: '800', color: '#B87A22' },
-  dailyXpText: { fontSize: 11.5, fontWeight: '800', color: '#3560C4' },
+  dailyCoinText: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
+  dailyXpText: { fontSize: 12, fontWeight: '600', color: '#3560C4' },
   dailyCtaWrap: { borderRadius: R.full, ...shadow('#5FAF22', 7, 6, 0.28) },
   dailyCta: {
     height: 38,
@@ -512,67 +475,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
-  dailyCtaText: { fontSize: 12.5, fontWeight: '800', color: C.inkOnLime },
+  dailyCtaText: { fontSize: 12.5, fontWeight: '600', color: C.inkOnLime },
 
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  sectionTitle: { fontSize: 17.5, fontWeight: '800', color: C.ink },
+  sectionTitle: { fontSize: 17.5, fontWeight: '600', color: C.ink },
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  seeAllText: { fontSize: 13, fontWeight: '800', color: C.brand },
+  seeAllText: { fontSize: 13, fontWeight: '600', color: C.brand },
 
-  /* Fanlar — asosiy fan surati bilan katta karta */
-  fanHero: {
-    height: 196,
-    borderRadius: 20,
+  /* Fanlar — ikkitadan rasmli karta */
+  fanGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12 },
+  fanCard: {
+    width: '48%',
+    height: 156,
+    borderRadius: 18,
     overflow: 'hidden',
     backgroundColor: '#07281B',
     justifyContent: 'flex-end',
   },
-  fanHeroPhoto: { position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' },
-  fanHeroTag: {
-    position: 'absolute',
-    left: 14,
-    top: 14,
-    height: 24,
-    paddingHorizontal: 9,
+  fanCardPhoto: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 },
+  fanCardBody: { paddingHorizontal: 12, paddingBottom: 12, paddingTop: 8 },
+  fanCardName: { fontSize: 15, lineHeight: 19, letterSpacing: -0.2, fontWeight: '600', color: '#FFFFFF' },
+  fanCardMeta: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: '500', color: 'rgba(235,248,225,0.82)' },
+  fanCta: {
+    marginTop: 10,
+    height: 34,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 13,
     borderRadius: R.full,
     backgroundColor: C.limeBright,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fanHeroTagText: { fontSize: 11, fontWeight: '800', color: C.inkOnLime },
-  fanHeroBody: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 10 },
-  fanHeroName: { fontSize: 23, lineHeight: 27, letterSpacing: -0.5, fontWeight: '800', color: '#FFFFFF' },
-  fanHeroMeta: { marginTop: 3, fontSize: 12, fontWeight: '600', color: 'rgba(235,248,225,0.82)' },
-  fanHeroFoot: { marginTop: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  fanHeroProgress: { flex: 1, minWidth: 0 },
-  fanHeroTrack: { height: 5, borderRadius: R.full, backgroundColor: 'rgba(255,255,255,0.26)', overflow: 'hidden' },
-  fanHeroFill: { height: 5, borderRadius: R.full, backgroundColor: C.limeBright },
-  fanHeroCount: { marginTop: 6, fontSize: 10.5, fontWeight: '700', color: 'rgba(235,248,225,0.8)' },
-  fanHeroCta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    height: 36,
-    paddingHorizontal: 14,
-    borderRadius: R.full,
-    backgroundColor: C.limeBright,
+    gap: 6,
   },
-  fanHeroCtaText: { fontSize: 12.5, fontWeight: '800', color: C.inkOnLime },
-
-  fanList: {
-    marginTop: 12,
-    backgroundColor: C.surface,
-    borderColor: C.line,
-    borderWidth: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  fanRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 10, paddingRight: 14, paddingVertical: 9 },
-  fanRowBorder: { borderTopWidth: 1, borderTopColor: C.lineSoft },
-  fanThumb: { width: 52, height: 52, borderRadius: 12 },
-  fanRowText: { flex: 1, minWidth: 0 },
-  fanRowName: { fontSize: 14, fontWeight: '800', color: C.ink },
-  fanRowMeta: { marginTop: 2, fontSize: 11.5, fontWeight: '600', color: C.ink4 },
+  fanCtaText: { fontSize: 12, letterSpacing: 0.1, fontWeight: '600', color: C.inkOnLime },
 
   weekCard: {
     backgroundColor: C.surface,
@@ -587,7 +522,7 @@ const styles = StyleSheet.create({
   weekCol: { flex: 1, alignItems: 'center', gap: 6 },
   weekBarTrack: { height: 46, width: '100%', justifyContent: 'flex-end' },
   weekBar: { width: '100%', borderRadius: 5 },
-  weekDay: { fontSize: 10, fontWeight: '700', color: C.ink4 },
+  weekDay: { fontSize: 10, fontWeight: '500', color: C.ink4 },
   weekDayOn: { color: C.brand },
   weekFoot: {
     marginTop: 10,
@@ -598,9 +533,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  weekTotal: { fontSize: 12.5, fontWeight: '800', color: C.ink },
+  weekTotal: { fontSize: 12.5, fontWeight: '600', color: C.ink },
   weekLeague: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  weekLeagueText: { fontSize: 12, fontWeight: '700', color: '#B87A22' },
+  weekLeagueText: { fontSize: 12, fontWeight: '500', color: '#B87A22' },
 })
 
 export default HomeScreen

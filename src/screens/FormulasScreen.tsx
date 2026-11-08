@@ -11,7 +11,7 @@ import { triggerHaptic } from '../lib/haptics'
 import { Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
 import { PROBLEM_SETS } from '../data/content'
-import { ABS_FILL, C, NUM, shadow } from '../theme/tokens'
+import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
 import {
   CARD, GRAD_HEADER, GRAD_LIME, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT, SOLVER_BODY,
 } from '../theme/solver'
@@ -134,7 +134,7 @@ const FormulasScreen = () => {
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 40 }]}
       >
         {/* ── Header ── */}
         <View style={styles.header}>
@@ -142,7 +142,7 @@ const FormulasScreen = () => {
             onPress={() => { triggerHaptic('light'); navigation.goBack() }}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={17} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color="#33452F" />
           </Pressable>
 
           <View style={styles.titleBlock}>
@@ -347,8 +347,8 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 },
   backBtn: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
@@ -357,8 +357,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   titleBlock: { flex: 1, minWidth: 0, paddingHorizontal: 12, alignItems: 'center' },
-  kicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
-  h1: { marginTop: 2, fontSize: 15, lineHeight: 18, fontWeight: '800', color: C.ink },
+  kicker: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  h1: { marginTop: 2, fontSize: 15, lineHeight: 18, fontWeight: '600', color: C.ink },
   blitzBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -370,28 +370,28 @@ const styles = StyleSheet.create({
     borderColor: '#E8A33D',
     borderRadius: 12,
   },
-  blitzText: { fontSize: 11.5, fontWeight: '800', color: '#B87A22' },
+  blitzText: { fontSize: 11.5, fontWeight: '600', color: '#B87A22' },
 
   searchWrap: { marginBottom: 12 },
   searchCard: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, height: 48 },
-  searchInput: { flex: 1, fontSize: 13.5, fontWeight: '600', color: '#0E1A12', paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 13.5, fontWeight: '500', color: '#0E1A12', paddingVertical: 0 },
 
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   chipBase: { height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   chipAll: { paddingHorizontal: 12 },
   chipAllIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
-  chipAllText: { fontSize: 11.5, fontWeight: '800' },
+  chipAllText: { fontSize: 11.5, fontWeight: '600' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 8, paddingRight: 12, borderWidth: 1 },
   chipIdle: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA' },
   chipRail: { width: 5, height: 16, borderRadius: 3 },
-  chipLabel: { fontSize: 11.5, fontWeight: '800' },
+  chipLabel: { fontSize: 11.5, fontWeight: '600' },
 
   group: { marginBottom: 20 },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8, paddingHorizontal: 4 },
-  groupTitle: { fontSize: 12.5, fontWeight: '800', color: '#33452F' },
+  groupTitle: { fontSize: 12.5, fontWeight: '600', color: '#33452F' },
   groupLine: { flex: 1, height: 1, backgroundColor: '#CFD9C6' },
   groupCount: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  groupCountText: { fontSize: 10, fontWeight: '800' },
+  groupCountText: { fontSize: 10, fontWeight: '600' },
 
   panel: { borderRadius: 16, overflow: 'hidden' },
   row: { flexDirection: 'row', backgroundColor: '#FFFFFF', overflow: 'hidden' },
@@ -400,8 +400,8 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, paddingLeft: 16, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },
   rowHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   rowText: { flex: 1, minWidth: 0 },
-  rowTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '800', color: C.ink },
-  rowDesc: { marginTop: 4, fontSize: 11.5, lineHeight: 15, fontWeight: '600', color: '#6B7C66' },
+  rowTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: C.ink },
+  rowDesc: { marginTop: 4, fontSize: 11.5, lineHeight: 15, fontWeight: '500', color: '#6B7C66' },
   copyBtn: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 9 },
   formulaBox: {
     marginTop: 12,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     borderColor: '#E1E7DA',
     borderRadius: 10,
   },
-  formulaText: { fontFamily: 'monospace', fontSize: 12.5, lineHeight: 19, fontWeight: '700', textAlign: 'center' },
+  formulaText: { fontFamily: MATH_FONT, fontSize: 13.5, lineHeight: 20, fontWeight: '400', textAlign: 'center' },
 
   empty: { alignItems: 'center', paddingVertical: 56 },
   emptyTile: {
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
   },
-  emptyTitle: { fontSize: 14, fontWeight: '800', color: C.ink },
+  emptyTitle: { fontSize: 14, fontWeight: '600', color: C.ink },
   emptySub: { marginTop: 4, fontSize: 12, fontWeight: '500', color: '#6B7C66' },
 
   modalRoot: { flex: 1, justifyContent: 'flex-end' },
@@ -442,15 +442,15 @@ const styles = StyleSheet.create({
   },
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#E1E7DA', alignSelf: 'center', marginBottom: 16 },
   sheetCat: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, marginBottom: 8 },
-  sheetCatText: { fontSize: 11, fontWeight: '800' },
-  sheetTitle: { fontSize: 18, lineHeight: 23, fontWeight: '800', color: C.ink },
-  sheetDesc: { marginTop: 6, fontSize: 12.5, fontWeight: '600', color: '#6B7C66' },
+  sheetCatText: { fontSize: 11, fontWeight: '600' },
+  sheetTitle: { fontSize: 18, lineHeight: 23, fontWeight: '600', color: C.ink },
+  sheetDesc: { marginTop: 6, fontSize: 12.5, fontWeight: '500', color: '#6B7C66' },
 
   detailBox: { marginTop: 16, borderRadius: 16, overflow: 'hidden' },
   detailRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   detailInner: { paddingLeft: 20, paddingRight: 16, paddingTop: 20, paddingBottom: 20 },
-  detailKicker: { fontSize: 11.5, fontWeight: '700', color: 'rgba(205,233,174,0.5)' },
-  detailFormula: { marginTop: 10, fontFamily: 'monospace', fontSize: 15, lineHeight: 22, fontWeight: '700', textAlign: 'center', color: '#F7FCED' },
+  detailKicker: { fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.5)' },
+  detailFormula: { marginTop: 10, fontFamily: MATH_FONT, fontSize: 16, lineHeight: 24, fontWeight: '400', textAlign: 'center', color: '#F7FCED' },
 
   solveBtn: { marginTop: 16, height: 52, gap: 8, overflow: 'hidden' },
   solveText: { fontSize: 14.5 },
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     ...shadow('#0E1A12', 24, 10, 0.28),
   },
-  toastText: { fontSize: 12.5, fontWeight: '800', color: '#CDE9AE' },
+  toastText: { fontSize: 12.5, fontWeight: '600', color: '#CDE9AE' },
 })
 
 export default FormulasScreen

@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     elevation: 14,
   },
-  limeText: { ...T.h3, fontSize: 16, fontWeight: '800', color: C.inkOnLime },
+  limeText: { ...T.h3, fontSize: 16, fontWeight: '600', color: C.inkOnLime },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: 'stretch',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: C.ink,
     paddingVertical: 0,
     textAlignVertical: 'center',

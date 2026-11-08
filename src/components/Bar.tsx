@@ -18,7 +18,7 @@ export const Bar = ({
   track?: string
   style?: ViewStyle
 }) => (
-  <View style={[{ flex: 1, height, borderRadius: height / 2, backgroundColor: track, overflow: 'hidden' }, style]}>
+  <View style={[{ height, flexGrow: 1, flexShrink: 1, alignSelf: 'stretch', borderRadius: height / 2, backgroundColor: track, overflow: 'hidden' }, style]}>
     <View
       style={{
         height: '100%',

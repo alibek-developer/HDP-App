@@ -12,7 +12,7 @@ import { triggerHaptic } from '../lib/haptics'
 import { navBottomSpace } from '../components/BottomNav'
 import { MidnightClock } from '../components/MidnightClock'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
+import { ABS_FILL, C, MATH_FONT, NUM } from '../theme/tokens'
 import { Bar } from '../components/Bar'
 import { DAILY_BONUS, EXAM_SET, MISSION_REWARDS, PROBLEM_SETS, dailyProblem, type ProblemSet } from '../data/content'
 import {
@@ -80,6 +80,8 @@ const ProblemsScreen = () => {
   const [cat, setCat] = useState('Barchasi')
   /** Coin evaziga ochiladigan to'plam — avval tasdiqlash varag'i */
   const [unlockTarget, setUnlockTarget] = useState<ProblemSet | null>(null)
+  /** Bajarilmagan vazifadagi «Olish» bosilganda sabab ko'rsatiladi */
+  const [claimHint, setClaimHint] = useState<string | null>(null)
 
   useEffect(() => {
     rollDay()
@@ -133,10 +135,10 @@ const ProblemsScreen = () => {
     },
     {
       key: 'streak',
-      label: "Streak'ni davom ettir",
+      label: 'Bugun ham masala yech',
       reward: MISSION_REWARDS.streak,
       ratio: streak > 0 ? 1 : 0,
-      detail: streak > 0 ? `${streak} kun` : '0 kun',
+      detail: streak > 0 ? `zanjir ${streak} kun` : 'bugun hali yo\'q',
     },
     {
       key: 'olymp',
@@ -155,7 +157,7 @@ const ProblemsScreen = () => {
       fg: '#B87A22',
       name: 'Tezkor blits',
       desc: '30 soniyada 5 ta savol',
-      coin: 25,
+      reward: "har javob 5 coin",
       pro: false,
       run: () => {
         triggerHaptic('medium')
@@ -168,8 +170,8 @@ const ProblemsScreen = () => {
       tile: '#FDE8E4',
       fg: '#C2410C',
       name: 'Ketma-ket seriya',
-      desc: "10 ta ketma-ket to'g'ri javob — 2x coin",
-      coin: 100,
+      desc: "10 ta ketma-ket to'g'ri javob — coin ikki barobar",
+      reward: 'coin 2x',
       pro: false,
       run: () => {
         triggerHaptic('medium')
@@ -183,7 +185,7 @@ const ProblemsScreen = () => {
       fg: '#3560C4',
       name: 'Sinov testi',
       desc: `${EXAM_SET.questions.length} ta savollik to'liq imtihon`,
-      coin: 150,
+      reward: `${EXAM_SET.coinPerSolve} coin / masala`,
       pro: true,
       run: () => {
         if (!isPro) {
@@ -266,7 +268,7 @@ const ProblemsScreen = () => {
             <Text style={styles.tierText}>
               <Text style={styles.tierStrong}>{tier.name}</Text>
               {nextTier
-                ? ` · ${nextTier.name} darajasiga ${nextTier.need - solvedCount} ta masala`
+                ? ` · keyingi daraja: ${nextTier.name} — yana ${nextTier.need - solvedCount} ta masala`
                 : ' · eng yuqori daraja'}
             </Text>
           </View>
@@ -295,10 +297,7 @@ const ProblemsScreen = () => {
                 <Text style={styles.promptText}>{daily.question.prompt}</Text>
               </View>
 
-              <View style={styles.perforation}>
-                <View style={styles.punchLeft} />
-                <View style={styles.punchRight} />
-              </View>
+              <View style={styles.perforation} />
 
               <View style={styles.ticketBottom}>
                 <View style={styles.rewardLedger}>
@@ -459,9 +458,16 @@ const ProblemsScreen = () => {
                     </View>
 
                     <Pressable
-                      disabled={!done || claimed}
+                      disabled={claimed}
+                      hitSlop={6}
                       onPress={() => {
+                        if (!done) {
+                          triggerHaptic('warning')
+                          setClaimHint(`«${m.label}» bajarilgach «Olish» ochiladi.`)
+                          return
+                        }
                         triggerHaptic('success')
+                        setClaimHint(null)
                         claimMission(m.key, m.reward)
                       }}
                       style={({ pressed }) => [
@@ -486,6 +492,7 @@ const ProblemsScreen = () => {
                 )
               })}
             </View>
+            {claimHint && <Text style={styles.claimHint}>{claimHint}</Text>}
           </View>
 
           {/* ── 5. Qo'shimcha rejimlar ── */}
@@ -520,7 +527,7 @@ const ProblemsScreen = () => {
                         <Text style={styles.proBadgeText}>Pro</Text>
                       </View>
                     ) : (
-                      <Text style={[styles.modeCoin, NUM]}>+{m.coin} coin</Text>
+                      <Text style={[styles.modeCoin, NUM]}>{m.reward}</Text>
                     )}
                     <Ionicons name="chevron-forward" size={15} color="#9AA995" />
                   </Pressable>
@@ -568,7 +575,7 @@ const ProblemsScreen = () => {
               <Pressable style={ABS_FILL} onPress={() => setUnlockTarget(null)} accessibilityLabel="Yopish" />
               <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
                 <View style={styles.sheetGrip} />
-                <Text style={styles.sheetKicker}>TO&apos;PLAMNI OCHISH</Text>
+                <Text style={styles.sheetKicker}>To&apos;plamni ochish</Text>
                 <Text style={styles.sheetTitle}>{unlockTarget.title}</Text>
                 <Text style={styles.sheetMeta}>
                   {unlockTarget.difficulty} · {unlockTarget.topic} · {unlockTarget.questions.length} ta masala
@@ -649,8 +656,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(205,233,174,0.22)',
   },
-  h1: { fontSize: 21, lineHeight: 25, fontWeight: '800', letterSpacing: -0.6, color: '#F7FCED' },
-  h1Sub: { marginTop: 2, fontSize: 11.5, letterSpacing: 0.1, fontWeight: '600', color: 'rgba(205,233,174,0.72)' },
+  h1: { fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.6, color: '#F7FCED' },
+  h1Sub: { marginTop: 2, fontSize: 12, letterSpacing: 0.1, fontWeight: '500', color: 'rgba(205,233,174,0.72)' },
   coinChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -662,19 +669,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(232,163,61,0.38)',
   },
-  coinChipText: { fontSize: 13, fontWeight: '800', color: '#F3C88A' },
+  coinChipText: { fontSize: 13, fontWeight: '600', color: '#F3C88A' },
 
   ledger: { flexDirection: 'row', alignItems: 'stretch', marginTop: 16 },
   ledgerCell: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
   ledgerDivider: { width: 1, backgroundColor: 'rgba(205,233,174,0.14)' },
   ledgerInner: { flex: 1, paddingHorizontal: 12 },
-  ledgerValue: { fontSize: 20, lineHeight: 20, fontWeight: '800', color: '#F7FCED' },
+  ledgerValue: { fontSize: 20, lineHeight: 20, fontWeight: '600', color: '#F7FCED' },
   ledgerLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
   ledgerLabel: {
-    fontSize: 10.5,
-    fontWeight: '700',
+    fontSize: 11.5,
+    fontWeight: '500',
     letterSpacing: 0.1,
-    color: 'rgba(205,233,174,0.62)',
+    color: 'rgba(205,233,174,0.72)',
   },
   tierRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   tierTrack: {
@@ -685,15 +692,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   tierTrackFill: { height: '100%', borderRadius: 3, backgroundColor: '#9BE04B' },
-  tierText: { fontSize: 11, fontWeight: '600', color: 'rgba(205,233,174,0.72)' },
-  tierStrong: { fontWeight: '800', color: '#CDE9AE' },
+  tierText: { fontSize: 12, lineHeight: 17, fontWeight: '500', color: 'rgba(205,233,174,0.8)' },
+  tierStrong: { fontWeight: '600', color: '#CDE9AE' },
   headerTail: { height: 16 },
 
   ticket: { marginTop: -4, borderRadius: 16, overflow: 'hidden', flexDirection: 'row' },
   ticketRail: { width: 6 },
   ticketBody: { flex: 1, paddingLeft: 14, paddingRight: 16, paddingTop: 16, paddingBottom: 16 },
   ticketHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  ticketKicker: { fontSize: 11.5, letterSpacing: 0.2, fontWeight: '800', color: '#6B7C66' },
+  ticketKicker: { fontSize: 12, letterSpacing: 0.2, fontWeight: '600', color: '#6B7C66' },
   clockChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -705,9 +712,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E1E7DA',
   },
-  clockText: { fontSize: 12, fontWeight: '800', color: '#33452F' },
-  ticketTitle: { marginTop: 12, fontSize: 15.5, lineHeight: 20, fontWeight: '800', color: C.ink },
-  ticketMeta: { marginTop: 4, fontSize: 11.5, fontWeight: '600', color: '#9AA995' },
+  clockText: { fontSize: 12, fontWeight: '600', color: '#33452F' },
+  ticketTitle: { marginTop: 12, fontSize: 15.5, lineHeight: 20, fontWeight: '600', color: C.ink },
+  ticketMeta: { marginTop: 4, fontSize: 12, fontWeight: '500', color: '#9AA995' },
   promptBox: {
     marginTop: 12,
     paddingHorizontal: 12,
@@ -718,35 +725,17 @@ const styles = StyleSheet.create({
     borderColor: '#CFD9C6',
     borderRadius: 10,
   },
-  promptText: { fontFamily: 'monospace', fontSize: 13, lineHeight: 18, color: C.ink },
+  promptText: { fontFamily: MATH_FONT, fontWeight: '400', fontSize: 13.5, lineHeight: 20, color: C.ink },
   perforation: { marginTop: 16, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#CFD9C6' },
-  punchLeft: {
-    position: 'absolute',
-    left: -22,
-    top: -8,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: SOLVER_BODY,
-  },
-  punchRight: {
-    position: 'absolute',
-    right: -18,
-    top: -8,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: SOLVER_BODY,
-  },
   ticketBottom: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   rewardLedger: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   rewardCol: { paddingRight: 12 },
   rewardDivider: { width: 1, height: 26, backgroundColor: '#E1E7DA' },
-  rewardCoin: { fontSize: 15, lineHeight: 15, fontWeight: '800', color: '#B87A22' },
-  rewardXp: { fontSize: 15, lineHeight: 15, fontWeight: '800', color: '#3560C4' },
-  rewardUnit: { marginTop: 4, fontSize: 10, fontWeight: '700', color: '#9AA995' },
-  claimedNote: { marginLeft: 12, fontSize: 10.5, fontWeight: '700', color: '#9AA995' },
-  ticketCta: { height: 42, paddingHorizontal: 16, gap: 6, overflow: 'hidden' },
+  rewardCoin: { fontSize: 15, lineHeight: 15, fontWeight: '600', color: '#B87A22' },
+  rewardXp: { fontSize: 15, lineHeight: 15, fontWeight: '600', color: '#3560C4' },
+  rewardUnit: { marginTop: 4, fontSize: 12, fontWeight: '500', color: '#9AA995' },
+  claimedNote: { marginLeft: 12, fontSize: 12, fontWeight: '500', color: '#9AA995' },
+  ticketCta: { height: 44, paddingHorizontal: 16, gap: 6, overflow: 'hidden' },
   ticketCtaText: { fontSize: 13 },
 
   chipRow: { marginHorizontal: -20, marginBottom: 14 },
@@ -755,22 +744,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    height: 38,
+    height: 44,
     paddingHorizontal: 14,
     borderRadius: 12,
   },
   chipActive: { backgroundColor: '#0E1A12' },
   chipIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
-  chipText: { fontSize: 12.5, fontWeight: '800' },
+  chipText: { fontSize: 12.5, fontWeight: '600' },
   chipTextActive: { color: '#CDE9AE' },
   chipTextIdle: { color: '#6B7C66' },
-  chipCount: { fontSize: 10.5, fontWeight: '700' },
+  chipCount: { fontSize: 11.5, fontWeight: '500' },
 
   section: { marginTop: 24 },
   sectionHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '800', color: C.ink },
-  sectionHint: { fontSize: 11, fontWeight: '700', color: '#9AA995' },
-  sectionCount: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
+  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: C.ink },
+  sectionHint: { fontSize: 12, fontWeight: '500', color: '#9AA995' },
+  sectionCount: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
 
   modesPanel: { overflow: 'hidden' },
   modeRow: {
@@ -791,24 +780,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(232,163,61,0.4)',
   },
-  proBadgeText: { fontSize: 10, fontWeight: '800', color: '#B87A22' },
-  modeName: { fontSize: 13.5, lineHeight: 17, fontWeight: '800', color: C.ink },
-  modeDesc: { marginTop: 2, fontSize: 11, lineHeight: 15, fontWeight: '500', color: C.ink3 },
-  modeCoin: { fontSize: 11.5, fontWeight: '800', color: '#B87A22' },
+  proBadgeText: { fontSize: 11.5, fontWeight: '600', color: '#B87A22' },
+  modeName: { fontSize: 13.5, lineHeight: 17, fontWeight: '600', color: C.ink },
+  modeDesc: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
+  modeCoin: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
 
   missionsPanel: { overflow: 'hidden' },
+  claimHint: { marginTop: 10, paddingHorizontal: 4, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#B87A22' },
   missionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   missionRowBorder: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
   missionBox: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
   missionBoxOn: { backgroundColor: '#7ED321', borderWidth: 1, borderColor: '#7ED321' },
   missionBoxOff: { backgroundColor: '#F6F8F3', borderWidth: 1, borderColor: '#E1E7DA' },
   missionBody: { flex: 1, minWidth: 0 },
-  missionLabel: { fontSize: 13, fontWeight: '800', color: C.ink },
+  missionLabel: { fontSize: 13, fontWeight: '600', color: C.ink },
   missionBarRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
-  missionDetail: { fontSize: 10.5, fontWeight: '700', color: '#6B7C66' },
-  missionReward: { fontSize: 10.5, fontWeight: '800', color: '#B87A22' },
-  missionCta: { height: 32, paddingHorizontal: 12, borderRadius: 12 },
-  missionCtaText: { fontSize: 11.5 },
+  missionDetail: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  missionReward: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
+  missionCta: { height: 40, paddingHorizontal: 12, borderRadius: 12, justifyContent: 'center' },
+  missionCtaText: { fontSize: 12 },
 
   setList: { gap: 12 },
   setRow: { borderRadius: 14, flexDirection: 'row', overflow: 'hidden' },
@@ -816,16 +806,16 @@ const styles = StyleSheet.create({
   setBody: { flex: 1, paddingLeft: 14, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },
   setTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   setText: { flex: 1, minWidth: 0 },
-  setTitle: { fontSize: 14.5, lineHeight: 19, fontWeight: '800', color: C.ink },
+  setTitle: { fontSize: 14.5, lineHeight: 19, fontWeight: '600', color: C.ink },
   setMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  setMeta: { fontSize: 11.5, fontWeight: '600', color: '#6B7C66' },
-  setCta: { height: 36, paddingHorizontal: 14, borderRadius: 12, overflow: 'hidden' },
+  setMeta: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  setCta: { height: 44, paddingHorizontal: 14, borderRadius: 12, overflow: 'hidden' },
   setCtaText: { fontSize: 12 },
   setBottom: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  setCoin: { fontSize: 11.5, fontWeight: '800', color: '#B87A22' },
-  setXp: { fontSize: 11.5, fontWeight: '800', color: '#3560C4' },
+  setCoin: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
+  setXp: { fontSize: 12, fontWeight: '600', color: '#3560C4' },
   setBarWrap: { flex: 1 },
-  setCount: { fontSize: 11, fontWeight: '700' },
+  setCount: { fontSize: 12, fontWeight: '500' },
 
   barTrack: { flex: 1, height: 5, borderRadius: 3, backgroundColor: '#EAEEE3', overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 3 },
@@ -852,7 +842,7 @@ const styles = StyleSheet.create({
     borderColor: '#E1E7DA',
   },
   formulasText: { flex: 1 },
-  formulasTitle: { fontSize: 13.5, fontWeight: '800', color: C.ink },
+  formulasTitle: { fontSize: 13.5, fontWeight: '600', color: C.ink },
   formulasSub: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
 
   sheetRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(14,26,18,0.55)' },
@@ -867,23 +857,23 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   sheetGrip: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#E1E7DA', alignSelf: 'center', marginBottom: 14 },
-  sheetKicker: { fontSize: 10.5, letterSpacing: 1.4, fontWeight: '800', color: '#6B7C66' },
-  sheetTitle: { marginTop: 6, fontSize: 19, lineHeight: 24, fontWeight: '800', color: C.ink },
-  sheetMeta: { marginTop: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '600', color: '#6B7C66' },
+  sheetKicker: { fontSize: 12, letterSpacing: 0.2, fontWeight: '600', color: '#6B7C66' },
+  sheetTitle: { marginTop: 6, fontSize: 19, lineHeight: 24, fontWeight: '600', color: C.ink },
+  sheetMeta: { marginTop: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#6B7C66' },
   sheetRows: { marginTop: 14, backgroundColor: '#F7F9F6', borderRadius: 12, paddingVertical: 6, paddingHorizontal: 14 },
   sheetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  sheetK: { fontSize: 12, fontWeight: '700', color: '#6B7C66' },
-  sheetV: { fontSize: 13, fontWeight: '800', color: C.ink },
-  sheetPoor: { marginTop: 10, fontSize: 12, lineHeight: 18, fontWeight: '700', color: '#B87A22' },
+  sheetK: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  sheetV: { fontSize: 13, fontWeight: '600', color: C.ink },
+  sheetPoor: { marginTop: 10, fontSize: 12, lineHeight: 18, fontWeight: '500', color: '#B87A22' },
   sheetBtns: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   sheetCancel: {
     flex: 1, height: 50, alignItems: 'center', justifyContent: 'center',
     borderRadius: 100, backgroundColor: '#F1F4F0',
   },
-  sheetCancelText: { fontSize: 13, fontWeight: '800', color: '#6B7C66' },
+  sheetCancelText: { fontSize: 13, fontWeight: '600', color: '#6B7C66' },
   sheetOk: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 100, backgroundColor: '#7ED321', overflow: 'hidden' },
   sheetOkOff: { backgroundColor: '#E9EEE8' },
-  sheetOkText: { fontSize: 13, fontWeight: '800', color: '#1C3214' },
+  sheetOkText: { fontSize: 13, fontWeight: '600', color: '#1C3214' },
   sheetOkTextOff: { color: '#9AA995' },
 })
 

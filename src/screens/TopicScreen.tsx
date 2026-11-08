@@ -12,7 +12,7 @@ import { triggerHaptic } from '../lib/haptics'
 import { useExitToTopics } from '../lib/nav'
 import { findTopic, shortTitle } from '../data/curriculum'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM, TICK } from '../theme/tokens'
+import { ABS_FILL, C, NUM } from '../theme/tokens'
 import { CARD, LIME_BTN, SOLVER_BODY } from '../theme/solver'
 import type { Grad } from '../theme/tokens'
 
@@ -99,7 +99,7 @@ const TopicScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={17} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color="#33452F" />
           </Pressable>
 
           <View style={styles.headerTitle}>
@@ -237,9 +237,12 @@ const TopicScreen = () => {
                       {l.videos.length === 0 && ' · faqat nazariya'}
                     </Text>
                     <View style={styles.tickRow}>
-                      {ticks.map((on, i) => (
-                        <View key={i} style={[styles.tick, { backgroundColor: on ? TICK.ok : '#EAEEE3' }]} />
-                      ))}
+                      <View style={[styles.tickChip, ticks[0] && styles.tickChipOn]}>
+                        <Ionicons name="videocam" size={11} color={ticks[0] ? '#0B6E4F' : '#B9C5B3'} />
+                      </View>
+                      <View style={[styles.tickChip, ticks[1] && styles.tickChipOn]}>
+                        <Ionicons name="checkmark" size={11} color={ticks[1] ? '#0B6E4F' : '#B9C5B3'} />
+                      </View>
                     </View>
                   </View>
 
@@ -311,25 +314,25 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingBottom: 112 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   missingBtn: { height: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  missingText: { fontSize: 13, fontWeight: '800', color: '#0E1A12' },
+  missingText: { fontSize: 13, fontWeight: '600', color: '#0E1A12' },
 
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 20, paddingBottom: 12 },
-  backBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, paddingBottom: 12 },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 12 },
   headerTitle: { flex: 1, minWidth: 0, alignItems: 'center', paddingHorizontal: 8 },
-  headerKicker: { fontSize: 11, lineHeight: 14, letterSpacing: 0.2, fontWeight: '700', color: '#6B7C66', textAlign: 'center' },
-  headerName: { fontSize: 15, lineHeight: 19, fontWeight: '800', color: C.ink, marginTop: 2, textAlign: 'center' },
-  wallet: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', gap: 1, backgroundColor: '#FCF1DC', borderWidth: 1, borderColor: '#E8A33D', borderRadius: 12 },
-  walletText: { fontSize: 9.5, fontWeight: '800', color: '#B87A22' },
+  headerKicker: { fontSize: 12, lineHeight: 15, fontWeight: '500', color: '#6B7C66', textAlign: 'center' },
+  headerName: { fontSize: 15, lineHeight: 19, fontWeight: '600', color: C.ink, marginTop: 2, textAlign: 'center' },
+  wallet: { width: 46, height: 40, alignItems: 'center', justifyContent: 'center', gap: 1, backgroundColor: '#FCF1DC', borderWidth: 1, borderColor: '#E8A33D', borderRadius: 12 },
+  walletText: { fontSize: 10.5, fontWeight: '600', color: '#B87A22' },
 
   sheet: { backgroundColor: '#0E1A12', borderRadius: 16, overflow: 'hidden', flexDirection: 'row', marginBottom: 24 },
   sheetRailWrap: { ...railBase, borderRadius: 16 },
   sheetBody: { flex: 1, paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  sheetKicker: { fontSize: 11, lineHeight: 14, fontWeight: '700', color: '#9BE04B' },
-  sheetChapter: { fontSize: 15, lineHeight: 21, fontWeight: '800', color: '#FFFFFF', marginTop: 6 },
+  sheetKicker: { fontSize: 11, lineHeight: 14, fontWeight: '500', color: '#9BE04B' },
+  sheetChapter: { fontSize: 15, lineHeight: 21, fontWeight: '600', color: '#FFFFFF', marginTop: 6 },
   sheetCountRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 16 },
-  sheetDone: { fontSize: 30, lineHeight: 30, fontWeight: '800', color: '#FFFFFF' },
-  sheetTotal: { fontSize: 18, fontWeight: '800', color: 'rgba(205,233,174,0.55)' },
-  sheetPercent: { fontSize: 11.5, fontWeight: '800', color: '#9BE04B' },
+  sheetDone: { fontSize: 30, lineHeight: 30, fontWeight: '600', color: '#FFFFFF' },
+  sheetTotal: { fontSize: 18, fontWeight: '600', color: 'rgba(205,233,174,0.55)' },
+  sheetPercent: { fontSize: 12, fontWeight: '600', color: '#9BE04B' },
 
   segmentRow: { flexDirection: 'row', gap: 3, marginTop: 12 },
   segment: { flex: 1, height: 16, borderRadius: 4 },
@@ -344,11 +347,11 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   statCell: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statValue: { fontSize: 11.5, fontWeight: '800', color: '#CDE9AE' },
-  statUnit: { fontSize: 10.5, fontWeight: '600', color: 'rgba(205,233,174,0.7)' },
+  statValue: { fontSize: 12, fontWeight: '600', color: '#CDE9AE' },
+  statUnit: { fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.7)' },
 
   section: { marginBottom: 16 },
-  sectionKicker: { fontSize: 12, lineHeight: 15, fontWeight: '700', color: '#6B7C66', paddingHorizontal: 4, marginBottom: 8 },
+  sectionKicker: { fontSize: 12, lineHeight: 15, fontWeight: '500', color: '#6B7C66', paddingHorizontal: 4, marginBottom: 8 },
   list: { borderRadius: 16, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 14, paddingRight: 12, paddingVertical: 14, backgroundColor: '#FFFFFF' },
   rowDivided: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
@@ -356,18 +359,19 @@ const styles = StyleSheet.create({
   tileDone: { backgroundColor: '#DDF3DC' },
   tileStarted: { backgroundColor: '#0E1A12' },
   tileIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
-  tileText: { fontSize: 13.5, fontWeight: '800', color: '#33452F' },
+  tileText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
   rowBody: { flex: 1, minWidth: 0 },
-  rowTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '800', color: C.ink },
-  rowMeta: { fontSize: 11, lineHeight: 15, fontWeight: '600', color: '#9AA995', marginTop: 3 },
-  rowSub: { fontSize: 11, lineHeight: 15, fontWeight: '600', color: '#6B7C66', marginTop: 4 },
-  tickRow: { flexDirection: 'row', gap: 4, marginTop: 8 },
-  tick: { flex: 1, height: 4, borderRadius: 2 },
+  rowTitle: { fontSize: 14, lineHeight: 19, fontWeight: '600', color: C.ink },
+  rowMeta: { fontSize: 12, lineHeight: 16, fontWeight: '500', color: '#9AA995', marginTop: 3 },
+  rowSub: { fontSize: 12, lineHeight: 16, fontWeight: '500', color: '#6B7C66', marginTop: 4 },
+  tickRow: { flexDirection: 'row', gap: 4, marginTop: 7 },
+  tickChip: { width: 20, height: 16, alignItems: 'center', justifyContent: 'center', borderRadius: 5, backgroundColor: '#F1F5EC' },
+  tickChipOn: { backgroundColor: '#DDF3DC' },
   rowRight: { flexShrink: 0, alignItems: 'flex-end' },
-  rowStage: { fontSize: 10.5, lineHeight: 13, fontWeight: '800', textAlign: 'right' },
+  rowStage: { fontSize: 11.5, lineHeight: 15, fontWeight: '600', textAlign: 'right' },
   rowChevron: { marginTop: 4 },
-  testLabel: { fontSize: 10.5, lineHeight: 13, fontWeight: '800', textAlign: 'right' },
-  testCoins: { fontSize: 10, lineHeight: 13, fontWeight: '800', textAlign: 'right', marginTop: 2 },
+  testLabel: { fontSize: 11.5, lineHeight: 15, fontWeight: '600', textAlign: 'right' },
+  testCoins: { fontSize: 11.5, lineHeight: 15, fontWeight: '600', textAlign: 'right', marginTop: 2 },
   lockNote: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -378,10 +382,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#F2E5C9',
     backgroundColor: '#FDF7EA',
   },
-  lockNoteText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '600', color: '#8A6117' },
+  lockNoteText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#8A6117' },
 
   cta: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, marginBottom: 16 },
-  ctaText: { fontSize: 14.5, fontWeight: '800', color: '#1C3214' },
+  ctaText: { fontSize: 14.5, fontWeight: '600', color: '#1C3214' },
 })
 
 export default TopicScreen

@@ -56,21 +56,28 @@ export const R = {
 } as const
 
 /** Yozuv shkalasi — Tailwind'dagi `fontSize` bilan bir xil raqamlar */export const T: Record<string, TextStyle> = {
-  display: { fontSize: 34, lineHeight: 36, letterSpacing: -1.19, fontWeight: '800' },
-  h1: { fontSize: 27, lineHeight: 31, letterSpacing: -0.76, fontWeight: '800' },
-  h2: { fontSize: 21, lineHeight: 25, letterSpacing: -0.42, fontWeight: '800' },
-  h3: { fontSize: 17, lineHeight: 22, letterSpacing: -0.2, fontWeight: '700' },
+  display: { fontSize: 34, lineHeight: 36, letterSpacing: -1.19, fontWeight: '600' },
+  h1: { fontSize: 27, lineHeight: 31, letterSpacing: -0.76, fontWeight: '600' },
+  h2: { fontSize: 21, lineHeight: 25, letterSpacing: -0.42, fontWeight: '600' },
+  h3: { fontSize: 17, lineHeight: 22, letterSpacing: -0.2, fontWeight: '500' },
   bodyLg: { fontSize: 16, lineHeight: 24, fontWeight: '500' },
   bodyMd: { fontSize: 14.5, lineHeight: 22, fontWeight: '500' },
   bodySm: { fontSize: 13, lineHeight: 20, fontWeight: '500' },
-  label: { fontSize: 12, lineHeight: 16, letterSpacing: 0.12, fontWeight: '700' },
-  tiny: { fontSize: 10.5, lineHeight: 14, letterSpacing: 0.74, fontWeight: '800' },
+  label: { fontSize: 12, lineHeight: 16, letterSpacing: 0.12, fontWeight: '500' },
+  tiny: { fontSize: 10.5, lineHeight: 14, letterSpacing: 0.74, fontWeight: '600' },
 }
 
 /** Raqamli qatorlar (coin/XP/foiz) — tabular monospace */
 export const NUM: TextStyle = {
   fontVariant: ['tabular-nums'],
 }
+
+/**
+ * Formulalar uchun yagona shrift — STIX Two Math (SIL OFL).
+ * Darslikdagi serif raqamlar: faqat Regular kesimi bor, shuning uchun
+ * og'irlik berilmaydi — ierarxiya o'lcham va rang bilan quriladi.
+ */
+export const MATH_FONT = 'STIXTwoMath'
 
 /** Soya — CSS'dagi ko'p qatlamli soya RN'da bitta yumshoq qatlamga keltiriladi */export const shadow = (
   color: string,

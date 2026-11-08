@@ -337,17 +337,17 @@ const StudyAids = () => {
         )}
       </View>
 
-      {/* Xaridlar kovagi */}
+      {/* Xaridlar tarixi */}
       <View style={[st.card, st.basket]}>
         <View style={st.basketHead}>
-          <Text style={st.basketTitle}>Xaridlar kovagi</Text>
+          <Text style={st.basketTitle}>Xaridlar tarixi</Text>
           <Text style={[st.basketSum, NUM]}>
             jami {num(txLog.reduce((n, t) => n + t.cost, 0))} coin
           </Text>
         </View>
         {txLog.length === 0 ? (
           <Text style={st.basketEmpty}>
-            Kovak bo&apos;sh. Testda adashsangiz — maslahat 30 coin.
+            Hali bitta ham xarid qilinmagan.
           </Text>
         ) : (
           txLog.slice(0, 6).map((t, i) => (
@@ -429,9 +429,9 @@ const st = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   headMid: { flex: 1, minWidth: 0 },
-  headTitle: { fontSize: 14, fontWeight: '800', color: INK },
+  headTitle: { fontSize: 14, fontWeight: '600', color: INK },
   headSub: { marginTop: 3, fontSize: 12, color: GRAY, lineHeight: 16 },
-  headCount: { fontSize: 11.5, fontWeight: '800', color: GRAY },
+  headCount: { fontSize: 11.5, fontWeight: '600', color: GRAY },
   headChevron: { marginLeft: 4 },
   bodyWrap: { borderTopWidth: 1, borderTopColor: HAIR },
 
@@ -441,8 +441,8 @@ const st = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: HAIR,
   },
   groupHeadRow: { marginTop: 0 },
-  groupLabel: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.4, color: GRAY },
-  groupHint: { fontSize: 10.5, fontWeight: '700', color: GRAY },
+  groupLabel: { fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: GRAY },
+  groupHint: { fontSize: 10.5, fontWeight: '500', color: GRAY },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
   rowLine: { borderBottomWidth: 1, borderBottomColor: HAIR },
@@ -451,9 +451,9 @@ const st = StyleSheet.create({
   },
   mid: { flex: 1, minWidth: 0 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: 14, fontWeight: '800', color: INK, flexShrink: 1 },
+  title: { fontSize: 14, fontWeight: '600', color: INK, flexShrink: 1 },
   hold: {
-    fontSize: 11, fontWeight: '700', color: GRAY, borderWidth: 1, borderColor: HAIR,
+    fontSize: 11, fontWeight: '500', color: GRAY, borderWidth: 1, borderColor: HAIR,
     borderRadius: 100, paddingHorizontal: 6, paddingVertical: 1,
   },
   desc: { marginTop: 3, fontSize: 12, lineHeight: 17, color: GRAY },
@@ -463,20 +463,20 @@ const st = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'transparent',
   },
   pillRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  pillText: { fontSize: 12, fontWeight: '800' },
+  pillText: { fontSize: 12, fontWeight: '600' },
 
   stamp: {
     position: 'absolute', right: 96, top: '50%', marginTop: -11, zIndex: 10,
     backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: GREEN_TILE,
     borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
   },
-  stampText: { fontSize: 11, fontWeight: '800', color: GREEN_TILE },
+  stampText: { fontSize: 11, fontWeight: '600', color: GREEN_TILE },
 
   earnCta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  earnCtaText: { fontSize: 11.5, fontWeight: '800', color: GREEN_TILE },
+  earnCtaText: { fontSize: 11.5, fontWeight: '600', color: GREEN_TILE },
   earnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12 },
   earnLabel: { fontSize: 12, color: GRAY },
-  earnValue: { fontSize: 12, fontWeight: '800', color: AMBER_INK },
+  earnValue: { fontSize: 12, fontWeight: '600', color: AMBER_INK },
 
   proRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14,
@@ -493,33 +493,33 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: HAIR,
   },
-  basketTitle: { fontSize: 13.5, fontWeight: '800', color: INK },
-  basketSum: { fontSize: 12, fontWeight: '800', color: AMBER_INK },
+  basketTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
+  basketSum: { fontSize: 12, fontWeight: '600', color: AMBER_INK },
   basketEmpty: { paddingHorizontal: 14, paddingVertical: 13, fontSize: 12, color: GRAY },
   basketRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 11 },
   basketName: { flex: 1, fontSize: 13, color: INK },
-  basketCost: { fontSize: 13, fontWeight: '800', color: AMBER_INK },
+  basketCost: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
 
-  receiptTitle: { fontSize: 19, fontWeight: '800', color: INK },
+  receiptTitle: { fontSize: 19, fontWeight: '600', color: INK },
   receiptDesc: { marginTop: 4, fontSize: 12.5, color: GRAY, lineHeight: 18 },
   receiptBox: { marginTop: 16, backgroundColor: '#F7F9F6', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
   receiptLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   receiptLineTop: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: HAIR },
-  receiptLabel: { fontSize: 12, fontWeight: '800', color: GRAY },
+  receiptLabel: { fontSize: 12, fontWeight: '600', color: GRAY },
   receiptPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  receiptPrice: { fontSize: 15, fontWeight: '800', color: AMBER_INK },
-  receiptLeft: { fontSize: 13, fontWeight: '800', color: INK },
+  receiptPrice: { fontSize: 15, fontWeight: '600', color: AMBER_INK },
+  receiptLeft: { fontSize: 13, fontWeight: '600', color: INK },
   receiptActions: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   cancelBtn: {
     flex: 1, height: 50, borderRadius: 100, backgroundColor: '#F1F4F0',
     alignItems: 'center', justifyContent: 'center',
   },
-  cancelText: { fontSize: 13, fontWeight: '800', color: GRAY },
+  cancelText: { fontSize: 13, fontWeight: '600', color: GRAY },
   buyBtn: {
     flex: 1, height: 50, borderRadius: 100, backgroundColor: INK,
     alignItems: 'center', justifyContent: 'center',
   },
-  buyText: { fontSize: 13, fontWeight: '800', color: '#CDE9AE' },
+  buyText: { fontSize: 13, fontWeight: '600', color: '#CDE9AE' },
   receiptNote: { marginTop: 12, textAlign: 'center', fontSize: 11, color: '#9AA995' },
 })
 

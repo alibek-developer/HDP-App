@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from 'react-native'
 import type { ViewStyle } from 'react-native'
-import { C } from '../theme/tokens'
+import { C, MATH_FONT } from '../theme/tokens'
 
 const MARK = require('../assets/hdp-mark-192.png')
 
@@ -32,14 +32,14 @@ export const BrandMark = ({ size = 38, hero = false }: { size?: number; hero?: b
   </View>
 )
 
-/** Serif logotip yozuvi — «HDP Matematika» */
+/** Logotip yozuvi — monoline belgi bilan bir tilda: yupqa, keng harflar */
 export const Wordmark = ({ size = 26, style }: { size?: number; style?: ViewStyle }) => (
   <View style={style}>
     <Text
       style={{
-        fontFamily: 'Georgia',
+        fontFamily: MATH_FONT,
         fontSize: size,
-        letterSpacing: -size * 0.01,
+        letterSpacing: -size * 0.015,
         color: C.brandDeep,
       }}
     >

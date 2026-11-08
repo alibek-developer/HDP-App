@@ -177,7 +177,7 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
       <View style={styles.root}>
         <ScreenBg />
 
-        <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
+        <View style={[styles.topBar, { paddingTop: insets.top + 16 }]}>
           <Pressable
             onPress={back}
             hitSlop={10}
@@ -205,7 +205,7 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
             <Text style={styles.kicker}>2-savol · 2 tadan</Text>
             <Text style={styles.title}>
               <Text style={{ color: C.ink4, fontWeight: '400' }}>Tug'ilgan </Text>
-              <Text style={{ color: C.ink, fontWeight: '800' }}>sanangiz?</Text>
+              <Text style={{ color: C.ink, fontWeight: '600' }}>sanangiz?</Text>
             </Text>
             <Text style={styles.sub}>
               Yoshga mos darslar va test qiyinligini shu asosda tanlaymiz.
@@ -260,14 +260,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.canvas },
   topBar: { paddingHorizontal: 16, paddingBottom: 4 },
   back: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    borderWidth: 1,
-    borderColor: C.line,
+    backgroundColor: 'rgba(255,255,255,0.55)',
   },
   content: { flexGrow: 1, paddingHorizontal: 24 },
   track: { height: 4, borderRadius: R.full, backgroundColor: '#DCE6D4', overflow: 'hidden' },
@@ -282,12 +280,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderRadius: R.xl,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: C.line,
-    shadowColor: C.ink,
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: '#33502A',
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
     elevation: 3,
     overflow: 'hidden',
   },
@@ -298,20 +294,18 @@ const styles = StyleSheet.create({
     top: ITEM_H * 2,
     height: ITEM_H,
     borderRadius: 12,
-    backgroundColor: '#F1F9E6',
-    borderWidth: 1,
-    borderColor: '#DDEBD2',
+    backgroundColor: '#EAF7DA',
   },
   headRow: { flexDirection: 'row', paddingHorizontal: 6, marginBottom: 2 },
-  colHead: { ...T.tiny, fontSize: 9.5, textAlign: 'center', color: C.ink4 },
+  colHead: { ...T.tiny, fontSize: 11.5, textAlign: 'center', color: C.ink4 },
   wheelsWrap: { position: 'relative' },
   wheels: { flexDirection: 'row', alignItems: 'center' },
   wheelDay: { flex: 0.9 },
   wheelMonth: { flex: 1.5 },
   wheelYear: { flex: 1 },
   wheelItem: { height: ITEM_H, alignItems: 'center', justifyContent: 'center' },
-  wheelText: { fontSize: 17, fontWeight: '600', color: C.ink4 },
-  wheelTextOn: { fontSize: 20, fontWeight: '800', color: C.ink },
+  wheelText: { fontSize: 17, fontWeight: '500', color: C.ink4 },
+  wheelTextOn: { fontSize: 20, fontWeight: '600', color: C.ink },
 
   summary: {
     flexDirection: 'row',
@@ -320,9 +314,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     padding: 12,
     borderRadius: R.md,
-    backgroundColor: '#EEF5E7',
-    borderWidth: 1,
-    borderColor: '#DDEBD2',
+    backgroundColor: 'rgba(255,255,255,0.62)',
   },
   summaryIcon: {
     width: 34,
@@ -330,13 +322,13 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.leafTint,
   },
   summaryMid: { flex: 1, minWidth: 0 },
-  summaryLabel: { fontSize: 10.5, fontWeight: '700', color: C.ink3 },
-  summaryValue: { fontSize: 16, fontWeight: '800', color: C.ink, marginTop: 1, fontVariant: ['tabular-nums'] },
+  summaryLabel: { fontSize: 12, fontWeight: '500', color: C.ink3 },
+  summaryValue: { fontSize: 16, fontWeight: '600', color: C.ink, marginTop: 1, fontVariant: ['tabular-nums'] },
   gradePill: { paddingHorizontal: 9, height: 24, borderRadius: R.full, backgroundColor: C.limeBright, alignItems: 'center', justifyContent: 'center' },
-  gradePillText: { fontSize: 11.5, fontWeight: '800', color: C.inkOnLime },
+  gradePillText: { fontSize: 12, fontWeight: '600', color: C.inkOnLime },
 
   spacer: { flex: 1, minHeight: 22 },
   submit: { marginTop: 20 },

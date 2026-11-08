@@ -11,7 +11,7 @@ import { LimeButton, ScreenBg } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
 import { DAILY_BONUS, MISSION_REWARDS, TEST_REWARD } from '../data/content'
 import type { RootStackParamList } from '../navigation/types'
-import { C, CARD, NUM, R, T } from '../theme/tokens'
+import { C, MATH_FONT, NUM, T } from '../theme/tokens'
 
 type Slide = { key: string; renderArt: () => ReactNode; title: ReactNode; sub: string }
 
@@ -35,10 +35,11 @@ const Chain = () => (
 )
 
 const FormulaArt = () => (
-  <View style={[CARD, styles.artCard]}>
-    <Text style={styles.artKicker}>MATEMATIKA</Text>
+  <View style={styles.artBlock}>
+    <Text style={[styles.artKicker, styles.artKickerCenter]}>MATEMATIKA · ALGEBRA I</Text>
     <Text style={styles.formula}>ax² + bx + c = 0</Text>
-    <View style={styles.artLine} />
+    <Text style={styles.formulaCaption}>Kvadrat tenglama</Text>
+    <View style={styles.artRule} />
     <Chain />
   </View>
 )
@@ -50,14 +51,14 @@ const CoinArt = () => {
     { icon: 'checkmark-done' as const, label: '5 ta masala', coin: MISSION_REWARDS.solve5 },
   ]
   return (
-    <View style={[CARD, styles.artCard]}>
+    <View style={styles.artBlock}>
       <View style={styles.rewardHead}>
         <View style={styles.rewardCoin}>
-          <Ionicons name="cash" size={17} color={C.coin} />
+          <Ionicons name="cash" size={19} color={C.coin} />
         </View>
         <View style={styles.rewardHeadText}>
           <Text style={styles.artKicker}>COIN JAMG'ARMA</Text>
-          <Text style={styles.rewardTitle}>Har harakat uchun coin</Text>
+          <Text style={styles.rewardTitle}>Har yechim uchun coin</Text>
         </View>
       </View>
 
@@ -65,7 +66,7 @@ const CoinArt = () => {
         {rewards.map(r => (
           <View key={r.label} style={styles.rewardRow}>
             <View style={styles.rewardIcon}>
-              <Ionicons name={r.icon} size={14} color={C.brand} />
+              <Ionicons name={r.icon} size={15} color={C.brand} />
             </View>
             <Text style={styles.rewardLabel}>{r.label}</Text>
             <View style={styles.rewardValue}>
@@ -93,7 +94,7 @@ const SLIDES: Slide[] = [
     title: (
       <>
         <Text style={{ color: C.ink4, fontWeight: '400' }}>Matematika </Text>
-        <Text style={{ color: C.ink, fontWeight: '800' }}>cho'qqilarini{'\n'}zabt et</Text>
+        <Text style={{ color: C.ink, fontWeight: '600' }}>cho'qqilarini{'\n'}zabt et</Text>
       </>
     ),
     sub: "Video dars, misol va test — biri ikkinchisiga olib kiradigan izchil yo'l.",
@@ -104,7 +105,7 @@ const SLIDES: Slide[] = [
     title: (
       <>
         <Text style={{ color: C.ink4, fontWeight: '400' }}>O'rgan — </Text>
-        <Text style={{ color: C.ink, fontWeight: '800' }}>coin yig',{'\n'}sovg'a ol</Text>
+        <Text style={{ color: C.ink, fontWeight: '600' }}>coin yig',{'\n'}sovg'a ol</Text>
       </>
     ),
     sub: "Har dars va har test uchun coin beriladi. Coinlarni do'konda sovg'alarga almashtiring.",
@@ -201,63 +202,75 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
   },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  skip: { ...T.bodySm, fontWeight: '700', color: C.ink4 },
+  skip: { ...T.bodySm, fontWeight: '500', color: C.ink4 },
   slide: { flex: 1, paddingHorizontal: 24, paddingTop: 4 },
   list: { flex: 1 },
   art: { flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 240 },
-  artCard: { width: '100%', maxWidth: 340, padding: 22, borderRadius: R.xl },
+  artBlock: { width: '100%', maxWidth: 340 },
   artKicker: { ...T.tiny, color: C.limeDeep, letterSpacing: 1.1 },
+  artKickerCenter: { textAlign: 'center' },
   formula: {
-    marginTop: 10,
-    fontFamily: 'Georgia',
-    fontSize: 32,
-    letterSpacing: -0.4,
+    marginTop: 14,
+    fontFamily: MATH_FONT,
+    fontWeight: '400',
+    fontSize: 38,
+    lineHeight: 54,
+    letterSpacing: 0.4,
+    textAlign: 'center',
     color: C.brandDeep,
   },
-  artLine: { height: 1, backgroundColor: C.lineSoft, marginVertical: 18 },
+  formulaCaption: {
+    marginTop: 2,
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    color: C.ink4,
+  },
+  artRule: {
+    width: 44,
+    height: 3,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginVertical: 22,
+    backgroundColor: C.limeBright,
+  },
   chain: { flexDirection: 'row', alignItems: 'center' },
   chainItem: { flex: 1, alignItems: 'center', position: 'relative' },
   chainNode: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: C.leafTint,
-    borderWidth: 1,
-    borderColor: '#DDEBD6',
+    backgroundColor: 'rgba(11,110,79,0.07)',
   },
-  chainNodeOn: { backgroundColor: C.limeBright, borderColor: '#8BD63F' },
-  chainLabel: { marginTop: 7, fontSize: 11, fontWeight: '700', color: C.ink3 },
-  chainArrow: { position: 'absolute', right: -6, top: 11 },
-  rewardHead: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  chainNodeOn: { backgroundColor: C.limeBright },
+  chainLabel: { marginTop: 7, fontSize: 11, fontWeight: '500', color: C.ink3 },
+  chainArrow: { position: 'absolute', right: -6, top: 12 },
+  rewardHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   rewardHeadText: { flex: 1, minWidth: 0 },
   rewardCoin: {
-    width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: C.coinSoft, borderWidth: 1, borderColor: '#F3E2C4',
+    width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.coinSoft,
   },
-  rewardTitle: { marginTop: 3, fontSize: 14.5, fontWeight: '800', color: C.ink },
-  rewardList: {
-    marginTop: 16, borderTopWidth: 1, borderTopColor: C.lineSoft,
-  },
+  rewardTitle: { marginTop: 3, fontSize: 16, fontWeight: '600', color: C.ink },
+  rewardList: { marginTop: 16, gap: 2 },
   rewardRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: C.lineSoft,
+    flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10,
   },
   rewardIcon: {
-    width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: C.leafTint, borderWidth: 1, borderColor: '#DDEBD6',
+    width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(11,110,79,0.07)',
   },
-  rewardLabel: { flex: 1, fontSize: 12.5, fontWeight: '700', color: C.ink2 },
+  rewardLabel: { flex: 1, fontSize: 13.5, fontWeight: '500', color: C.ink2 },
   rewardValue: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  rewardValueText: { fontSize: 15, fontWeight: '800', color: C.limeDeep },
-  rewardUnit: { fontSize: 10.5, fontWeight: '700', color: C.ink4 },
+  rewardValueText: { fontSize: 16, fontWeight: '600', color: C.limeDeep },
+  rewardUnit: { fontSize: 11, fontWeight: '500', color: C.ink4 },
   rewardFoot: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14,
-    padding: 11, borderRadius: R.sm, backgroundColor: C.surface2,
-    borderWidth: 1, borderColor: C.lineSoft,
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, paddingHorizontal: 2,
   },
-  rewardFootText: { flex: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '600', color: C.ink3 },
+  rewardFootText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
   title: { ...T.h1, marginTop: 22, textAlign: 'center', color: C.ink },
   sub: { ...T.bodyMd, marginTop: 10, marginHorizontal: 12, textAlign: 'center', lineHeight: 21, color: C.ink3 },
   footer: { paddingHorizontal: 24 },

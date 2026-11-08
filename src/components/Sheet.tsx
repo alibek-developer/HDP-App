@@ -75,7 +75,7 @@ const sh = StyleSheet.create({
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: HAIR, alignSelf: 'center', marginBottom: 12 },
   headRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 },
   headText: { flex: 1, minWidth: 0, paddingRight: 8 },
-  title: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4, color: GRAY },
+  title: { fontSize: 11, fontWeight: '600', letterSpacing: 1.4, color: GRAY },
   subtitle: { marginTop: 4, fontSize: 12.5, color: GRAY },
   closeBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   body: { flexGrow: 0 },

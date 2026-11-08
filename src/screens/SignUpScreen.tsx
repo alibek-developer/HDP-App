@@ -85,7 +85,7 @@ const SignUpScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList,
 
             <Text style={styles.title}>
               <Text style={{ color: C.ink4, fontWeight: '400' }}>Yangi hisob </Text>
-              <Text style={{ color: C.ink, fontWeight: '800' }}>ochish</Text>
+              <Text style={{ color: C.ink, fontWeight: '600' }}>ochish</Text>
             </Text>
             <Text style={styles.sub}>Bir daqiqada ro&apos;yxatdan o&apos;ting — barcha mavzular ochiq.</Text>
 
@@ -227,16 +227,16 @@ const styles = StyleSheet.create({
     borderColor: '#D8E0D2',
   },
   checkboxOn: { borderWidth: 1, borderColor: '#7ED321' },
-  termsText: { ...T.bodySm, fontWeight: '600', color: C.ink2, flex: 1, lineHeight: 19 },
-  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '700', color: '#C2453D' },
+  termsText: { ...T.bodySm, fontWeight: '500', color: C.ink2, flex: 1, lineHeight: 19 },
+  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#C2453D' },
   submit: { marginTop: 24 },
-  socialText: { fontSize: 15, fontWeight: '700', color: C.ink },
+  socialText: { fontSize: 15, fontWeight: '500', color: C.ink },
   telegramTile: { backgroundColor: '#F2FAFE', borderColor: '#CFE8F7', justifyContent: 'flex-start', paddingHorizontal: 16 },
   socialTag: { marginLeft: 'auto', height: 24, paddingHorizontal: 9, borderRadius: R.full, backgroundColor: '#E1F3FC', alignItems: 'center', justifyContent: 'center' },
-  socialTagText: { fontSize: 11, fontWeight: '800', color: '#1B87BE' },
+  socialTagText: { fontSize: 11, fontWeight: '600', color: '#1B87BE' },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
   footerText: { ...T.bodyMd, color: C.ink3 },
-  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '800', textDecorationLine: 'underline' },
+  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '600', textDecorationLine: 'underline' },
 })
 
 export default SignUpScreen

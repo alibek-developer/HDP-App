@@ -3,6 +3,7 @@ import { View } from 'react-native'
 import { NavigationContainer, DarkTheme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { StatusBar } from 'expo-status-bar'
+import { useFonts } from 'expo-font'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useApp } from './src/store/useStore'
 import { BrandMark } from './src/components/Brand'
@@ -37,6 +38,9 @@ const App = () => {
   /** AsyncStorage'dan holat kelguncha kutamiz — aks holda kirgan foydalanuvchi
    *  har safar onboarding'ga qaytariladi. */
   const [hydrated, setHydrated] = useState(() => useApp.persist.hasHydrated())
+  const [fontsLoaded, fontError] = useFonts({
+    STIXTwoMath: require('./src/assets/fonts/STIXTwoMath-Regular.ttf'),
+  })
 
   useEffect(() => {
     if (useApp.persist.hasHydrated()) {
@@ -46,7 +50,7 @@ const App = () => {
     return useApp.persist.onFinishHydration(() => setHydrated(true))
   }, [])
 
-  if (!hydrated)
+  if (!hydrated || (!fontsLoaded && !fontError))
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.mintSoft }}>
         <BrandMark size={76} hero />

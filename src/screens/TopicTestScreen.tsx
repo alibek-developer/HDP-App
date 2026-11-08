@@ -13,7 +13,7 @@ import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { useExitToTopics } from '../lib/nav'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
+import { ABS_FILL, C, MATH_FONT, NUM } from '../theme/tokens'
 import { CARD, GRAD_LIME, GRAD_RAIL, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
 
 /**
@@ -318,43 +318,43 @@ const styles = StyleSheet.create({
 
   gate: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   gateIcon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBFCF8', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 16 },
-  gateTitle: { fontSize: 16, fontWeight: '800', color: C.ink, textAlign: 'center' },
+  gateTitle: { fontSize: 16, fontWeight: '600', color: C.ink, textAlign: 'center' },
   gateSub: { fontSize: 12.5, lineHeight: 19, textAlign: 'center', fontWeight: '500', color: '#6B7C66' },
   gateBtn: { marginTop: 8, height: 46, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   gateBtnText: { fontSize: 13.5 },
 
   statusRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 20, paddingBottom: 4 },
-  counter: { fontSize: 12, fontWeight: '800', color: '#33452F' },
+  counter: { fontSize: 12, fontWeight: '600', color: '#33452F' },
 
   rail: { gap: 3, marginTop: 8 },
   railRow: { flexDirection: 'row', gap: 3 },
   railCell: { flex: 1, height: 6, borderRadius: 3 },
-  replayNote: { marginTop: 8, fontSize: 11, lineHeight: 16, fontWeight: '600', color: '#9AA995' },
+  replayNote: { marginTop: 8, fontSize: 11, lineHeight: 16, fontWeight: '500', color: '#9AA995' },
 
   qCard: { borderRadius: 16, flexDirection: 'row', overflow: 'hidden', marginTop: 12 },
   qRailWrap: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   qBody: { flex: 1, paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  qPrompt: { marginTop: 8, fontSize: 17, lineHeight: 24, fontWeight: '600', color: C.ink },
+  qPrompt: { marginTop: 8, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 17, lineHeight: 25, color: C.ink },
 
   options: { marginTop: 16, gap: 10 },
   option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
   optionBadge: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   optionLetter: { fontSize: 12, fontWeight: '900' },
-  optionText: { flex: 1, fontSize: 14.5, lineHeight: 20, fontWeight: '600', color: '#0E1A12' },
+  optionText: { flex: 1, fontSize: 14.5, lineHeight: 20, fontWeight: '500', color: '#0E1A12' },
 
   explain: { borderRadius: 14, marginTop: 16, flexDirection: 'row', overflow: 'hidden', backgroundColor: '#FBFCF8' },
   explainRail: { width: 4 },
   explainBody: { flex: 1, paddingLeft: 16, paddingRight: 14, paddingVertical: 14 },
   explainHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  explainVerdict: { fontSize: 12.5, fontWeight: '800' },
-  explainPrice: { fontSize: 12, fontWeight: '800' },
+  explainVerdict: { fontSize: 12.5, fontWeight: '600' },
+  explainPrice: { fontSize: 12, fontWeight: '600' },
   explainText: { marginTop: 8, fontSize: 13.5, lineHeight: 21, color: C.ink2 },
 
   action: { marginTop: 20, height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12 },
   actionDisabled: { backgroundColor: '#EAEEE3', borderRadius: 12 },
-  actionText: { fontSize: 14.5, fontWeight: '800' },
+  actionText: { fontSize: 14.5, fontWeight: '600' },
 
-  tally: { marginTop: 12, textAlign: 'center', fontSize: 11.5, fontWeight: '700', color: '#9AA995' },
+  tally: { marginTop: 12, textAlign: 'center', fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
 })
 
 export default TopicTestScreen

@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     borderColor: '#CBE8F8',
   },
   headText: { flex: 1, minWidth: 0 },
-  title: { fontSize: 18, lineHeight: 23, fontWeight: '800', color: C.ink },
+  title: { fontSize: 18, lineHeight: 23, fontWeight: '600', color: C.ink },
 
   statusCard: {
     marginTop: 16,
@@ -300,10 +300,10 @@ const styles = StyleSheet.create({
   },
   statusCardBad: { backgroundColor: '#FBEEEC', borderColor: '#F2D3CE' },
   statusMid: { flex: 1, minWidth: 0 },
-  statusTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '800', color: C.ink },
-  statusSub: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '600', color: C.ink3 },
+  statusTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: C.ink },
+  statusSub: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
   checkNow: { marginTop: 6, alignSelf: 'flex-start' },
-  checkNowText: { fontSize: 12, lineHeight: 16, fontWeight: '800', color: '#1B87BE' },
+  checkNowText: { fontSize: 12, lineHeight: 16, fontWeight: '600', color: '#1B87BE' },
 
   steps: { marginTop: 16, gap: 12 },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -317,16 +317,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDEBD6',
   },
-  stepNText: { fontSize: 11.5, fontWeight: '800', color: C.brand },
+  stepNText: { fontSize: 11.5, fontWeight: '600', color: C.brand },
   stepMid: { flex: 1, minWidth: 0 },
-  stepTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '800', color: C.ink2 },
-  stepSub: { marginTop: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '600', color: C.ink4 },
+  stepTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: C.ink2 },
+  stepSub: { marginTop: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: C.ink4 },
 
   note: { marginTop: 16, fontSize: 12, lineHeight: 18, fontWeight: '500', color: C.ink3 },
 
   btns: { marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 10 },
   cancel: { width: 92, height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: R.full, backgroundColor: '#F1F4F0' },
-  cancelText: { fontSize: 13, fontWeight: '800', color: C.ink3 },
+  cancelText: { fontSize: 13, fontWeight: '600', color: C.ink3 },
   ok: {
     flex: 1,
     height: 52,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     borderRadius: R.full,
     overflow: 'hidden',
   },
-  okText: { fontSize: 13.5, fontWeight: '800', color: '#FFFFFF' },
+  okText: { fontSize: 13.5, fontWeight: '600', color: '#FFFFFF' },
 })
 
 export default TelegramAuthSheet

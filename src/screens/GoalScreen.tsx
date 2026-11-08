@@ -54,7 +54,7 @@ const GoalScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, '
         <ScreenBg />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.content, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}
+          contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }]}
         >
           <Pressable
             onPress={back}
@@ -77,7 +77,7 @@ const GoalScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, '
           <Text style={styles.kicker}>2 ta savol — 1 daqiqa</Text>
           <Text style={styles.title}>
             <Text style={{ color: C.ink4, fontWeight: '400' }}>Maqsadingiz </Text>
-            <Text style={{ color: C.ink, fontWeight: '800' }}>nima?</Text>
+            <Text style={{ color: C.ink, fontWeight: '600' }}>nima?</Text>
           </Text>
           <Text style={styles.sub}>Sizga mos yo'l tayyorlaymiz.</Text>
 
@@ -97,8 +97,8 @@ const GoalScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, '
                     <View style={[styles.icon, on && styles.iconOn]}>
                       <Ionicons name={g.icon} size={19} color={on ? C.inkOnLime : C.brand} />
                     </View>
-                    <Text style={styles.cardTitle}>{g.label}</Text>
-                    <Text style={styles.cardDesc}>{g.desc}</Text>
+                    <Text style={[styles.cardTitle, on && styles.cardTitleOn]}>{g.label}</Text>
+                    <Text style={[styles.cardDesc, on && styles.cardDescOn]}>{g.desc}</Text>
                   </Pressable>
                 </Reveal>
               )
@@ -117,15 +117,13 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.canvas },
   content: { flexGrow: 1, paddingHorizontal: 24 },
   back: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    borderWidth: 1,
-    borderColor: C.line,
+    backgroundColor: 'rgba(255,255,255,0.55)',
   },
   track: {
     height: 4,
@@ -149,18 +147,10 @@ const styles = StyleSheet.create({
     padding: 14,
     minHeight: 132,
     borderRadius: R.lg,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: C.line,
+    backgroundColor: 'rgba(11,110,79,0.06)',
   },
   cardOn: {
-    borderColor: C.lime,
-    backgroundColor: '#F6FCEB',
-    shadowColor: C.limeDeep,
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
+    backgroundColor: C.limeBright,
   },
   icon: {
     width: 38,
@@ -168,11 +158,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: C.leafTint,
+    backgroundColor: 'rgba(255,255,255,0.6)',
   },
-  iconOn: { backgroundColor: C.limeBright },
+  iconOn: { backgroundColor: 'rgba(255,255,255,0.6)' },
   cardTitle: { ...T.h3, fontSize: 14.5, lineHeight: 19, marginTop: 10, color: C.ink },
-  cardDesc: { fontSize: 11.5, lineHeight: 15, fontWeight: '600', marginTop: 4, color: C.ink3 },
+  cardTitleOn: { color: C.inkOnLime },
+  cardDesc: { fontSize: 11.5, lineHeight: 15, fontWeight: '500', marginTop: 4, color: C.ink3 },
+  cardDescOn: { color: 'rgba(28,50,20,0.72)' },
   submit: { marginTop: 26 },
   hint: { ...T.bodySm, textAlign: 'center', marginTop: 10, color: C.ink4 },
 })

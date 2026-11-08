@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useState } from 'react'
-import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
@@ -28,7 +28,7 @@ import { PRODUCT_IMAGES, PRODUCT_THUMBS } from '../data/productImages'
  * janr chiplari.
  *
  * Web'ning `ShopScreen.tsx` ekvivalenti. «O'qish uchun» javoni va xaridlar
- * kovagi `StudyAids` komponentida.
+ * tarixi `StudyAids` komponentida.
  */
 
 type Nav = CompositeNavigationProp<
@@ -200,6 +200,11 @@ const ShopScreen = () => {
 
   const goal = goalId ? PRODUCTS.find(p => p.id === goalId) ?? null : null
   const spent = orders.reduce((n, o) => n + o.price, 0)
+  /** Eng arzon mavjud sovg'a — iqtisodni bir qatorda tushuntiradi */
+  const cheapest = useMemo(() => {
+    const inStock = PRODUCTS.filter(p => Math.max(0, p.stock - (stockTaken[p.id] ?? 0)) > 0)
+    return [...inStock].sort((a, b) => a.price - b.price)[0] ?? null
+  }, [stockTaken])
 
   const counts: Partial<Record<ProductCat, number>> = {}
   let available = 0
@@ -307,6 +312,15 @@ const ShopScreen = () => {
             </Pressable>
           </View>
 
+          {cheapest && (
+            <Text style={[styles.econNote, NUM]}>
+              Eng arzon sovg&apos;a — {cheapest.title}, {num(cheapest.price)} coin ·{' '}
+              {coin >= cheapest.price
+                ? 'bugun olishingiz mumkin'
+                : `taxminan ${daysToEarn(cheapest.price - coin)} kun yig'asiz`}
+            </Text>
+          )}
+
           <View style={styles.actionRow}>
             <Pressable
               onPress={() => { triggerHaptic('selection'); setSearchOpen(v => !v); setQuery('') }}
@@ -337,6 +351,19 @@ const ShopScreen = () => {
               <Ionicons name="time" size={15} color={INK} />
               <Text style={styles.actionText}>Tarix</Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => { triggerHaptic('selection'); setSortOpen(true) }}
+              accessibilityLabel="Saralash"
+              style={({ pressed }) => [
+                styles.actionPill,
+                sort !== 'yangi' && styles.actionPillOn,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Ionicons name="options" size={15} color={sort === 'yangi' ? INK : '#FFFFFF'} />
+              <Text style={[styles.actionText, sort !== 'yangi' && styles.actionTextOn]}>Tartib</Text>
+            </Pressable>
           </View>
 
           {searchOpen && (
@@ -366,30 +393,10 @@ const ShopScreen = () => {
           )}
 
           {/* Filtr chiplari */}
-          <View style={styles.chipRow}>
-            <Pressable
-              onPress={() => { triggerHaptic('selection'); setSortOpen(true) }}
-              accessibilityLabel="Saralash"
-              style={({ pressed }) => [
-                styles.sortBtn,
-                sort === 'yangi' ? styles.sortBtnIdle : styles.sortBtnOn,
-                pressed && { opacity: 0.9 },
-              ]}
-            >
-              <Ionicons name="options" size={15} color={sort === 'yangi' ? INK : '#FFFFFF'} />
-              <Text style={[styles.sortText, sort !== 'yangi' && { color: '#FFFFFF' }]}>Tartib</Text>
-            </Pressable>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipScroll}
-              style={styles.chipFlex}
-            >
-              {chip('all', 'Barchasi')}
-              {PRODUCT_CATS.map(c => chip(c, c))}
-              {favs.length > 0 && chip('fav', 'Sevimli')}
-            </ScrollView>
+          <View style={styles.chipWrap}>
+            {chip('all', 'Barchasi')}
+            {PRODUCT_CATS.map(c => chip(c, c))}
+            {favs.length > 0 && chip('fav', 'Sevimli')}
           </View>
 
           {/* Maqsad chizig'i */}
@@ -517,30 +524,31 @@ const styles = StyleSheet.create({
   content: { paddingTop: 20 },
 
   head: { paddingHorizontal: 16, marginBottom: 16 },
-  h1: { textAlign: 'center', fontSize: 20, fontWeight: '800', letterSpacing: -0.4, color: INK },
-  h1Sub: { marginTop: 4, textAlign: 'center', fontSize: 12, fontWeight: '600', color: GRAY },
+  h1: { textAlign: 'center', fontSize: 20, fontWeight: '600', letterSpacing: -0.4, color: INK },
+  h1Sub: { marginTop: 4, textAlign: 'center', fontSize: 12, fontWeight: '500', color: GRAY },
 
   balRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   balBtn: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  balLabel: { fontSize: 15, fontWeight: '800', color: INK },
+  balLabel: { fontSize: 15, fontWeight: '600', color: INK },
   balCoin: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   coinBadge: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 100 },
-  balValue: { fontSize: 17, fontWeight: '800', color: AMBER_INK },
+  balValue: { fontSize: 17, fontWeight: '600', color: AMBER_INK },
+  econNote: { marginTop: 8, fontSize: 12, lineHeight: 17, fontWeight: '500', color: GRAY },
 
-  actionRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  actionRow: { marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   actionPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    height: 44,
-    paddingHorizontal: 13,
+    gap: 5,
+    height: 40,
+    paddingHorizontal: 11,
     borderRadius: 100,
     backgroundColor: '#FFFFFF',
     borderColor: HAIR,
     borderWidth: 1,
   },
   actionPillOn: { backgroundColor: INK, borderColor: INK },
-  actionText: { fontSize: 12.5, fontWeight: '700', color: INK },
+  actionText: { fontSize: 12, fontWeight: '500', color: INK },
   actionTextOn: { color: '#FFFFFF' },
 
   searchWrap: { marginTop: 12 },
@@ -555,38 +563,25 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
   },
-  searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: INK, paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 14, fontWeight: '500', color: INK, paddingVertical: 0 },
 
-  chipRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sortBtn: {
-    height: 44,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    borderRadius: 100,
-  },
-  sortText: { fontSize: 12, fontWeight: '700', color: INK },
-  sortBtnIdle: { backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1 },
-  sortBtnOn: { backgroundColor: INK, borderColor: INK, borderWidth: 1 },
-  chipFlex: { flex: 1 },
-  chipScroll: { alignItems: 'center', gap: 4, paddingBottom: 2 },
-  chip: { height: 44, paddingHorizontal: 16, borderRadius: 100, flexDirection: 'row', alignItems: 'center' },
-  chipIdle: { backgroundColor: 'transparent' },
+  chipWrap: { marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: { height: 36, paddingHorizontal: 12, borderRadius: 100, flexDirection: 'row', alignItems: 'center' },
+  chipIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: HAIR },
   chipOn: { backgroundColor: INK },
-  chipText: { fontSize: 13, fontWeight: '700' },
+  chipText: { fontSize: 12.5, fontWeight: '500' },
   chipTextOn: { color: '#FFFFFF' },
   chipTextIdle: { color: GRAY },
-  chipCount: { marginLeft: 6, fontSize: 13, fontWeight: '700' },
+  chipCount: { marginLeft: 6, fontSize: 12.5, fontWeight: '500' },
 
   goalCard: { marginTop: 12, backgroundColor: INK, borderRadius: 14, paddingVertical: 11, paddingHorizontal: 13 },
   goalTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   goalTitleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   goalFlag: { flexShrink: 0 },
-  goalTitle: { flex: 1, fontSize: 12.5, fontWeight: '800', color: '#CDE9AE' },
-  goalRight: { fontSize: 11.5, fontWeight: '700', color: '#9BE04B' },
+  goalTitle: { flex: 1, fontSize: 12.5, fontWeight: '600', color: '#CDE9AE' },
+  goalRight: { fontSize: 12, fontWeight: '500', color: '#9BE04B' },
   goalTrack: { marginTop: 8, backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 100, height: 5 },
-  goalNote: { marginTop: 6, fontSize: 10.5, fontWeight: '700', color: 'rgba(205,233,174,0.55)' },
+  goalNote: { marginTop: 6, fontSize: 12, fontWeight: '500', color: 'rgba(205,233,174,0.7)' },
 
   gridWrap: { paddingHorizontal: 16 },
   aidsWrap: { marginTop: 24, paddingHorizontal: 16 },
@@ -615,12 +610,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(14,26,18,0.82)',
     borderRadius: 6,
   },
-  catBadgeText: { fontSize: 10.5, fontWeight: '800', color: '#EAF3E2' },
+  catBadgeText: { fontSize: 11.5, fontWeight: '600', color: '#EAF3E2' },
 
   cardBody: { paddingTop: 9, paddingHorizontal: 3, paddingBottom: 2 },
-  cardTitle: { fontSize: 13.5, fontWeight: '800', color: INK },
-  cardBlurb: { marginTop: 3, fontSize: 11.5, lineHeight: 16, color: GRAY, minHeight: 31 },
-  cardStock: { marginTop: 8, fontSize: 11, fontWeight: '800' },
+  cardTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
+  cardBlurb: { marginTop: 3, fontSize: 12, lineHeight: 17, color: GRAY, minHeight: 34 },
+  cardStock: { marginTop: 8, fontSize: 12, fontWeight: '600' },
   cardFoot: {
     marginTop: 8,
     borderTopWidth: 1,
@@ -631,10 +626,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardPrice: { fontSize: 13, fontWeight: '800', color: AMBER_INK },
+  cardPrice: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
   cardRateRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardRate: { fontSize: 12, fontWeight: '800', color: INK },
-  cardNew: { fontSize: 11, fontWeight: '700', color: GRAY },
+  cardRate: { fontSize: 12, fontWeight: '600', color: INK },
+  cardNew: { fontSize: 12, fontWeight: '500', color: GRAY },
 
   empty: {
     backgroundColor: '#FFFFFF',
@@ -646,7 +641,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
   },
-  emptyTitle: { fontSize: 14, fontWeight: '800', color: INK, textAlign: 'center' },
+  emptyTitle: { fontSize: 14, fontWeight: '600', color: INK, textAlign: 'center' },
   emptySub: { marginTop: 6, fontSize: 12.5, color: GRAY, textAlign: 'center' },
 
   sortList: { marginTop: 8 },
@@ -659,7 +654,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: HAIR,
   },
-  sortLabel: { fontSize: 14, fontWeight: '800', color: INK },
+  sortLabel: { fontSize: 14, fontWeight: '600', color: INK },
   sortCheck: {
     width: 22,
     height: 22,
@@ -671,8 +666,8 @@ const styles = StyleSheet.create({
 
   histEmpty: { fontSize: 13, lineHeight: 20, fontWeight: '500', color: GRAY },
   histHead: { marginTop: 4, marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  histCount: { fontSize: 12.5, fontWeight: '700', color: GRAY },
-  histSpent: { fontSize: 12.5, fontWeight: '800', color: AMBER_INK },
+  histCount: { fontSize: 12.5, fontWeight: '500', color: GRAY },
+  histSpent: { fontSize: 12.5, fontWeight: '600', color: AMBER_INK },
   histRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -682,11 +677,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: HAIR,
   },
-  histDate: { width: 38, fontSize: 11, fontWeight: '700', color: '#9AA995' },
+  histDate: { width: 42, fontSize: 12, fontWeight: '500', color: '#9AA995' },
   histMid: { flex: 1, minWidth: 0 },
-  histTitle: { fontSize: 13.5, fontWeight: '800', color: INK },
-  histNote: { fontSize: 11, fontWeight: '700', color: GRAY },
-  histPrice: { fontSize: 13, fontWeight: '800', color: AMBER_INK },
+  histTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
+  histNote: { fontSize: 12, fontWeight: '500', color: GRAY },
+  histPrice: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
   histFoot: { marginTop: 12, fontSize: 11.5, lineHeight: 17, color: GRAY },
 })
 

@@ -904,14 +904,14 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'oquv-qurollari',
-    title: "O'quv qurоllari to'plami",
+    title: "O'quv qurollari to'plami",
     cat: "O'quv qurollari",
     price: 600,
     stock: 100,
     blurb: "To'liq o'quv to'plami",
     desc: "Daftar, ruchka va kerakli o'quv qurollaridan iborat to'liq to'plam. Omborda 100 dona.",
     specs: [
-      { k: 'Turi', v: "O'quv qurоllari to'plami" },
+      { k: 'Turi', v: "O'quv qurollari to'plami" },
     ],
     art: 'studyset',
   },
@@ -1011,7 +1011,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'kichik-oquv-toplami',
-    title: "Kichik o'quv qurоllari to'plami",
+    title: "Kichik o'quv qurollari to'plami",
     cat: "O'quv qurollari",
     price: 300,
     stock: 99,
@@ -1309,7 +1309,7 @@ export const leagueRank = (xp: number) =>
   Math.max(1, LEAGUE_SIZE - Math.floor(xp / XP_PER_RANK))
 
 /** Dushanbadan Yakshanbagacha — o'zbekcha qisqartma */
-export const WEEK_LABELS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sha', 'Ya']
+export const WEEK_LABELS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 
 /** Dushanbaidan boshlangan joriy haftaning 7 kun kaliti (YYYY-MM-DD) */
 export function currentWeekKeys(date = new Date()): string[] {

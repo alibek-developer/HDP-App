@@ -15,7 +15,7 @@ import { useExitToTopics } from '../lib/nav'
 import { LessonVideo } from '../components/LessonVideo'
 import { Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
-import { C, NUM } from '../theme/tokens'
+import { C, MATH_FONT, NUM, shadow } from '../theme/tokens'
 import { CARD, GRAD_RAIL, INK_BTN, LIME_BTN, SOLVER_BODY } from '../theme/solver'
 
 /**
@@ -39,6 +39,65 @@ const LABEL_STYLE: Record<string, { bg: string; fg: string }> = {
 
 const labelStyle = (kind: string) => LABEL_STYLE[kind] ?? LABEL_STYLE.ESLATISH
 
+/** Ma'lumot turi — katta harflar o'rniga oddiy gap ko'rinishida */
+const LABEL_TEXT: Record<string, string> = {
+  "TA'RIF": "Ta'rif",
+  "MA'LUMOT": "Ma'lumot",
+  MASALAN: 'Masalan',
+  ESLATISH: 'Eslatish',
+  SAVOL: 'Savol',
+  YECHISH: 'Yechish',
+  MAQSAD: 'Maqsad',
+  XULOSA: 'Xulosa',
+}
+
+const labelText = (kind: string) => LABEL_TEXT[kind] ?? 'Eslatish'
+
+/**
+ * Uzun nazariy matnni ekranda o'qish mumkin bo'lgan paragraflarga ajratadi.
+ * Gap chegarasi qat'iy: `.` faqat bo'sh joy va katta harf/raqamdan keyin
+ * hisoblanadi — shunda «3.14», «1.1» kabi sonlar bo'linmaydi.
+ * Ma'lumot faylida matn bitta xatboshida saqlanadi — bu faqat ko'rinish qatlami.
+ */
+const splitSentences = (text: string): string[] => {
+  const out: string[] = []
+  let start = 0
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    const hard = ch === '!' || ch === '?' || ch === '…'
+    if (!hard && ch !== '.') continue
+    if (ch === '.' && !(text[i + 1] === undefined || /\s/.test(text[i + 1]))) continue
+
+    let j = i + 1
+    while (j < text.length && /\s/.test(text[j])) j++
+    if (ch === '.' && j < text.length && !/[A-ZА-ЯЎҒҚҲOʻ“"'(0-9]/.test(text[j])) continue
+
+    out.push(text.slice(start, j).trim())
+    start = j
+    i = j - 1
+  }
+
+  if (start < text.length) out.push(text.slice(start).trim())
+  return out.filter(Boolean)
+}
+
+const paragraphs = (text: string): string[] =>
+  text.split(/\n{2,}/).flatMap(chunk => {
+    const parts: string[] = []
+    let buffer = ''
+    for (const sentence of splitSentences(chunk)) {
+      if (buffer && buffer.length + sentence.length > 260) {
+        parts.push(buffer)
+        buffer = sentence
+      } else {
+        buffer = buffer ? `${buffer} ${sentence}` : sentence
+      }
+    }
+    if (buffer) parts.push(buffer)
+    return parts
+  })
+
 /** «1.3 Son va raqamning farqi (Amaliy qism)» → «Son va raqamning farqi (Amaliy qism)» */
 const partTitle = (lessonId: string, title: string) => {
   const prefix = `${lessonId} `
@@ -52,9 +111,9 @@ const partKind = (title: string) => {
 }
 
 const kicker: TextStyle = {
-  fontSize: 11.5,
-  lineHeight: 14,
-  fontWeight: '700',
+  fontSize: 12,
+  lineHeight: 15,
+  fontWeight: '500',
   color: '#6B7C66',
 }
 
@@ -184,19 +243,30 @@ const TopicLessonScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={17} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color="#33452F" />
           </Pressable>
           <View style={styles.headerText}>
-            <Text style={kicker}>{st.done ? "Bo'lim yakunlangan" : `Bo'lim ${lesson.id}`}</Text>
+            <Text style={kicker}>
+              {st.done ? `Bo'lim ${lesson.id} · yakunlangan` : `Bo'lim ${lesson.id} · ${idx + 1}/${lessons.length}`}
+            </Text>
             <Text style={styles.headerTitle} numberOfLines={1}>
               {lesson.title}
+            </Text>
+          </View>
+
+          <View style={[styles.headerCount, st.done && styles.headerCountDone]}>
+            {st.done && <Ionicons name="checkmark-circle" size={13} color="#5FAF22" />}
+            <Text style={[styles.headerCountText, NUM, st.done && { color: '#0B6E4F' }]}>
+              {idx + 1}/{lessons.length}
             </Text>
           </View>
         </View>
 
         {/* ── Maqsad ── */}
         <View style={[CARD, styles.goal]}>
-          <Ionicons name="compass" size={15} color="#5FAF22" style={styles.goalIcon} />
+          <View style={styles.goalIconWrap}>
+            <Ionicons name="compass" size={14} color="#5FAF22" />
+          </View>
           <Text style={styles.goalText}>{lesson.goal}</Text>
         </View>
 
@@ -272,6 +342,13 @@ const TopicLessonScreen = () => {
         )}
 
         {/* ── Nazariya ── */}
+        {lesson.theory.length > 0 && (
+          <View style={styles.blockHead}>
+            <Text style={styles.blockHeadTitle}>Nazariya</Text>
+            <View style={styles.blockHeadLine} />
+          </View>
+        )}
+
         {lesson.theory.map((b, i) => {
           const tone = labelStyle(b.kind)
           return (
@@ -280,9 +357,13 @@ const TopicLessonScreen = () => {
                 <View style={[styles.blockRail, { backgroundColor: tone.fg }]} />
                 <View style={styles.blockBody}>
                   <View style={[styles.tag, { backgroundColor: tone.bg }]}>
-                    <Text style={[styles.tagText, { color: tone.fg }]}>{b.kind}</Text>
+                    <Text style={[styles.tagText, { color: tone.fg }]}>{labelText(b.kind)}</Text>
                   </View>
-                  <Text style={styles.blockText}>{b.text}</Text>
+                  {paragraphs(b.text).map((p, pi) => (
+                    <Text key={pi} style={[styles.blockText, pi > 0 && styles.blockTextGap]}>
+                      {p}
+                    </Text>
+                  ))}
                 </View>
               </View>
             </Reveal>
@@ -501,8 +582,8 @@ const TopicLessonScreen = () => {
             </>
           ) : (
             <>
-              <Text style={[styles.dockBtnText, { color: '#9AA995' }]}>Avval video darsni to&apos;liq ko&apos;ring</Text>
-              <Ionicons name="film" size={16} color="#9AA995" />
+              <Text style={[styles.dockBtnText, { color: '#6B7C66' }]}>Avval video darsni to&apos;liq ko&apos;ring</Text>
+              <Ionicons name="film" size={16} color="#8A9984" />
             </>
           )}
         </Pressable>
@@ -533,22 +614,52 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: SOLVER_BODY },
   content: { paddingHorizontal: 16, paddingBottom: 24 },
 
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 20, paddingBottom: 8 },
-  backBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 16, paddingBottom: 8 },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 12 },
   headerText: { flex: 1, minWidth: 0 },
-  headerTitle: { fontSize: 14.5, lineHeight: 19, fontWeight: '800', color: C.ink, marginTop: 2 },
+  headerTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: C.ink, marginTop: 2 },
+  headerCount: {
+    height: 28,
+    paddingHorizontal: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 9,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E1E7DA',
+  },
+  headerCountDone: { backgroundColor: '#EFF8EC', borderColor: '#CDE9AE' },
+  headerCountText: { fontSize: 11.5, fontWeight: '600', color: '#6B7C66' },
 
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   missingBtn: { height: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  missingText: { fontSize: 13, fontWeight: '800', color: '#0E1A12' },
+  missingText: { fontSize: 13, fontWeight: '600', color: '#0E1A12' },
 
-  goal: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12 },
-  goalIcon: { flexShrink: 0 },
-  goalText: { flex: 1, fontSize: 12.5, lineHeight: 18, fontWeight: '700', color: C.ink2 },
+  goal: {
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    borderRadius: 14,
+    backgroundColor: '#F7FBEF',
+    borderColor: '#DCEBC6',
+  },
+  goalIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EAF6D8',
+  },
+  goalText: { flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '500', color: C.ink2 },
 
   videoSection: { marginTop: 16 },
   videoHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
-  videoCount: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
+  videoCount: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
   partRow: { gap: 8, paddingTop: 10, paddingBottom: 2, paddingRight: 16 },
   partChip: { minHeight: 48, maxWidth: 236, flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 10, paddingRight: 14, paddingVertical: 8, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
   partChipOn: { backgroundColor: '#0E1A12', borderColor: '#0E1A12' },
@@ -557,76 +668,81 @@ const styles = StyleSheet.create({
   partIndexText: { fontSize: 11.5, fontWeight: '900', color: '#6B7C66' },
   partIndexTextOn: { color: '#9BE04B' },
   partBody: { flexShrink: 1, minWidth: 0 },
-  partKind: { fontSize: 10.5, fontWeight: '800', color: '#5FAF22' },
+  partKind: { fontSize: 10.5, fontWeight: '600', color: '#5FAF22' },
   partKindOn: { color: '#9BE04B' },
-  partName: { marginTop: 2, fontSize: 12, fontWeight: '700', color: '#33452F' },
+  partName: { marginTop: 2, fontSize: 12, fontWeight: '500', color: '#33452F' },
   partNameOn: { color: '#FFFFFF' },
   videoWrap: { marginTop: 12 },
   videoOnlyNote: { marginTop: 12, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66' },
 
-  block: { borderRadius: 14, marginTop: 16, flexDirection: 'row', overflow: 'hidden' },
+  blockHead: { marginTop: 24, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 4 },
+  blockHeadTitle: { fontSize: 13, fontWeight: '600', color: '#33452F' },
+  blockHeadLine: { flex: 1, height: 1, backgroundColor: '#DDE5D4' },
+
+  block: { borderRadius: 14, marginTop: 12, flexDirection: 'row', overflow: 'hidden' },
   blockRail: { ...cardRail, width: 4 },
-  blockBody: { flex: 1, paddingLeft: 16, paddingRight: 14, paddingVertical: 14 },
+  blockBody: { flex: 1, paddingLeft: 16, paddingRight: 15, paddingVertical: 15 },
   tag: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  tagText: { fontSize: 11, fontWeight: '800' },
-  blockText: { marginTop: 10, fontSize: 14, lineHeight: 22, color: C.ink2 },
+  tagText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.1 },
+  blockText: { marginTop: 10, fontSize: 15, lineHeight: 25, fontWeight: '400', color: '#33452F' },
+  blockTextGap: { marginTop: 12 },
 
   listCard: { borderRadius: 14, marginTop: 16, overflow: 'hidden' },
-  listCaption: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 8, fontSize: 13, lineHeight: 19, fontWeight: '800', color: C.ink },
+  listCaption: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 8, fontSize: 13, lineHeight: 19, fontWeight: '600', color: C.ink },
   listItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 14, paddingVertical: 8 },
   divided: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
   listNum: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EDF7DE', borderRadius: 6 },
   listNumText: { fontSize: 10.5, fontWeight: '900', color: '#33452F' },
-  listItemText: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '600', color: C.ink2 },
+  listItemText: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink2 },
 
   props: { borderRadius: 14, marginTop: 16, overflow: 'hidden' },
-  propsHead: { paddingHorizontal: 14, paddingVertical: 12, fontSize: 12.5, fontWeight: '800', color: '#6B7C66', borderBottomWidth: 1, borderBottomColor: '#EDF1E7' },
+  propsHead: { paddingHorizontal: 14, paddingVertical: 12, fontSize: 12.5, fontWeight: '600', color: '#6B7C66', borderBottomWidth: 1, borderBottomColor: '#EDF1E7' },
   propRow: { paddingHorizontal: 14, paddingVertical: 12 },
   propTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  propName: { fontSize: 12.5, fontWeight: '800', color: '#5FAF22' },
-  propDetail: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '600', color: C.ink },
-  propExample: { marginTop: 8, fontSize: 13, fontWeight: '700', color: '#0B6E4F', fontFamily: 'monospace' },
+  propName: { fontSize: 12.5, fontWeight: '600', color: '#5FAF22' },
+  propDetail: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink },
+  propExample: { marginTop: 8, fontSize: 13.5, fontWeight: '400', color: '#0B6E4F', fontFamily: MATH_FONT },
 
   example: { marginTop: 20, flexDirection: 'row', overflow: 'hidden', backgroundColor: '#0E1A12', borderRadius: 16 },
   exampleRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   exampleBody: { flex: 1, paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  examplePrompt: { marginTop: 8, fontSize: 14.5, lineHeight: 22, fontWeight: '600', color: '#FFFFFF' },
+  examplePrompt: { marginTop: 8, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 14.5, lineHeight: 23, color: '#FFFFFF' },
   stackBox: { marginTop: 12, alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10 },
   steps: { marginTop: 12, gap: 6 },
   stepRow: { flexDirection: 'row', gap: 10 },
   stepNum: { fontSize: 11.5, fontWeight: '900', color: '#9BE04B', width: 18 },
   stepText: { flex: 1, fontSize: 13, lineHeight: 19, color: 'rgba(255,255,255,0.82)' },
   answerRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(205,233,174,0.16)', paddingTop: 12 },
-  answerLabel: { fontSize: 11, fontWeight: '800', color: 'rgba(205,233,174,0.7)' },
-  answerValue: { fontSize: 16, fontWeight: '800', color: '#9BE04B' },
+  answerLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(205,233,174,0.7)' },
+  answerValue: { fontSize: 16, fontWeight: '600', color: '#9BE04B' },
 
   stack: { paddingLeft: 12, marginTop: 8 },
   stackDark: {},
-  stackRow: { fontSize: 16, lineHeight: 28, fontWeight: '800', color: C.ink, textAlign: 'right', fontFamily: 'monospace' },
-  stackRowDark: { color: '#FFFFFF', fontWeight: '700' },
-  stackRule: { fontSize: 15, lineHeight: 24, textAlign: 'right', fontFamily: 'monospace' },
+  stackRow: { fontSize: 17, lineHeight: 30, fontWeight: '400', color: C.ink, textAlign: 'right', fontFamily: MATH_FONT },
+  stackRowDark: { color: '#FFFFFF' },
+  stackRule: { fontSize: 15, lineHeight: 24, textAlign: 'right', color: '#9AA995', fontFamily: MATH_FONT },
   stackRuleDark: { color: 'rgba(205,233,174,0.5)', fontSize: 13, lineHeight: 24 },
-  stackResult: { fontSize: 17, lineHeight: 28, fontWeight: '800', textAlign: 'right', fontFamily: 'monospace' },
+  stackResult: { fontSize: 18, lineHeight: 30, fontWeight: '400', textAlign: 'right', color: '#0B6E4F', fontFamily: MATH_FONT },
 
   practiceSection: { marginTop: 24 },
   practiceHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 10 },
-  practiceTitle: { fontSize: 15.5, fontWeight: '800', color: C.ink },
-  practiceCount: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
+  practiceTitle: { fontSize: 15.5, fontWeight: '600', color: C.ink },
+  practiceCount: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
   practiceList: { gap: 10 },
   practiceCard: { borderRadius: 14, overflow: 'hidden' },
-  practicePrompt: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, fontSize: 13.5, lineHeight: 20, fontWeight: '600', color: C.ink },
+  practicePrompt: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 14, lineHeight: 21, color: C.ink },
   solution: { marginHorizontal: 14, marginBottom: 12, flexDirection: 'row', overflow: 'hidden', borderRadius: 10, backgroundColor: '#FBFCF8' },
   solutionRail: { width: 2, backgroundColor: '#5FAF22' },
   solutionBody: { flex: 1, paddingLeft: 12, paddingRight: 12, paddingVertical: 12, gap: 4 },
   solutionStep: { fontSize: 13, lineHeight: 20, color: C.ink2 },
-  solutionAnswer: { marginTop: 8, fontSize: 14, fontWeight: '800', color: '#0B6E4F' },
+  solutionAnswer: { marginTop: 8, fontSize: 14, fontWeight: '600', color: '#0B6E4F' },
   toggleBtn: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderTopWidth: 1, borderTopColor: '#EDF1E7' },
-  toggleText: { fontSize: 12, fontWeight: '800' },
+  toggleText: { fontSize: 12, fontWeight: '600' },
 
   noPractice: { marginTop: 20, flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 14, paddingVertical: 14, borderRadius: 14 },
-  noPracticeText: { flex: 1, fontSize: 12.5, lineHeight: 19, fontWeight: '600', color: '#6B7C66' },
+  noPracticeText: { flex: 1, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66' },
 
-  dockSpace: { height: 96 },
+  dockSpace: { height: 118 },
   dock: {
     position: 'absolute',
     left: 0,
@@ -634,17 +750,18 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: 'rgba(243,247,238,0.96)',
+    backgroundColor: SOLVER_BODY,
     borderTopWidth: 1,
     borderTopColor: '#E1E7DA',
+    ...shadow(C.ink, 18, 2, 0.07),
   },
   dockBtn: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12 },
-  dockBtnLocked: { backgroundColor: '#EAEEE3', borderRadius: 12 },
-  dockBtnText: { fontSize: 14.5, fontWeight: '800' },
+  dockBtnLocked: { backgroundColor: '#E9EDE2', borderRadius: 12 },
+  dockBtnText: { fontSize: 14.5, fontWeight: '600' },
   dockReward: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  dockRewardText: { fontSize: 11.5, fontWeight: '700', color: '#9AA995' },
+  dockRewardText: { fontSize: 11.5, fontWeight: '500', color: '#7C8B77' },
   dockList: { marginTop: 6, height: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  dockListText: { fontSize: 11.5, fontWeight: '800', color: '#6B7C66' },
+  dockListText: { fontSize: 11.5, fontWeight: '600', color: '#6B7C66' },
 })
 
 export default TopicLessonScreen

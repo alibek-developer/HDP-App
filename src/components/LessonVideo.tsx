@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#0E1A12',
   },
-  loadingText: { fontSize: 11.5, fontWeight: '600', color: 'rgba(205,233,174,0.6)' },
+  loadingText: { fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },
 
   body: { paddingHorizontal: 14, paddingTop: 12 },
   railTrack: { height: 5, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 3, overflow: 'hidden' },
@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
   },
 
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8 },
-  metaTitle: { flex: 1, minWidth: 0, fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.85)' },
+  metaTitle: { flex: 1, minWidth: 0, fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.85)' },
   metaState: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
-  metaStateText: { fontSize: 11.5, fontWeight: '700' },
+  metaStateText: { fontSize: 11.5, fontWeight: '500' },
 
   note: {
     marginTop: 10,
@@ -363,13 +363,13 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(205,233,174,0.14)',
     fontSize: 11.5,
     lineHeight: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: 'rgba(205,233,174,0.55)',
   },
 
   failCard: { backgroundColor: '#0E1A12', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14 },
   failTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  failTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '700', color: 'rgba(255,255,255,0.85)' },
+  failTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '500', color: 'rgba(255,255,255,0.85)' },
   failNote: { marginTop: 8, fontSize: 12, lineHeight: 18, fontWeight: '500', color: 'rgba(205,233,174,0.7)' },
   failActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   failPrimary: {
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#9BE04B',
   },
-  failPrimaryText: { fontSize: 12.5, fontWeight: '800', color: '#0E1A12' },
+  failPrimaryText: { fontSize: 12.5, fontWeight: '600', color: '#0E1A12' },
   failGhost: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -394,5 +394,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(205,233,174,0.24)',
   },
-  failGhostText: { fontSize: 12.5, fontWeight: '700', color: '#CDE9AE' },
+  failGhostText: { fontSize: 12.5, fontWeight: '500', color: '#CDE9AE' },
 })

@@ -21,7 +21,7 @@ export const TOPIC_2_META = {
   id: 'mavzu-2',
   num: 2,
   chapter: "Oxiriga yetkazilmagan bo'lish. Natural sonlarning cheklangan imkoniyati",
-  title: "Mavzu 2. Oxiriga yetkazilmagan bo'lish",
+  title: "Mavzu 2. Bo'lishni oxiriga yetkazish",
   lessonCount: 11,
 }
 

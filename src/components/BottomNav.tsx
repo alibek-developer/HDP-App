@@ -175,5 +175,5 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
   },
-  label: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
+  label: { fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
 })

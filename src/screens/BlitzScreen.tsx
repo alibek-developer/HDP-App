@@ -10,7 +10,7 @@ import { useExit } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import { Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, NUM, TICK } from '../theme/tokens'
+import { ABS_FILL, MATH_FONT, NUM, TICK } from '../theme/tokens'
 import { CARD, GRAD_RAIL, LIME_BTN, OUT_BTN } from '../theme/solver'
 
 /**
@@ -105,7 +105,7 @@ const BlitzScreen = () => {
               hitSlop={10}
               style={({ pressed }) => [s.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
             >
-              <Ionicons name="chevron-back" size={17} color="#33452F" />
+              <Ionicons name="chevron-back" size={18} color="#33452F" />
             </Pressable>
             <Text style={s.lobbyKicker}>Sprint</Text>
             <View style={s.headSpacer} />
@@ -333,27 +333,27 @@ const s = StyleSheet.create({
 
   lobbyHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
   backBtn: {
-    width: 38, height: 38, alignItems: 'center', justifyContent: 'center',
+    width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
     backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 12,
   },
-  lobbyKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
-  headSpacer: { width: 38 },
+  lobbyKicker: { fontSize: 12, fontWeight: '500', color: GRAY },
+  headSpacer: { width: 40 },
 
   mark: {
     position: 'relative', width: 56, height: 56, borderRadius: 16, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center', backgroundColor: '#7ED321',
   },
   markIcon: { color: '#1C3214' },
-  h1: { marginTop: 16, fontSize: 26, lineHeight: 32, fontWeight: '800', color: INK },
+  h1: { marginTop: 16, fontSize: 26, lineHeight: 32, fontWeight: '600', color: INK },
   h1Sub: { marginTop: 6, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: GRAY },
 
-  recordLine: { marginTop: 20, fontSize: 12.5, fontWeight: '700', color: GRAY },
+  recordLine: { marginTop: 20, fontSize: 12.5, fontWeight: '500', color: GRAY },
 
   startBtn: {
     ...LIME_BTN, position: 'relative', overflow: 'hidden', marginTop: 20, height: 52, gap: 8,
   },
   againBtn: { marginTop: 16 },
-  startText: { fontSize: 14.5, fontWeight: '800', color: '#1C3214' },
+  startText: { fontSize: 14.5, fontWeight: '600', color: '#1C3214' },
   startIcon: { color: '#1C3214' },
 
   reviseBtn: {
@@ -364,18 +364,18 @@ const s = StyleSheet.create({
     width: 28, height: 28, borderRadius: 9, backgroundColor: '#F6F8F3',
     borderColor: '#E1E7DA', borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  reviseText: { flex: 1, fontSize: 13, fontWeight: '800', color: INK },
+  reviseText: { flex: 1, fontSize: 13, fontWeight: '600', color: INK },
 
   resultCard: { position: 'relative', overflow: 'hidden', ...CARD, borderRadius: 16 },
   resultRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6 },
   resultInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 20 },
   resultHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  resultKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
-  resultH1: { marginTop: 8, fontSize: 24, lineHeight: 26, fontWeight: '800', color: INK },
+  resultKicker: { fontSize: 11.5, fontWeight: '500', color: GRAY },
+  resultH1: { marginTop: 8, fontSize: 24, lineHeight: 26, fontWeight: '600', color: INK },
   resultSub: { marginTop: 8, fontSize: 13, fontWeight: '500', color: GRAY },
 
   homeBtn: { ...OUT_BTN, marginTop: 10, height: 48 },
-  homeBtnText: { fontSize: 13.5, fontWeight: '800', color: '#33452F' },
+  homeBtnText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
 
   gamePad: { paddingHorizontal: 16, paddingTop: 20 },
   scoreboard: {
@@ -386,15 +386,15 @@ const s = StyleSheet.create({
   scoreCellWrap: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
   scoreDivider: { width: 1, backgroundColor: '#EDF1E7', marginVertical: 4 },
   scoreCell: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
-  scoreValue: { fontSize: 19, lineHeight: 20, fontWeight: '800' },
-  scoreValueBig: { fontSize: 20, lineHeight: 21, fontWeight: '800' },
-  scoreUnit: { marginTop: 6, fontSize: 10.5, fontWeight: '700', color: FAINT },
+  scoreValue: { fontSize: 19, lineHeight: 20, fontWeight: '600' },
+  scoreValueBig: { fontSize: 20, lineHeight: 21, fontWeight: '600' },
+  scoreUnit: { marginTop: 6, fontSize: 10.5, fontWeight: '500', color: FAINT },
   timerWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   timer: {
     height: 40, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 6,
     borderWidth: 1, borderRadius: 12,
   },
-  timerText: { fontSize: 17, fontWeight: '800' },
+  timerText: { fontSize: 17, fontWeight: '600' },
 
   rail: { marginTop: 12, flexDirection: 'row', gap: 6 },
   railCell: { flex: 1, height: 5, borderRadius: 3 },
@@ -403,8 +403,8 @@ const s = StyleSheet.create({
   questionCard: { position: 'relative', overflow: 'hidden', ...CARD, borderRadius: 16 },
   questionRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   questionInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  questionKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
-  questionText: { marginTop: 8, fontSize: 17, lineHeight: 24, fontWeight: '600', color: INK },
+  questionKicker: { fontSize: 11.5, fontWeight: '500', color: GRAY },
+  questionText: { marginTop: 8, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 18, lineHeight: 26, color: INK },
 
   options: { marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: GAP },
   optionOuter: { width: '48%' },
@@ -415,11 +415,11 @@ const s = StyleSheet.create({
   optionIdle: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1 },
   optionCorrect: { backgroundColor: '#DDF3DC', borderColor: '#5FAF22', borderWidth: 1.5 },
   optionDim: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, opacity: 0.6 },
-  optionLetter: { fontSize: 10, fontWeight: '800', color: FAINT },
-  optionText: { marginTop: 4, fontSize: 14.5, lineHeight: 19, fontWeight: '800' },
+  optionLetter: { fontSize: 10, fontWeight: '600', color: FAINT },
+  optionText: { marginTop: 4, fontSize: 14.5, lineHeight: 19, fontWeight: '600' },
 
   footNote: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  footNoteText: { fontSize: 11.5, fontWeight: '700', color: FAINT },
+  footNoteText: { fontSize: 11.5, fontWeight: '500', color: FAINT },
 })
 
 export default BlitzScreen

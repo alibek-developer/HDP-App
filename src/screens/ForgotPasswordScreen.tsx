@@ -58,7 +58,7 @@ const ForgotPasswordScreen = ({ navigation }: NativeStackScreenProps<RootStackPa
 
             <Text style={styles.title}>
               <Text style={{ color: C.ink4, fontWeight: '400' }}>{sent ? "So'rov " : 'Parolni '}</Text>
-              <Text style={{ color: C.ink, fontWeight: '800' }}>{sent ? 'qabul qilindi' : 'tiklash'}</Text>
+              <Text style={{ color: C.ink, fontWeight: '600' }}>{sent ? 'qabul qilindi' : 'tiklash'}</Text>
             </Text>
 
             {sent ? (
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   title: { ...T.h1, textAlign: 'center', marginTop: 24, paddingHorizontal: 32, color: C.ink },
   sub: { ...T.bodyMd, color: C.ink3, textAlign: 'center', marginTop: 8, marginHorizontal: 65 },
   form: { paddingHorizontal: 24, marginTop: 28 },
-  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '700', color: '#C2453D' },
+  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#C2453D' },
   okCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -155,11 +155,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#7ED321',
   },
-  okText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '600', color: C.ink2 },
+  okText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '500', color: C.ink2 },
   submit: { marginTop: 24 },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
   footerText: { ...T.bodyMd, color: C.ink3 },
-  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '800', textDecorationLine: 'underline' },
+  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '600', textDecorationLine: 'underline' },
 })
 
 export default ForgotPasswordScreen

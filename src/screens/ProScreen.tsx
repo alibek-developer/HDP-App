@@ -11,7 +11,7 @@ import { triggerHaptic } from '../lib/haptics'
 import { useExit } from '../lib/nav'
 import { PopIn } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, NUM } from '../theme/tokens'
+import { ABS_FILL, NUM, shadow } from '../theme/tokens'
 import {
   CARD, GRAD_HEADER, GRAD_LIME, GRAD_RAIL,
   INK_BTN, LIME_BTN, OUT_BTN,
@@ -106,10 +106,13 @@ const ProScreen = () => {
   }
 
   return (
-    <View style={[s.screen, { paddingBottom: isPro ? 40 : 170 + insets.bottom }]}>
+    <View style={s.screen}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[s.scroll, { paddingTop: insets.top + 20 }]}
+        contentContainerStyle={[
+          s.scroll,
+          { paddingTop: insets.top + 16, paddingBottom: (isPro ? 40 : 200) + insets.bottom },
+        ]}
       >
         {/* ── Header ── */}
         <View style={s.header}>
@@ -119,7 +122,7 @@ const ProScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [s.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={17} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color="#33452F" />
           </Pressable>
           <View style={s.headCenter}>
             <Text style={s.headKicker}>Obuna</Text>
@@ -134,71 +137,97 @@ const ProScreen = () => {
           <HeroGrid />
           <View style={s.heroInner}>
             <View style={s.heroBadge}>
-              <Ionicons name="diamond" size={22} color="#9BE04B" />
+              <Ionicons name="diamond" size={21} color="#9BE04B" />
             </View>
-            <Text style={s.heroH1}>HDP Pro bilan{'\n'}matematikani egalla</Text>
-            <Text style={s.heroSub}>
-              DTM va olimpiada matematikasi uchun izchil kurs — konspekt, misol va test bir yo&apos;lda.
-            </Text>
+            <View style={s.heroCopy}>
+              <Text style={s.heroH1}>Matematikani{'\n'}HDP Pro bilan egallang</Text>
+              <Text style={s.heroSub}>
+                DTM va olimpiada uchun izchil kurs — konspekt, misol va test bir yo&apos;lda.
+              </Text>
+            </View>
           </View>
         </View>
 
+        {/* ── Faol obuna holati ── */}
+        {isPro && (
+          <View style={s.activeCard}>
+            <View style={s.activeRail} />
+            <View style={s.activeInner}>
+              <View style={s.activeHead}>
+                <Ionicons name="ribbon" size={15} color={AMBER} />
+                <Text style={s.activeTitle}>Pro faol</Text>
+              </View>
+              <Text style={s.activeSub}>Barcha mashq to&apos;plamlari coin sarflamasdan ochiq.</Text>
+              {!!proExpires && (
+                <View style={s.activeDateRow}>
+                  <Ionicons name="calendar" size={14} color="#0B4A34" />
+                  <Text style={[s.activeDate, NUM]}>Amal qiladi: {ruDate(proExpires)} gacha</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* ── Tarif rejalari ── */}
-        <Text style={s.sectionLabel}>Tarif rejasini tanlang</Text>
-        <View style={s.plans}>
-          {PLANS.map(p => {
-            const on = selected === p.id
-            const pTotal = p.perMonth * p.months
-            const pSaved = BASE_PER_MONTH * p.months - pTotal
-            return (
-              <Pressable
-                key={p.id}
-                onPress={() => { triggerHaptic('selection'); setSelected(p.id) }}
-                style={({ pressed }) => [
-                  s.plan,
-                  on ? s.planOn : s.planIdle,
-                  pressed && { transform: [{ scale: 0.995 }] },
-                ]}
-              >
-                {on && (
-                  <LinearGradient
-                    colors={GRAD_RAIL}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={s.planRail}
-                  />
-                )}
-                <View style={[s.radio, on ? s.radioOn : s.radioIdle]}>
-                  {on && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
-                </View>
-                <View style={s.planMid}>
-                  <View style={s.planTitleRow}>
-                    <Text style={s.planLabel}>{p.label}</Text>
-                    {!!p.badge && (
-                      <View style={p.id === '1y' ? s.badgeAmber : s.badgeLime}>
-                        <Text style={p.id === '1y' ? s.badgeAmberText : s.badgeLimeText}>{p.badge}</Text>
-                      </View>
+        {!isPro && (
+          <>
+            <Text style={s.sectionLabel}>Tarif rejasini tanlang</Text>
+            <View style={s.plans}>
+              {PLANS.map(p => {
+                const on = selected === p.id
+                const pTotal = p.perMonth * p.months
+                const pSaved = BASE_PER_MONTH * p.months - pTotal
+                return (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => { triggerHaptic('selection'); setSelected(p.id) }}
+                    style={({ pressed }) => [
+                      s.plan,
+                      on ? s.planOn : s.planIdle,
+                      pressed && { transform: [{ scale: 0.995 }] },
+                    ]}
+                  >
+                    {on && (
+                      <LinearGradient
+                        colors={GRAD_RAIL}
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
+                        style={s.planRail}
+                      />
                     )}
-                  </View>
-                  <Text style={[s.planTotal, NUM]}>
-                    {p.months === 1 ? "Bir oylik to'lov" : `jami ${money(pTotal)} so'm`}
-                  </Text>
-                </View>
-                <View style={s.planRight}>
-                  <Text style={[s.planPrice, NUM, { color: on ? '#0B4A34' : INK }]}>{money(p.perMonth)}</Text>
-                  <Text style={[s.planUnit, NUM]}>so'm /oy</Text>
-                  {pSaved > 0 && (
-                    <View style={s.saveChip}>
-                      <Text style={[s.saveChipText, NUM]}>
-                        −{Math.round((pSaved / (BASE_PER_MONTH * p.months)) * 100)}%
+                    <View style={[s.radio, on ? s.radioOn : s.radioIdle]}>
+                      {on && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+                    </View>
+                    <View style={s.planMid}>
+                      <View style={s.planTitleRow}>
+                        <Text style={s.planLabel}>{p.label}</Text>
+                        {!!p.badge && (
+                          <View style={p.id === '1y' ? s.badgeAmber : s.badgeLime}>
+                            <Text style={p.id === '1y' ? s.badgeAmberText : s.badgeLimeText}>{p.badge}</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={[s.planTotal, NUM]}>
+                        {p.months === 1 ? "Bir oylik to'lov" : `jami ${money(pTotal)} so'm`}
                       </Text>
                     </View>
-                  )}
-                </View>
-              </Pressable>
-            )
-          })}
-        </View>
+                    <View style={s.planRight}>
+                      <Text style={[s.planPrice, NUM, { color: on ? '#0B4A34' : INK }]}>{money(p.perMonth)}</Text>
+                      <Text style={[s.planUnit, NUM]}>so'm /oy</Text>
+                      {pSaved > 0 && (
+                        <View style={s.saveChip}>
+                          <Text style={[s.saveChipText, NUM]}>
+                            −{Math.round((pSaved / (BASE_PER_MONTH * p.months)) * 100)}%
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </Pressable>
+                )
+              })}
+            </View>
+          </>
+        )}
 
         {/* ── Nimalar kiradi ── */}
         <Text style={s.sectionLabel}>Nimalar kiradi</Text>
@@ -223,32 +252,14 @@ const ProScreen = () => {
           ))}
         </View>
 
-        {/* ── Faol obuna holati ── */}
+        {/* ── Obunani boshqarish ── */}
         {isPro && (
-          <View style={s.activeWrap}>
-            <View style={s.activeCard}>
-              <View style={s.activeRail} />
-              <View style={s.activeInner}>
-                <View style={s.activeHead}>
-                  <Ionicons name="ribbon" size={15} color={AMBER} />
-                  <Text style={s.activeTitle}>Pro faol</Text>
-                </View>
-                <Text style={s.activeSub}>Barcha mashq to&apos;plamlari ochiq.</Text>
-                {!!proExpires && (
-                  <View style={s.activeDateRow}>
-                    <Ionicons name="calendar" size={14} color="#0B4A34" />
-                    <Text style={[s.activeDate, NUM]}>Amal qiladi: {ruDate(proExpires)} gacha</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-            <Pressable
-              onPress={() => { cancelPro(); triggerHaptic('warning'); navigation.navigate('Main') }}
-              style={({ pressed }) => [s.cancelPro, pressed && { opacity: 0.8 }]}
-            >
-              <Text style={s.cancelProText}>Obunani bekor qilish</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => { cancelPro(); triggerHaptic('warning'); navigation.navigate('Main') }}
+            style={({ pressed }) => [s.cancelPro, pressed && { opacity: 0.8 }]}
+          >
+            <Text style={s.cancelProText}>Obunani bekor qilish</Text>
+          </Pressable>
         )}
       </ScrollView>
 
@@ -258,10 +269,12 @@ const ProScreen = () => {
           <View style={s.dockHead}>
             <View style={s.dockLeft}>
               <Text style={s.dockLabel}>{`Jami to'lov · ${plan.label}`}</Text>
-              <Text style={[s.dockTotal, NUM]}>
-                {money(total)} <Text style={s.dockCur}>so'm</Text>
-                <Text style={[s.dockOld, NUM]}>  {money(baseline)}</Text>
-              </Text>
+              <View style={s.dockTotalRow}>
+                <Text style={[s.dockTotal, NUM]}>
+                  {money(total)} <Text style={s.dockCur}>so&apos;m</Text>
+                </Text>
+                {saved > 0 && <Text style={[s.dockOld, NUM]}>{money(baseline)}</Text>}
+              </View>
             </View>
             <View style={s.dockSave}>
               <Text style={[s.dockSaveText, NUM]}>−{money(saved)} so'm</Text>
@@ -274,7 +287,7 @@ const ProScreen = () => {
           >
             <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[ABS_FILL, { borderRadius: 12 }]} />
             <Ionicons name="ribbon" size={17} color="#1C3214" style={s.buyIcon} />
-            <Text style={s.buyText}>Sinov uchun faollashtirish</Text>
+            <Text style={s.buyText}>To&apos;lovsiz faollashtirish</Text>
           </Pressable>
 
           <View style={s.dockFoot}>
@@ -341,36 +354,37 @@ const s = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 },
   backBtn: {
-    width: 38, height: 38, alignItems: 'center', justifyContent: 'center',
+    width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
     backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 12,
   },
   headCenter: { alignItems: 'center' },
-  headKicker: { fontSize: 11.5, fontWeight: '700', color: GRAY },
-  headTitle: { marginTop: 2, fontSize: 15, fontWeight: '800', color: INK },
-  headSpacer: { width: 38 },
+  headKicker: { fontSize: 12, fontWeight: '500', color: GRAY },
+  headTitle: { marginTop: 2, fontSize: 15, fontWeight: '600', color: INK },
+  headSpacer: { width: 40 },
 
   hero: {
-    position: 'relative', overflow: 'hidden', borderRadius: 20, minHeight: 210,
-    backgroundColor: INK, marginBottom: 20,
+    position: 'relative', overflow: 'hidden', borderRadius: 20,
+    backgroundColor: INK, marginBottom: 16,
   },
-  heroInner: { padding: 20 },
+  heroInner: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, padding: 18 },
   heroBadge: {
-    width: 46, height: 46, alignItems: 'center', justifyContent: 'center',
+    width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(155,224,75,0.16)', borderColor: 'rgba(155,224,75,0.36)',
-    borderWidth: 1, borderRadius: 14,
+    borderWidth: 1, borderRadius: 13,
   },
-  heroH1: { marginTop: 16, fontSize: 24, lineHeight: 28, fontWeight: '800', letterSpacing: -0.5, color: '#F7FCED' },
-  heroSub: { marginTop: 10, fontSize: 13, lineHeight: 18, fontWeight: '500', color: 'rgba(205,233,174,0.72)' },
+  heroCopy: { flex: 1, minWidth: 0 },
+  heroH1: { fontSize: 21, lineHeight: 26, fontWeight: '600', letterSpacing: -0.4, color: '#F7FCED' },
+  heroSub: { marginTop: 8, fontSize: 12.5, lineHeight: 17.5, fontWeight: '500', color: 'rgba(205,233,174,0.75)' },
 
   sectionLabel: {
-    fontSize: 13, fontWeight: '800', color: INK,
+    fontSize: 13, fontWeight: '600', color: INK,
     marginBottom: 10, paddingLeft: 4,
   },
   plans: { gap: 10, marginBottom: 20 },
 
   plan: {
     position: 'relative', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderRadius: 16, paddingVertical: 14, paddingLeft: 16, paddingRight: 16,
+    minHeight: 80, borderRadius: 16, paddingVertical: 12, paddingLeft: 16, paddingRight: 16,
   },
   planIdle: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1 },
   planOn: { backgroundColor: '#F1FAE7', borderColor: '#5FAF22', borderWidth: 1 },
@@ -382,17 +396,17 @@ const s = StyleSheet.create({
   radioOn: { backgroundColor: BRAND, borderColor: BRAND, borderWidth: 1.5 },
   planMid: { flex: 1, minWidth: 0 },
   planTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planLabel: { fontSize: 14.5, fontWeight: '800', color: INK },
-  planTotal: { marginTop: 6, fontSize: 11.5, fontWeight: '700', color: GRAY },
+  planLabel: { fontSize: 14.5, fontWeight: '600', color: INK },
+  planTotal: { marginTop: 6, fontSize: 12, fontWeight: '500', color: GRAY },
   planRight: { alignItems: 'flex-end' },
-  planPrice: { fontSize: 19, fontWeight: '800', lineHeight: 21 },
-  planUnit: { marginTop: 2, fontSize: 10.5, fontWeight: '700', color: FAINT },
+  planPrice: { fontSize: 19, fontWeight: '600', lineHeight: 21 },
+  planUnit: { marginTop: 2, fontSize: 12, fontWeight: '500', color: FAINT },
   saveChip: { marginTop: 6, backgroundColor: '#DDF3DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  saveChipText: { fontSize: 11, fontWeight: '800', color: BRAND },
+  saveChipText: { fontSize: 12, fontWeight: '600', color: BRAND },
   badgeLime: { backgroundColor: '#EDF7DE', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  badgeLimeText: { fontSize: 10, fontWeight: '800', color: BRAND },
+  badgeLimeText: { fontSize: 11, fontWeight: '600', color: BRAND },
   badgeAmber: { backgroundColor: '#FCF1DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  badgeAmberText: { fontSize: 10, fontWeight: '800', color: AMBER },
+  badgeAmberText: { fontSize: 11, fontWeight: '600', color: AMBER },
 
   features: { ...CARD, borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   feature: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 16, paddingVertical: 14 },
@@ -401,45 +415,48 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   featureMid: { flex: 1, minWidth: 0 },
-  featureTitle: { fontSize: 13.5, fontWeight: '800', lineHeight: 18, color: INK },
-  featureDesc: { marginTop: 4, fontSize: 11.5, lineHeight: 16, fontWeight: '600', color: GRAY },
+  featureTitle: { fontSize: 13.5, fontWeight: '600', lineHeight: 18, color: INK },
+  featureDesc: { marginTop: 4, fontSize: 12, lineHeight: 17, fontWeight: '500', color: GRAY },
 
-  activeWrap: { marginTop: 4 },
   activeCard: {
-    position: 'relative', overflow: 'hidden', marginBottom: 12,
+    position: 'relative', overflow: 'hidden', marginBottom: 20,
     backgroundColor: '#DDF3DC', borderColor: '#A7D8A0', borderWidth: 1, borderRadius: 16,
   },
   activeRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, backgroundColor: '#5FAF22' },
   activeInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
   activeHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  activeTitle: { fontSize: 14, fontWeight: '800', color: '#0B4A34' },
-  activeSub: { marginTop: 6, fontSize: 12, fontWeight: '600', color: BRAND },
+  activeTitle: { fontSize: 14, fontWeight: '600', color: '#0B4A34' },
+  activeSub: { marginTop: 6, fontSize: 12, fontWeight: '500', color: BRAND },
   activeDateRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  activeDate: { fontSize: 11.5, fontWeight: '800', color: '#0B4A34' },
+  activeDate: { fontSize: 12, fontWeight: '600', color: '#0B4A34' },
   cancelPro: {
     ...OUT_BTN, height: 48,
   },
-  cancelProText: { fontSize: 13.5, fontWeight: '800', color: '#33452F' },
+  cancelProText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
 
   dock: {
     position: 'absolute', left: 0, right: 0, backgroundColor: '#FFFFFF',
-    borderTopWidth: 1, borderTopColor: '#E1E7DA', paddingHorizontal: 16, paddingTop: 12,
+    borderTopWidth: 1, borderTopColor: '#E1E7DA',
+    borderTopLeftRadius: 18, borderTopRightRadius: 18,
+    paddingHorizontal: 16, paddingTop: 12,
+    ...shadow('#0E1A12', 18, 2, 0.07),
   },
   dockHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dockLeft: { flex: 1, minWidth: 0 },
-  dockLabel: { fontSize: 11, fontWeight: '700', color: FAINT },
-  dockTotal: { marginTop: 4, fontSize: 21, fontWeight: '800', lineHeight: 22, color: INK },
+  dockLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
+  dockTotalRow: { marginTop: 4, flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  dockTotal: { fontSize: 21, fontWeight: '600', lineHeight: 22, color: INK },
   dockCur: { color: GRAY, fontSize: 21 },
-  dockOld: { color: FAINT, fontSize: 12, fontWeight: '700', textDecorationLine: 'line-through' },
+  dockOld: { color: FAINT, fontSize: 12, fontWeight: '500', textDecorationLine: 'line-through' },
   dockSave: { backgroundColor: '#DDF3DC', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
-  dockSaveText: { fontSize: 12, fontWeight: '800', color: BRAND },
+  dockSaveText: { fontSize: 12, fontWeight: '600', color: BRAND },
   buyBtn: {
     ...LIME_BTN, height: 52,
   },
   buyIcon: { color: '#1C3214', marginRight: 8 },
-  buyText: { fontSize: 15, fontWeight: '800', color: '#1C3214' },
+  buyText: { fontSize: 15, fontWeight: '600', color: '#1C3214' },
   dockFoot: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  dockFootText: { fontSize: 10.5, fontWeight: '600', color: FAINT },
+  dockFootText: { fontSize: 11.5, fontWeight: '500', color: GRAY },
 
   modalRoot: { flex: 1, justifyContent: 'center', paddingHorizontal: 20 },
   modalScrim: { backgroundColor: 'rgba(14,26,18,0.6)' },
@@ -454,20 +471,20 @@ const s = StyleSheet.create({
   },
   successTickIcon: { color: '#1C3214' },
   successTitles: { flex: 1, minWidth: 0 },
-  successH3: { fontSize: 20, fontWeight: '800', lineHeight: 24, color: INK },
-  successSub: { marginTop: 4, fontSize: 12.5, fontWeight: '600', color: GRAY },
+  successH3: { fontSize: 20, fontWeight: '600', lineHeight: 24, color: INK },
+  successSub: { marginTop: 4, fontSize: 12.5, fontWeight: '500', color: GRAY },
   receipt: {
     marginTop: 20, backgroundColor: '#F6F8F3', borderColor: '#E1E7DA', borderWidth: 1,
     borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, gap: 10,
   },
   receiptRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  receiptLabel: { fontSize: 12, fontWeight: '700', color: GRAY },
-  receiptValue: { fontSize: 12.5, fontWeight: '800', color: INK },
-  receiptNote: { marginTop: 10, fontSize: 11, lineHeight: 15, fontWeight: '600', color: FAINT },
+  receiptLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
+  receiptValue: { fontSize: 12.5, fontWeight: '600', color: INK },
+  receiptNote: { marginTop: 10, fontSize: 12, lineHeight: 16, fontWeight: '500', color: FAINT },
   goBtn: {
     ...INK_BTN, height: 52, marginTop: 20, gap: 6,
   },
-  goText: { fontSize: 14.5, fontWeight: '800', color: '#CDE9AE' },
+  goText: { fontSize: 14.5, fontWeight: '600', color: '#CDE9AE' },
 })
 
 export default ProScreen

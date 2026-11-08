@@ -64,7 +64,7 @@ const SubjectScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={17} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color="#33452F" />
           </Pressable>
 
           <View style={styles.headerTitle}>
@@ -146,9 +146,11 @@ const SubjectScreen = () => {
                             />
                           </View>
                         </View>
-                        <Text style={[styles.railCount, NUM, ready ? styles.railCountReady : null]}>
-                          {done}/{total}
-                        </Text>
+                        {done > 0 && (
+                          <Text style={[styles.railCount, NUM, ready ? styles.railCountReady : null]}>
+                            {done}/{total}
+                          </Text>
+                        )}
                         <Text style={[styles.railLabel, ready ? styles.railLabelReady : null]}>
                           {ready ? 'Testga tayyor' : done > 0 ? 'Davom etish' : 'Boshlash'}
                         </Text>
@@ -208,8 +210,8 @@ const SubjectScreen = () => {
 }
 
 const headerBtn: ViewStyle = {
-  width: 38,
-  height: 38,
+  width: 40,
+  height: 40,
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: 12,
@@ -219,46 +221,46 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: SOLVER_BODY },
   content: { paddingBottom: 112 },
 
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 },
   backBtn: { ...headerBtn, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
   headerTitle: { flex: 1, minWidth: 0, alignItems: 'center', paddingHorizontal: 8 },
-  headerKicker: { fontSize: 11, letterSpacing: 0.2, fontWeight: '700', color: '#6B7C66' },
-  headerName: { marginTop: 2, fontSize: 15, fontWeight: '800', color: C.ink, lineHeight: 19 },
-  wallet: { ...headerBtn, backgroundColor: '#FCF1DC', borderWidth: 1, borderColor: '#E8A33D', gap: 1 },
-  walletText: { fontSize: 9.5, fontWeight: '800', color: '#B87A22' },
+  headerKicker: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  headerName: { marginTop: 2, fontSize: 15, fontWeight: '600', color: C.ink, lineHeight: 19 },
+  wallet: { ...headerBtn, width: 46, backgroundColor: '#FCF1DC', borderWidth: 1, borderColor: '#E8A33D', gap: 1 },
+  walletText: { fontSize: 10.5, fontWeight: '600', color: '#B87A22' },
 
   section: { paddingHorizontal: 16 },
   topicSection: { marginTop: 20 },
 
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   missingBtn: { ...CARD, height: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  missingText: { fontSize: 13, fontWeight: '800', color: '#0E1A12' },
+  missingText: { fontSize: 13, fontWeight: '600', color: '#0E1A12' },
 
   hint: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 4, marginBottom: 14 },
-  hintText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
-  hintStrong: { fontWeight: '800', color: C.ink2 },
+  hintText: { flex: 1, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#6B7C66' },
+  hintStrong: { fontWeight: '600', color: C.ink2 },
 
   topicHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 10 },
-  topicHeading: { fontSize: 15.5, fontWeight: '800', color: C.ink },
-  topicCount: { fontSize: 11, fontWeight: '700', color: '#9AA995' },
+  topicHeading: { fontSize: 15.5, fontWeight: '600', color: C.ink },
+  topicCount: { fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
   topicList: { gap: 12 },
   topicCard: { ...CARD, borderRadius: 16, overflow: 'hidden' },
   topicTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 12, paddingTop: 14 },
   topicNumTile: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 11 },
   topicNumReady: { backgroundColor: '#DDF3DC' },
   topicNumActive: { backgroundColor: '#0E1A12' },
-  topicNumText: { fontSize: 13, fontWeight: '800', color: '#9BE04B' },
+  topicNumText: { fontSize: 13, fontWeight: '600', color: '#9BE04B' },
   topicMeta: { flex: 1, minWidth: 0 },
-  topicTitle: { fontSize: 13.5, fontWeight: '800', color: C.ink, lineHeight: 19 },
-  topicStats: { marginTop: 4, fontSize: 11, fontWeight: '600', color: '#9AA995' },
+  topicTitle: { fontSize: 14, fontWeight: '600', color: C.ink, lineHeight: 19.5 },
+  topicStats: { marginTop: 4, fontSize: 12, fontWeight: '500', color: '#9AA995' },
   topicChevron: { marginTop: 8, flexShrink: 0 },
 
-  topicFoot: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 },
+  topicFoot: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 },
   railTrack: { flex: 1, height: 6, backgroundColor: '#EDF1E7', borderRadius: 3, overflow: 'hidden' },
   railFill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 3, overflow: 'hidden' },
-  railCount: { fontSize: 11, fontWeight: '800', color: '#6B7C66' },
+  railCount: { fontSize: 12, fontWeight: '600', color: '#6B7C66' },
   railCountReady: { color: '#0B6E4F' },
-  railLabel: { fontSize: 10.5, fontWeight: '800', color: '#9AA995' },
+  railLabel: { fontSize: 11.5, fontWeight: '600', color: '#9AA995' },
   railLabelReady: { color: '#0B6E4F' },
 
   emptyCard: { ...CARD, borderRadius: 16, overflow: 'hidden' },
@@ -276,9 +278,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyBadgeText: { fontSize: 11.5, fontWeight: '800', color: C.inkOnLime },
+  emptyBadgeText: { fontSize: 11.5, fontWeight: '600', color: C.inkOnLime },
   emptyBodyWrap: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20 },
-  emptyTitle: { fontSize: 14, fontWeight: '800', color: C.ink, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 14, fontWeight: '600', color: C.ink, textAlign: 'center', lineHeight: 20 },
   emptyBody: { marginTop: 8, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66', textAlign: 'center' },
   emptyCta: {
     marginTop: 16,
@@ -291,9 +293,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#0E1A12',
     borderRadius: 12,
   },
-  emptyCtaText: { fontSize: 13, fontWeight: '800', color: '#CDE9AE' },
+  emptyCtaText: { fontSize: 13, fontWeight: '600', color: '#CDE9AE' },
   emptyHint: { marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  emptyHintText: { fontSize: 11, fontWeight: '700', color: '#9AA995' },
+  emptyHintText: { fontSize: 11, fontWeight: '500', color: '#9AA995' },
 })
 
 export default SubjectScreen

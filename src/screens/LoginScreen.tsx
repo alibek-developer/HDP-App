@@ -70,7 +70,7 @@ const LoginScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 
 
             <Text style={styles.title}>
               <Text style={{ color: C.ink4, fontWeight: '400' }}>Hisobingizga </Text>
-              <Text style={{ color: C.ink, fontWeight: '800' }}>kirish</Text>
+              <Text style={{ color: C.ink, fontWeight: '600' }}>kirish</Text>
             </Text>
             <Text style={styles.sub}>Telegram bilan bir tegda kiring — yoki email va parol bilan.</Text>
 
@@ -173,18 +173,18 @@ const styles = StyleSheet.create({
   sub: { ...T.bodyMd, color: C.ink3, textAlign: 'center', marginTop: 8, paddingHorizontal: 32 },
   form: { paddingHorizontal: 24, marginTop: 28 },
   mt12: { marginTop: 12 },
-  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '700', color: '#C2453D' },
+  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#C2453D' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 14, paddingHorizontal: 4 },
-  forgot: { ...T.bodySm, fontWeight: '800', color: C.brand },
+  forgot: { ...T.bodySm, fontWeight: '600', color: C.brand },
   submit: { marginTop: 24 },
   keepNote: { ...T.bodySm, marginTop: 10, paddingHorizontal: 4, textAlign: 'center', color: C.ink4 },
-  socialText: { fontSize: 15, fontWeight: '700', color: C.ink },
+  socialText: { fontSize: 15, fontWeight: '500', color: C.ink },
   telegramTile: { backgroundColor: '#F2FAFE', borderColor: '#CFE8F7', justifyContent: 'flex-start', paddingHorizontal: 16 },
   socialTag: { marginLeft: 'auto', height: 24, paddingHorizontal: 9, borderRadius: R.full, backgroundColor: '#E1F3FC', alignItems: 'center', justifyContent: 'center' },
-  socialTagText: { fontSize: 11, fontWeight: '800', color: '#1B87BE' },
+  socialTagText: { fontSize: 11, fontWeight: '600', color: '#1B87BE' },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
   footerText: { ...T.bodyMd, color: C.ink3 },
-  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '800' },
+  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '600' },
 })
 
 export default LoginScreen

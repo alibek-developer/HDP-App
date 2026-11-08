@@ -37,17 +37,17 @@ export const LIME_BTN: ViewStyle = {
   backgroundColor: '#7ED321',
   ...shadow('#5FAF22', 6, 5, 0.32),
 }
-export const LIME_TEXT: TextStyle = { color: '#1C3214', fontWeight: '800' }
+export const LIME_TEXT: TextStyle = { color: '#1C3214', fontWeight: '600' }
 
 export const AMBER_BTN: ViewStyle = {
   ...BTN_BASE,
   backgroundColor: '#E8A33D',
   ...shadow('#E8A33D', 6, 5, 0.26),
 }
-export const AMBER_TEXT: TextStyle = { color: '#0E1A12', fontWeight: '800' }
+export const AMBER_TEXT: TextStyle = { color: '#0E1A12', fontWeight: '600' }
 
 export const INK_BTN: ViewStyle = { ...BTN_BASE, backgroundColor: '#0E1A12' }
-export const INK_TEXT: TextStyle = { color: '#CDE9AE', fontWeight: '800' }
+export const INK_TEXT: TextStyle = { color: '#CDE9AE', fontWeight: '600' }
 
 export const OUT_BTN: ViewStyle = {
   ...BTN_BASE,
@@ -55,8 +55,8 @@ export const OUT_BTN: ViewStyle = {
   borderColor: '#E1E7DA',
   borderWidth: 1,
 }
-export const OUT_TEXT: TextStyle = { color: '#33452F', fontWeight: '800' }
+export const OUT_TEXT: TextStyle = { color: '#33452F', fontWeight: '600' }
 
 /** Ikkilamachi matn (11.5 px) va mayda yozuv — davotar ekranlar uchun */
-export const META: TextStyle = { fontSize: 11.5, lineHeight: 15, fontWeight: '600', color: '#6B7C66' }
-export const SECTION_TITLE: TextStyle = { fontSize: 17, lineHeight: 22, fontWeight: '800', color: '#0E1A12' }
+export const META: TextStyle = { fontSize: 11.5, lineHeight: 15, fontWeight: '500', color: '#6B7C66' }
+export const SECTION_TITLE: TextStyle = { fontSize: 17, lineHeight: 22, fontWeight: '600', color: '#0E1A12' }

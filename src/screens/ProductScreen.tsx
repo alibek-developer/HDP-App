@@ -204,7 +204,7 @@ const sh = StyleSheet.create({
   },
   handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: HAIR, alignSelf: 'center', marginBottom: 12 },
   headRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  title: { fontSize: 15, fontWeight: '800', color: INK },
+  title: { fontSize: 15, fontWeight: '600', color: INK },
   closeBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
 })
 
@@ -347,7 +347,7 @@ const ProductScreen = () => {
         contentContainerStyle={[styles.content, { paddingBottom: 132 + insets.bottom }]}
       >
         {/* ── Yuqori panel ── */}
-        <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={[styles.topBar, { paddingTop: insets.top + 16 }]}>
           <View style={styles.topRow}>
             <Pressable
               onPress={exit}
@@ -355,7 +355,7 @@ const ProductScreen = () => {
               hitSlop={10}
               style={({ pressed }) => [styles.topBtn, pressed && { transform: [{ scale: 0.94 }] }]}
             >
-              <Ionicons name="chevron-back" size={17} color={INK} />
+              <Ionicons name="chevron-back" size={18} color={INK} />
             </Pressable>
             <Text numberOfLines={1} style={styles.topTitle}>{product.title}</Text>
             <Pressable
@@ -474,7 +474,7 @@ const ProductScreen = () => {
               </Text>
             </View>
             <Text style={[styles.goalHint, { color: isGoal ? 'rgba(205,233,174,0.6)' : GRAY }]}>
-              {isGoal ? 'olib tashlash' : 'do\'konda ko\'rinadi'}
+              {isGoal ? 'olib tashlash' : 'do\'konda yuqorida turadi'}
             </Text>
           </Pressable>
         </View>
@@ -500,7 +500,7 @@ const ProductScreen = () => {
               onChangeText={t => setDraft(t.slice(0, 300))}
               multiline
               numberOfLines={3}
-              placeholder="Sovg'ani qanchalik tez oldingiz? Sifati qanday?"
+              placeholder="Sovg'a sizga qanday ko'rindi? Ko'rinishi va sifati haqida yozing..."
               placeholderTextColor="#9AA995"
               textAlignVertical="top"
               style={styles.composeInput}
@@ -573,7 +573,7 @@ const ProductScreen = () => {
               <View style={styles.revEmpty}>
                 <Text style={styles.revEmptyTitle}>Hali izoh yo'q</Text>
                 <Text style={styles.revEmptySub}>
-                  Bu sovg'ani olgan birinchi kishi bo'ling — yuqoridagi maydongga fikringizni yozing.
+                  Hali hech kim izoh yozmagan. Yuqoridagi maydonda birinchi fikrni qoldiring.
                 </Text>
               </View>
             )}
@@ -583,7 +583,8 @@ const ProductScreen = () => {
 
       {/* ── Buyurtma paneli ── */}
       <View style={[styles.orderBar, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.orderRow}>
+        <View style={styles.orderInner}>
+          <View style={styles.orderRow}>
           <View style={styles.orderPrice}>
             <Text style={styles.orderPriceLabel}>narxi</Text>
             <View style={styles.orderPriceRow}>
@@ -635,10 +636,11 @@ const ProductScreen = () => {
               </Text>
             </Pressable>
           )}
+          </View>
+          {bought && !out && (
+            <Text style={styles.orderNote}>Buyurtmangiz qabul qilindi — yana {left} ta qoldi</Text>
+          )}
         </View>
-        {bought && !out && (
-          <Text style={styles.orderNote}>Buyurtmangiz qabul qilindi — yana {left} ta qoldi</Text>
-        )}
       </View>
 
       {/* ── Chek varaqasi ── */}
@@ -744,8 +746,8 @@ const styles = StyleSheet.create({
   },
   topRow: { height: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   topBtn: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 100,
@@ -753,10 +755,10 @@ const styles = StyleSheet.create({
     borderColor: HAIR,
     borderWidth: 1,
   },
-  topTitle: { flex: 1, fontSize: 15, fontWeight: '800', color: INK },
+  topTitle: { flex: 1, fontSize: 15, fontWeight: '600', color: INK },
 
   notFound: { flex: 1, backgroundColor: CANVAS, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
-  notFoundTitle: { fontSize: 16, fontWeight: '800', color: INK },
+  notFoundTitle: { fontSize: 16, fontWeight: '600', color: INK },
   notFoundSub: { fontSize: 12.5, color: GRAY, textAlign: 'center' },
   notFoundBtn: {
     marginTop: 8,
@@ -767,7 +769,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: INK,
   },
-  notFoundBtnText: { fontSize: 13.5, fontWeight: '800', color: '#CDE9AE' },
+  notFoundBtnText: { fontSize: 13.5, fontWeight: '600', color: '#CDE9AE' },
 
   art: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   artWrap: { paddingHorizontal: 16, paddingTop: 16 },
@@ -780,7 +782,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(14,26,18,0.82)',
     borderRadius: 8,
   },
-  artCatText: { fontSize: 11, fontWeight: '800', color: '#EAF3E2' },
+  artCatText: { fontSize: 11.5, fontWeight: '600', color: '#EAF3E2' },
   artStock: {
     position: 'absolute',
     right: 12,
@@ -790,7 +792,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 8,
   },
-  artStockText: { fontSize: 11, fontWeight: '800' },
+  artStockText: { fontSize: 11.5, fontWeight: '600' },
 
   section: { paddingHorizontal: 16, marginTop: 16 },
 
@@ -803,21 +805,21 @@ const styles = StyleSheet.create({
   },
   priceRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   priceBody: { paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  priceTitle: { fontSize: 21, lineHeight: 27, fontWeight: '800', color: INK },
+  priceTitle: { fontSize: 21, lineHeight: 27, fontWeight: '600', color: INK },
   rateRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rateValue: { fontSize: 12, fontWeight: '800', color: INK },
-  rateCount: { fontSize: 12, fontWeight: '700', color: GRAY },
-  rateEmpty: { fontSize: 12, fontWeight: '700', color: GRAY },
+  rateValue: { fontSize: 12, fontWeight: '600', color: INK },
+  rateCount: { fontSize: 12, fontWeight: '500', color: GRAY },
+  rateEmpty: { fontSize: 12, fontWeight: '500', color: GRAY },
   priceLine: { marginTop: 16, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
   priceLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  priceValue: { fontSize: 28, lineHeight: 28, fontWeight: '800', color: AMBER_INK },
+  priceValue: { fontSize: 28, lineHeight: 28, fontWeight: '600', color: AMBER_INK },
   priceRight: { alignItems: 'flex-end' },
-  walletLabel: { fontSize: 11, fontWeight: '700', color: GRAY },
-  walletValue: { fontSize: 15, fontWeight: '800', marginTop: 2 },
+  walletLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
+  walletValue: { fontSize: 15, fontWeight: '600', marginTop: 2 },
   timerRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  timerText: { fontSize: 11.5, fontWeight: '700', color: GRAY, flex: 1 },
+  timerText: { fontSize: 12, fontWeight: '500', color: GRAY, flex: 1 },
 
-  kicker: { fontSize: 12.5, fontWeight: '800', color: GRAY, marginBottom: 8 },
+  kicker: { fontSize: 12.5, fontWeight: '600', color: GRAY, marginBottom: 8 },
   descCard: {
     backgroundColor: '#FFFFFF',
     borderColor: HAIR,
@@ -836,8 +838,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: HAIR,
   },
-  specK: { fontSize: 12.5, fontWeight: '700', color: GRAY },
-  specV: { fontSize: 13, fontWeight: '800', color: INK, textAlign: 'right', flexShrink: 1 },
+  specK: { fontSize: 12.5, fontWeight: '500', color: GRAY },
+  specV: { fontSize: 13, fontWeight: '600', color: INK, textAlign: 'right', flexShrink: 1 },
   tiles: { marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tile: {
     width: '48.5%',
@@ -848,8 +850,8 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     paddingHorizontal: 12,
   },
-  tileK: { marginTop: 6, fontSize: 11, fontWeight: '800', color: GRAY },
-  tileV: { marginTop: 3, fontSize: 12, fontWeight: '700', lineHeight: 17, color: INK },
+  tileK: { marginTop: 6, fontSize: 12, fontWeight: '600', color: GRAY },
+  tileV: { marginTop: 3, fontSize: 12, fontWeight: '500', lineHeight: 17, color: INK },
 
   goalBtn: {
     marginTop: 12,
@@ -863,13 +865,13 @@ const styles = StyleSheet.create({
   goalBtnIdle: { backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1 },
   goalBtnOn: { backgroundColor: INK, borderColor: INK, borderWidth: 1 },
   goalLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  goalLabel: { fontSize: 13, fontWeight: '800' },
-  goalHint: { fontSize: 11.5, fontWeight: '700' },
+  goalLabel: { fontSize: 13, fontWeight: '600' },
+  goalHint: { fontSize: 12, fontWeight: '500' },
 
   revHead: { marginBottom: 12, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   revTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  revTitle: { fontSize: 17, fontWeight: '800', color: INK },
-  revCount: { fontSize: 12, fontWeight: '800', color: GRAY },
+  revTitle: { fontSize: 17, fontWeight: '600', color: INK },
+  revCount: { fontSize: 12, fontWeight: '600', color: GRAY },
 
   compose: {
     backgroundColor: '#FFFFFF',
@@ -879,7 +881,7 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   composeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  composeLabel: { fontSize: 12.5, fontWeight: '800', color: INK },
+  composeLabel: { fontSize: 12.5, fontWeight: '600', color: INK },
   composeInput: {
     marginTop: 10,
     minHeight: 72,
@@ -895,7 +897,7 @@ const styles = StyleSheet.create({
     color: INK,
   },
   composeBottom: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  composeCount: { fontSize: 11, fontWeight: '700' },
+  composeCount: { fontSize: 12, fontWeight: '500' },
   sendBtn: {
     height: 44,
     paddingHorizontal: 20,
@@ -905,9 +907,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F4F0',
     overflow: 'hidden',
   },
-  sendText: { fontSize: 13, fontWeight: '800' },
+  sendText: { fontSize: 13, fontWeight: '600' },
   boughtRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  boughtText: { fontSize: 11, fontWeight: '700', color: '#0B6E4F' },
+  boughtText: { fontSize: 12, fontWeight: '500', color: '#0B6E4F' },
 
   revList: { marginTop: 12, gap: 10 },
   revCard: {
@@ -927,19 +929,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 100,
   },
-  avatarText: { fontSize: 12, fontWeight: '800' },
+  avatarText: { fontSize: 12, fontWeight: '600' },
   revWho: { flex: 1, minWidth: 0 },
-  revName: { fontSize: 13, fontWeight: '800', color: INK },
-  revOwn: { fontSize: 10.5, fontWeight: '700', color: GRAY },
+  revName: { fontSize: 13, fontWeight: '600', color: INK },
+  revOwn: { fontSize: 11.5, fontWeight: '500', color: GRAY },
   revMeta: { marginTop: 3, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  revDate: { fontSize: 10.5, fontWeight: '700', color: '#9AA995' },
+  revDate: { fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
   boughtBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     backgroundColor: AMBER_BG,
     borderRadius: 100,
   },
-  boughtBadgeText: { fontSize: 10.5, fontWeight: '800', color: AMBER_INK },
+  boughtBadgeText: { fontSize: 11.5, fontWeight: '600', color: AMBER_INK },
   revText: { marginTop: 8, fontSize: 13, lineHeight: 20, color: '#33452F' },
   revEmpty: {
     backgroundColor: '#FFFFFF',
@@ -950,7 +952,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 16,
   },
-  revEmptyTitle: { fontSize: 13.5, fontWeight: '800', color: INK },
+  revEmptyTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
   revEmptySub: { marginTop: 4, fontSize: 12.5, lineHeight: 19, color: GRAY },
 
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
@@ -960,20 +962,22 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    maxWidth: 430,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: 16,
-    paddingTop: 12,
     backgroundColor: 'rgba(243,247,238,0.94)',
     borderTopWidth: 1,
     borderTopColor: HAIR,
   },
+  orderInner: {
+    width: '100%',
+    maxWidth: 430,
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
   orderRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   orderPrice: {},
-  orderPriceLabel: { fontSize: 10.5, fontWeight: '700', color: GRAY },
+  orderPriceLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
   orderPriceRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  orderPriceValue: { fontSize: 17, lineHeight: 17, fontWeight: '800', color: AMBER_INK },
+  orderPriceValue: { fontSize: 17, lineHeight: 17, fontWeight: '600', color: AMBER_INK },
   orderBtn: {
     flex: 1,
     height: 52,
@@ -988,13 +992,13 @@ const styles = StyleSheet.create({
   orderBtnInk: { backgroundColor: INK },
   orderBtnQueue: { backgroundColor: INK },
   orderBtnQueueOn: { backgroundColor: '#E9EEE8' },
-  orderBtnText: { fontSize: 13.5, fontWeight: '800' },
-  orderNote: { marginTop: 8, textAlign: 'center', fontSize: 11, fontWeight: '700', color: GRAY },
+  orderBtnText: { fontSize: 13.5, fontWeight: '600' },
+  orderNote: { marginTop: 8, textAlign: 'center', fontSize: 12, fontWeight: '500', color: GRAY },
 
   confirmTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   confirmWho: { flex: 1, minWidth: 0 },
-  confirmTitle: { fontSize: 15, fontWeight: '800', color: INK },
-  confirmSub: { marginTop: 2, fontSize: 11.5, fontWeight: '700', color: GRAY },
+  confirmTitle: { fontSize: 15, fontWeight: '600', color: INK },
+  confirmSub: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: GRAY },
   confirmRows: { marginTop: 16, backgroundColor: '#F7F9F6', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14 },
   confirmRow: {
     flexDirection: 'row',
@@ -1004,8 +1008,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: HAIR,
   },
-  confirmK: { fontSize: 12, fontWeight: '700', color: GRAY },
-  confirmV: { fontSize: 13, fontWeight: '800', color: INK },
+  confirmK: { fontSize: 12, fontWeight: '500', color: GRAY },
+  confirmV: { fontSize: 13, fontWeight: '600', color: INK },
   confirmBtns: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   confirmCancel: {
     flex: 1,
@@ -1017,7 +1021,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   confirmIcon: { marginRight: 4 },
-  confirmCancelText: { fontSize: 13, fontWeight: '800', color: GRAY },
+  confirmCancelText: { fontSize: 13, fontWeight: '600', color: GRAY },
   confirmOk: {
     flex: 1,
     height: 50,
@@ -1027,7 +1031,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#7ED321',
     overflow: 'hidden',
   },
-  confirmOkText: { fontSize: 13, fontWeight: '800' },
+  confirmOkText: { fontSize: 13, fontWeight: '600' },
 
   doneRoot: {
     flex: 1,
@@ -1039,9 +1043,9 @@ const styles = StyleSheet.create({
   doneCardWrap: { width: '100%' },
   doneCard: { backgroundColor: '#FFFFFF', borderRadius: 20, paddingTop: 26, paddingHorizontal: 20, paddingBottom: 22, alignItems: 'center' },
   doneBadge: { width: 62, height: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 100 },
-  doneTitle: { marginTop: 16, fontSize: 19, fontWeight: '800', color: INK },
+  doneTitle: { marginTop: 16, fontSize: 19, fontWeight: '600', color: INK },
   doneText: { marginTop: 8, fontSize: 13, lineHeight: 20, color: GRAY, textAlign: 'center' },
-  doneStrong: { fontWeight: '800', color: INK },
+  doneStrong: { fontWeight: '600', color: INK },
   doneBtns: { marginTop: 20, flexDirection: 'row', gap: 10, width: '100%' },
   doneShop: {
     flex: 1,
@@ -1051,7 +1055,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: '#F1F4F0',
   },
-  doneShopText: { fontSize: 13, fontWeight: '800', color: INK },
+  doneShopText: { fontSize: 13, fontWeight: '600', color: INK },
   doneProfile: {
     flex: 1,
     height: 48,
@@ -1060,7 +1064,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: INK,
   },
-  doneProfileText: { fontSize: 13, fontWeight: '800', color: '#CDE9AE' },
+  doneProfileText: { fontSize: 13, fontWeight: '600', color: '#CDE9AE' },
 })
 
 export default ProductScreen

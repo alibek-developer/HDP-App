@@ -9,7 +9,7 @@ import { triggerHaptic } from '../lib/haptics'
 import { resetToTopics } from '../lib/nav'
 import { findTopic } from '../data/curriculum'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
+import { ABS_FILL, C, MATH_FONT, NUM } from '../theme/tokens'
 import { CARD, GRAD_RAIL, LIME_BTN, LIME_TEXT, OUT_BTN, OUT_TEXT, SOLVER_BODY } from '../theme/solver'
 
 /**
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 4,
   },
-  emptyTitle: { fontSize: 16, fontWeight: '800', color: C.ink },
+  emptyTitle: { fontSize: 16, fontWeight: '600', color: C.ink },
   emptyText: { fontSize: 12.5, fontWeight: '500', color: '#6B7C66', textAlign: 'center' },
   emptyCta: { marginTop: 8, height: 46, paddingHorizontal: 24, overflow: 'hidden' },
   emptyCtaText: { fontSize: 13.5 },
@@ -308,8 +308,8 @@ const styles = StyleSheet.create({
   sheet: { paddingHorizontal: 16 },
   section: { marginTop: 24, paddingHorizontal: 16 },
   sectionHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '800', color: C.ink },
-  sectionCount: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
+  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: C.ink },
+  sectionCount: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
   stack: { gap: 12 },
 
   card: { ...CARD, position: 'relative', flexDirection: 'row', overflow: 'hidden' },
@@ -318,11 +318,11 @@ const styles = StyleSheet.create({
 
   cardHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   cardHeadText: { flex: 1 },
-  kicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
-  cardTitle: { marginTop: 8, fontSize: 14, fontWeight: '800', color: C.ink },
+  kicker: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
+  cardTitle: { marginTop: 8, fontSize: 14, fontWeight: '600', color: C.ink },
   scoreWrap: { flexDirection: 'row', alignItems: 'baseline' },
-  score: { fontSize: 34, lineHeight: 34, fontWeight: '800', color: C.ink },
-  scoreTotal: { fontSize: 18, fontWeight: '800', color: '#9AA995' },
+  score: { fontSize: 34, lineHeight: 34, fontWeight: '600', color: C.ink },
+  scoreTotal: { fontSize: 18, fontWeight: '600', color: '#9AA995' },
 
   tickRow: { marginTop: 16, flexDirection: 'row', gap: 6 },
   tick: { flex: 1, height: 6, borderRadius: 3 },
@@ -336,32 +336,32 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  passNoteText: { fontSize: 12, fontWeight: '800' },
-  percent: { fontSize: 11.5, fontWeight: '800' },
-  wrongCount: { fontSize: 11.5, fontWeight: '700', color: '#9AA995' },
+  passNoteText: { fontSize: 12, fontWeight: '600' },
+  percent: { fontSize: 11.5, fontWeight: '600' },
+  wrongCount: { fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
 
   ledger: { marginTop: 16, flexDirection: 'row', alignItems: 'stretch', borderTopWidth: 1, borderTopColor: '#EDF1E7', paddingTop: 14 },
   ledgerCell: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
   ledgerDivider: { width: 1, backgroundColor: '#EDF1E7' },
   ledgerInner: { flex: 1, alignItems: 'center' },
-  ledgerValue: { fontSize: 17, lineHeight: 17, fontWeight: '800' },
-  ledgerUnit: { marginTop: 6, fontSize: 11, fontWeight: '700', color: '#9AA995' },
+  ledgerValue: { fontSize: 17, lineHeight: 17, fontWeight: '600' },
+  ledgerUnit: { marginTop: 6, fontSize: 11, fontWeight: '500', color: '#9AA995' },
 
-  prompt: { fontSize: 14, lineHeight: 20, fontWeight: '800', color: C.ink },
+  prompt: { fontFamily: MATH_FONT, fontSize: 14, lineHeight: 21, fontWeight: '400', color: C.ink },
   answerRows: { marginTop: 12, gap: 6 },
   answerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   mark: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 6 },
   answerLabel: { fontSize: 12.5, fontWeight: '500', color: '#6B7C66' },
-  answerMine: { fontSize: 12.5, fontWeight: '800', color: '#8C2F2C' },
-  answerRight: { fontSize: 12.5, fontWeight: '800', color: '#0B6E4F' },
+  answerMine: { fontSize: 12.5, fontWeight: '600', color: '#8C2F2C' },
+  answerRight: { fontSize: 12.5, fontWeight: '600', color: '#0B6E4F' },
 
   explainBox: { marginTop: 12, paddingLeft: 12, paddingTop: 10, paddingBottom: 10, paddingRight: 12, backgroundColor: '#FBFCF8', borderLeftWidth: 2, borderLeftColor: '#E1E7DA' },
-  explainKicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66', marginBottom: 4 },
+  explainKicker: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66', marginBottom: 4 },
   explainText: { fontSize: 13, lineHeight: 19, color: C.ink2 },
 
   perfect: { backgroundColor: '#0E1A12', borderRadius: 14, overflow: 'hidden', flexDirection: 'row' },
   perfectBody: { flex: 1, paddingLeft: 15, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },
-  perfectTitle: { fontSize: 15, fontWeight: '800', color: '#9BE04B' },
+  perfectTitle: { fontSize: 15, fontWeight: '600', color: '#9BE04B' },
   perfectText: { marginTop: 4, fontSize: 12.5, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },
 
   dock: { position: 'absolute', left: 0, right: 0, bottom: 0 },

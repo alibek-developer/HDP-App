@@ -13,7 +13,7 @@ import { triggerHaptic } from '../lib/haptics'
 import { useExitToTab } from '../lib/nav'
 import { findProblemSet } from '../data/content'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
+import { ABS_FILL, C, MATH_FONT, NUM } from '../theme/tokens'
 import { CARD, GRAD_LIME, GRAD_RAIL, LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
 
 /**
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
 
   backEmpty: { ...CARD, height: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center' },
-  backEmptyText: { fontSize: 13, fontWeight: '800', color: C.ink },
+  backEmptyText: { fontSize: 13, fontWeight: '600', color: C.ink },
 
   lockTile: {
     width: 54,
@@ -249,13 +249,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 16,
   },
-  lockTitle: { fontSize: 16, fontWeight: '800', color: C.ink, textAlign: 'center' },
+  lockTitle: { fontSize: 16, fontWeight: '600', color: C.ink, textAlign: 'center' },
   lockMeta: { fontSize: 12.5, fontWeight: '500', color: '#6B7C66', textAlign: 'center' },
   lockCta: { marginTop: 8, height: 46, paddingHorizontal: 24, overflow: 'hidden' },
   lockCtaText: { fontSize: 13.5 },
 
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 4 },
-  counter: { fontSize: 12, fontWeight: '800', color: C.ink2 },
+  counter: { fontSize: 12, fontWeight: '600', color: C.ink2 },
   ticks: { flex: 1, flexDirection: 'row', gap: 6 },
   tick: { flex: 1, height: 5, borderRadius: 3 },
 
@@ -264,19 +264,19 @@ const styles = StyleSheet.create({
   qCard: { borderRadius: 16, overflow: 'hidden', flexDirection: 'row', ...{ shadowColor: C.ink, shadowOpacity: 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: 2 } },
   qRail: { width: 5 },
   qBody: { flex: 1, paddingLeft: 15, paddingRight: 16, paddingTop: 16, paddingBottom: 16 },
-  qKicker: { fontSize: 11.5, fontWeight: '700', color: '#6B7C66' },
-  qPrompt: { marginTop: 8, fontSize: 17, lineHeight: 24, fontWeight: '600', color: C.ink },
+  qKicker: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
+  qPrompt: { marginTop: 8, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 17, lineHeight: 25, color: C.ink },
 
   options: { marginTop: 16, gap: 10 },
   option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14, borderRadius: 14 },
   optionBadge: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 9 },
   optionLetter: { fontSize: 12, fontWeight: '900' },
-  optionText: { flex: 1, fontSize: 14.5, lineHeight: 20, fontWeight: '600' },
+  optionText: { flex: 1, fontSize: 14.5, lineHeight: 20, fontWeight: '500' },
 
   action: { marginTop: 20, height: 52, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   actionIdle: { backgroundColor: '#EAEEE3', borderRadius: 12 },
-  actionText: { fontSize: 14.5, fontWeight: '800' },
-  tally: { marginTop: 12, fontSize: 11.5, fontWeight: '700', color: '#9AA995', textAlign: 'center' },
+  actionText: { fontSize: 14.5, fontWeight: '600' },
+  tally: { marginTop: 12, fontSize: 11.5, fontWeight: '500', color: '#9AA995', textAlign: 'center' },
 })
 
 export default ProblemSetScreen
