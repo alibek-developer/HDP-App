@@ -1,117 +1,75 @@
-import { useState } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { BrandMark, Wordmark } from '../components/Brand'
 import { Fade } from '../components/Reveal'
-import { Field, LimeButton, ScreenBg, TapText } from '../components/ui'
+import { TelegramMark } from '../components/TelegramAuthSheet'
+import { LimeButton, ScreenBg, SocialTile } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
+import { TELEGRAM_BOT_URL } from '../lib/telegramAuth'
 import type { RootStackParamList } from '../navigation/types'
 import { C, R, T } from '../theme/tokens'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-
 /**
- * Parolni tiklash — email tekshiriladi va so'rov tasdiqlanadi.
- * Hisob shu qurilmada saqlanadi, shuning uchun havola emailga haqiqiy
- * yuborilmaydi — buni ekranda ochiq aytamiz.
+ * Parolni tiklash — hisoblar qurilmada saqlangani uchun emailga havola
+ * yuborilmaydi. Buning o'rniga aniq yo'l: Telegram orqali yordam olish.
  */
 const ForgotPasswordScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 'Forgot'>) => {
   const insets = useSafeAreaInsets()
-  const [email, setEmail] = useState('')
-  const [err, setErr] = useState<string | null>(null)
-  const [sent, setSent] = useState(false)
 
-  const send = () => {
-    if (!EMAIL_RE.test(email.trim())) {
-      triggerHaptic('warning')
-      setErr("Email manzili noto'g'ri ko'rinishda.")
-      return
-    }
-    setErr(null)
-    setSent(true)
-    triggerHaptic('success')
+  const back = () => {
+    triggerHaptic('light')
+    navigation.replace('Login')
   }
 
   return (
     <Fade>
       <View style={styles.root}>
         <ScreenBg />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
-          <View style={[styles.topBar, { paddingTop: insets.top + 16 }]}>
-            <Pressable
-              onPress={() => navigation.goBack()}
-              hitSlop={10}
-              style={({ pressed }) => [styles.back, pressed && { transform: [{ scale: 0.95 }] }]}
-              accessibilityLabel="Orqaga"
-            >
-              <Ionicons name="chevron-back" size={19} color={C.ink2} />
-            </Pressable>
+        <View style={[styles.topBar, { paddingTop: insets.top + 16 }]}>
+          <Pressable
+            onPress={back}
+            hitSlop={10}
+            style={({ pressed }) => [styles.back, pressed && { transform: [{ scale: 0.95 }] }]}
+            accessibilityLabel="Orqaga"
+          >
+            <Ionicons name="chevron-back" size={19} color={C.ink2} />
+          </Pressable>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.brandRow}>
+            <BrandMark size={34} />
+            <Wordmark size={22} />
           </View>
 
-          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.brandRow}>
-              <BrandMark size={38} />
-              <Wordmark size={26} />
+          <Text style={styles.title}>Parolni tiklash</Text>
+          <Text style={styles.sub}>
+            Hisoblar shu qurilmada saqlanadi, shuning uchun parol emailga yuborilmaydi.
+          </Text>
+
+          <View style={styles.form}>
+            <View style={styles.infoCard}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="chatbubble-ellipses" size={18} color={C.brand} />
+              </View>
+              <Text style={styles.infoText}>
+                Telegram orqali bizga yozing — hisobingizni tiklashga yordam beramiz.
+              </Text>
             </View>
 
-            <Text style={styles.title}>
-              <Text style={{ color: C.ink4, fontWeight: '400' }}>{sent ? "So'rov " : 'Parolni '}</Text>
-              <Text style={{ color: C.ink, fontWeight: '600' }}>{sent ? 'qabul qilindi' : 'tiklash'}</Text>
-            </Text>
+            <SocialTile
+              style={styles.telegramTile}
+              onPress={() => { triggerHaptic('light'); void Linking.openURL(TELEGRAM_BOT_URL) }}
+            >
+              <TelegramMark />
+              <Text style={styles.socialText}>Telegram orqali yozish</Text>
+            </SocialTile>
 
-            {sent ? (
-              <View style={styles.form}>
-                <View style={styles.okCard}>
-                  <View style={styles.okIcon}>
-                    <Ionicons name="checkmark" size={22} color={C.inkOnLime} />
-                  </View>
-                  <Text style={styles.okText}>
-                    So'rovingiz qabul qilindi. Parolni tiklash bo'yicha yo'riqnoma qo'llab-quvvatlash xizmati
-                    orqali beriladi.
-                  </Text>
-                </View>
-
-                <LimeButton
-                  label="Kirishga qaytish"
-                  onPress={() => { triggerHaptic('light'); navigation.replace('Login') }}
-                  style={styles.submit}
-                />
-              </View>
-            ) : (
-              <>
-                <Text style={styles.sub}>
-                  Emailingizni kiriting — parolni tiklash bo&apos;yicha yo&apos;riqnoma beriladi.
-                </Text>
-
-                <View style={styles.form}>
-                  <Field
-                    icon={<Ionicons name="mail-outline" size={17} color={C.ink4} />}
-                    value={email}
-                    onChangeText={v => { setEmail(v); if (err) setErr(null) }}
-                    placeholder="Email kiriting"
-                    keyboardType="email-address"
-                  />
-
-                  {!!err && <Text style={styles.err}>{err}</Text>}
-
-                  <LimeButton label="Havola yuborish" onPress={send} style={styles.submit} />
-
-                  <View style={styles.footer}>
-                    <Text style={styles.footerText}>Esingizga tushdimi? </Text>
-                    <TapText
-                      onPress={() => { triggerHaptic('light'); navigation.replace('Login') }}
-                      style={styles.footerLink}
-                    >
-                      Kirish
-                    </TapText>
-                  </View>
-                </View>
-              </>
-            )}
-          </ScrollView>
-        </KeyboardAvoidingView>
+            <LimeButton label="Kirishga qaytish" onPress={back} style={styles.submit} />
+          </View>
+        </ScrollView>
       </View>
     </Fade>
   )
@@ -119,7 +77,6 @@ const ForgotPasswordScreen = ({ navigation }: NativeStackScreenProps<RootStackPa
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.canvas },
-  fill: { flex: 1 },
   topBar: { paddingHorizontal: 20 },
   back: {
     width: 44,
@@ -132,12 +89,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(28,50,20,0.08)',
   },
   scroll: { flexGrow: 1, justifyContent: 'flex-start', paddingBottom: 32 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 20 },
-  title: { ...T.h1, textAlign: 'center', marginTop: 24, paddingHorizontal: 32, color: C.ink },
-  sub: { ...T.bodyMd, color: C.ink3, textAlign: 'center', marginTop: 8, marginHorizontal: 65 },
-  form: { paddingHorizontal: 24, marginTop: 28 },
-  err: { marginTop: 12, paddingHorizontal: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#C2453D' },
-  okCard: {
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 12 },
+  title: { ...T.h2, textAlign: 'center', marginTop: 22, paddingHorizontal: 32, color: C.ink },
+  sub: { ...T.bodyMd, color: C.ink3, textAlign: 'center', marginTop: 6, paddingHorizontal: 32 },
+  form: { paddingHorizontal: 24, marginTop: 24 },
+  infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
@@ -146,20 +102,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: 'rgba(28,50,20,0.08)',
+    marginBottom: 14,
   },
-  okIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+  infoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#7ED321',
+    backgroundColor: C.leafTint,
   },
-  okText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '500', color: C.ink2 },
-  submit: { marginTop: 24 },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
-  footerText: { ...T.bodyMd, color: C.ink3 },
-  footerLink: { ...T.bodyMd, color: C.brand, fontWeight: '600', textDecorationLine: 'underline' },
+  infoText: { flex: 1, fontSize: 14, lineHeight: 21, fontWeight: '500', color: C.ink2, paddingTop: 6 },
+  socialText: { fontSize: 15, fontWeight: '500', color: C.ink },
+  telegramTile: { backgroundColor: '#F2FAFE', borderColor: '#CFE8F7' },
+  submit: { marginTop: 16 },
 })
 
 export default ForgotPasswordScreen

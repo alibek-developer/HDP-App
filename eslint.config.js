@@ -5,7 +5,7 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', '.expo/*'],
+    ignores: ['dist/*', '.expo/*', 'relay/*', 'backend/*'],
     rules: {
       // O'zbekcha matnda apostrof ko'p — JSX entity talabi matnni o'qib bo'lmaydigan qiladi
       'react/no-unescaped-entities': 'off',

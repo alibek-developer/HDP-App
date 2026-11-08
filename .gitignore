@@ -50,3 +50,7 @@ yarn-error.*
 # Cloudflare Worker
 .wrangler/
 backend/.dev.vars
+
+# MCP configurations with secrets
+.mcp.json
+.agents/

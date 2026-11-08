@@ -1,126 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import type {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollViewInstance,
-  StyleProp,
-  ViewStyle,
-} from 'react-native'
+import { useRef, useState } from 'react'
+import type { ComponentRef } from 'react'
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Fade, Reveal } from '../components/Reveal'
-import { LimeButton, ScreenBg } from '../components/ui'
+import { LimeButton, ScreenBg, StepHeader } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
 import { gradeFromBirthDate } from '../lib/profile'
 import { useApp } from '../store/useStore'
 import type { RootStackParamList } from '../navigation/types'
 import { C, R, T } from '../theme/tokens'
 
-const MONTHS = [
-  'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
-  'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
-]
-
-const ITEM_H = 44
-const VISIBLE_ROWS = 5
-const WHEEL_H = ITEM_H * VISIBLE_ROWS
-
 const pad = (n: number) => String(n).padStart(2, '0')
 
-const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate()
+const daysInMonth = (year: number, monthIdx: number) => new Date(year, monthIdx + 1, 0).getDate()
 
-const Wheel = ({
-  items,
-  index,
-  onChange,
-  style,
-}: {
-  items: string[]
-  index: number
-  onChange: (i: number) => void
-  style?: StyleProp<ViewStyle>
-}) => {
-  const ref = useRef<ScrollViewInstance>(null)
-  /** Ekrandan turib o'rnatilgan qiymat — scroll hodisalari uni qaytarib yubormasin */
-  const settled = useRef(index)
-  const programmatic = useRef(false)
-  const guard = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const retry = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const jumpTo = (i: number) => {
-    settled.current = i
-    programmatic.current = true
-    const apply = () => ref.current?.scrollTo({ y: i * ITEM_H, animated: false })
-    apply()
-    /* Web'da birinchi `scrollTo` kontent o'lchanguncha e'tiborsiz qolishi mumkin */
-    if (retry.current) clearTimeout(retry.current)
-    retry.current = setTimeout(apply, 100)
-    if (guard.current) clearTimeout(guard.current)
-    guard.current = setTimeout(() => { programmatic.current = false }, 260)
-  }
-
-  useEffect(() => {
-    if (settled.current === index) return
-    jumpTo(index)
-  }, [index])
-
-  useEffect(() => () => {
-    if (guard.current) clearTimeout(guard.current)
-    if (retry.current) clearTimeout(retry.current)
-  }, [])
-
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (programmatic.current) return
-    const raw = Math.round(e.nativeEvent.contentOffset.y / ITEM_H)
-    const i = Math.max(0, Math.min(items.length - 1, raw))
-    if (i === settled.current) return
-    settled.current = i
-    onChange(i)
-  }
-
-  return (
-    <View style={[{ height: WHEEL_H }, style]}>
-      <ScrollView
-        ref={ref}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_H}
-        decelerationRate="fast"
-        bounces={false}
-        nestedScrollEnabled
-        scrollEventThrottle={16}
-        contentContainerStyle={{ paddingVertical: ITEM_H * ((VISIBLE_ROWS - 1) / 2) }}
-        onScroll={onScroll}
-        onLayout={() => jumpTo(index)}
-        onContentSizeChange={() => jumpTo(index)}
-      >
-        {items.map((label, i) => {
-          const on = i === index
-          return (
-            <Pressable
-              key={`${label}-${i}`}
-              onPress={() => {
-                if (i !== index) {
-                  triggerHaptic('selection')
-                  jumpTo(i)
-                  onChange(i)
-                }
-              }}
-              style={styles.wheelItem}
-            >
-              <Text style={[styles.wheelText, on && styles.wheelTextOn]}>{label}</Text>
-            </Pressable>
-          )
-        })}
-      </ScrollView>
-    </View>
-  )
-}
+const onlyDigits = (v: string) => v.replace(/[^0-9]/g, '')
 
 /**
- * 2-savol — tug'ilgan sana. Sinf so'ralmaydi: yoshdan sinf va mashq
- * qiyinligi o'zi hisoblanadi, shuning uchun savol ortiqcha bo'lmaydi.
+ * 2-savol — tug'ilgan sana. Uchta oddiy maydon: kun, oy, yil.
+ * Yoshdan sinf o'zi hisoblanadi; sana to'liq va to'g'ri bo'lsa «Boshlash» ochiladi.
  */
 const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStackParamList, 'BirthDate'>) => {
   const insets = useSafeAreaInsets()
@@ -128,38 +28,29 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
   const saveStudyProfile = useApp(s => s.saveStudyProfile)
 
   const yearNow = new Date().getFullYear()
-  const years = useMemo(() => {
-    const list: string[] = []
-    for (let y = yearNow - 25; y <= yearNow - 8; y += 1) list.push(String(y))
-    return list
-  }, [yearNow])
+  const minYear = yearNow - 25
+  const maxYear = yearNow - 8
 
-  const defaultYear = Math.max(0, years.indexOf(String(yearNow - 15)))
-  const [day, setDay] = useState(0)
-  const [month, setMonth] = useState(0)
-  const [yearIdx, setYearIdx] = useState(defaultYear)
+  const [day, setDay] = useState('')
+  const [month, setMonth] = useState('')
+  const [year, setYear] = useState('')
+  const monthRef = useRef<ComponentRef<typeof TextInput>>(null)
+  const yearRef = useRef<ComponentRef<typeof TextInput>>(null)
 
-  const year = Number(years[yearIdx])
-  const total = daysInMonth(year, month)
-  const maxDayIdx = total - 1
+  const d = Number(day)
+  const m = Number(month)
+  const y = Number(year)
+  const filled = day !== '' && month !== '' && year !== ''
+  const maxDay = m >= 1 && m <= 12 ? daysInMonth(y || yearNow, m - 1) : 31
 
-  /** Oy/yil o'zgarganda 31-fevral kabi sanalar 28/29 ga qisqaradi */
-  useEffect(() => {
-    if (day > maxDayIdx) setDay(maxDayIdx)
-  }, [day, maxDayIdx])
-
-  const birthDate = `${pad(Math.min(day, maxDayIdx) + 1)}.${pad(month + 1)}.${year}`
-  const days = useMemo(() => Array.from({ length: total }, (_, i) => String(i + 1)), [total])
-
-  const fill = useRef(new Animated.Value(0.5)).current
-  useEffect(() => {
-    Animated.timing(fill, {
-      toValue: 1,
-      duration: 520,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start()
-  }, [fill])
+  let error: string | null = null
+  if (filled) {
+    if (m < 1 || m > 12) error = "Oy 1–12 oralig'ida bo'lsin."
+    else if (d < 1 || d > maxDay) error = `Bu oyda kunlar 1–${maxDay} oralig'ida bo'ladi.`
+    else if (y < minYear || y > maxYear) error = `Yil ${minYear}–${maxYear} oralig'ida bo'lsin.`
+  }
+  const valid = filled && !error
+  const birthDate = valid ? `${pad(d)}.${pad(m)}.${y}` : ''
 
   const back = () => {
     triggerHaptic('light')
@@ -167,6 +58,7 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
   }
 
   const done = () => {
+    if (!valid) return
     triggerHaptic('success')
     saveStudyProfile(goal, birthDate)
     navigation.reset({ index: 0, routes: [{ name: 'Main' }] })
@@ -190,65 +82,94 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
 
         <ScrollView
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
         >
-          <View style={styles.track}>
-            <Animated.View
-              style={[
-                styles.fill,
-                { width: fill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
-              ]}
-            />
-          </View>
+          <StepHeader step={2} />
 
           <Reveal y={16} duration={340}>
-            <Text style={styles.kicker}>2-savol · 2 tadan</Text>
-            <Text style={styles.title}>
-              <Text style={{ color: C.ink4, fontWeight: '400' }}>Tug'ilgan </Text>
-              <Text style={{ color: C.ink, fontWeight: '600' }}>sanangiz?</Text>
-            </Text>
+            <Text style={styles.title}>Tug&apos;ilgan sanangiz?</Text>
             <Text style={styles.sub}>
               Yoshga mos darslar va test qiyinligini shu asosda tanlaymiz.
             </Text>
           </Reveal>
 
-          <Reveal y={26} delay={90} duration={400}>
-            <View style={styles.pickerCard}>
-              <View style={styles.headRow}>
-                <Text style={[styles.colHead, styles.wheelDay]}>KUN</Text>
-                <Text style={[styles.colHead, styles.wheelMonth]}>OY</Text>
-                <Text style={[styles.colHead, styles.wheelYear]}>YIL</Text>
-              </View>
-
-              <View style={styles.wheelsWrap}>
-                <View pointerEvents="none" style={styles.band} />
-                <View style={styles.wheels}>
-                  <Wheel items={days} index={Math.min(day, maxDayIdx)} onChange={setDay} style={styles.wheelDay} />
-                  <Wheel items={MONTHS} index={month} onChange={setMonth} style={styles.wheelMonth} />
-                  <Wheel items={years} index={yearIdx} onChange={setYearIdx} style={styles.wheelYear} />
-                </View>
-              </View>
+          <Reveal y={24} delay={80} duration={380} style={styles.pickerCard}>
+            <View style={styles.col}>
+              <Text style={styles.colHead}>KUN</Text>
+              <TextInput
+                style={[styles.input, filled && !!error && styles.inputBad]}
+                value={day}
+                onChangeText={v => {
+                  const t = onlyDigits(v).slice(0, 2)
+                  setDay(t)
+                  if (t.length === 2) monthRef.current?.focus()
+                }}
+                onSubmitEditing={() => monthRef.current?.focus()}
+                placeholder="KK"
+                placeholderTextColor={C.ink4}
+                keyboardType="number-pad"
+                maxLength={2}
+                accessibilityLabel="Tug'ilgan kun"
+              />
+            </View>
+            <View style={[styles.col, styles.colMonth]}>
+              <Text style={styles.colHead}>OY</Text>
+              <TextInput
+                ref={monthRef}
+                style={[styles.input, !!error && filled && styles.inputBad]}
+                value={month}
+                onChangeText={v => {
+                  const t = onlyDigits(v).slice(0, 2)
+                  setMonth(t)
+                  if (t.length === 2) yearRef.current?.focus()
+                }}
+                onSubmitEditing={() => yearRef.current?.focus()}
+                placeholder="OO"
+                placeholderTextColor={C.ink4}
+                keyboardType="number-pad"
+                maxLength={2}
+                accessibilityLabel="Tug'ilgan oy"
+              />
+            </View>
+            <View style={[styles.col, styles.colYear]}>
+              <Text style={styles.colHead}>YIL</Text>
+              <TextInput
+                ref={yearRef}
+                style={[styles.input, !!error && filled && styles.inputBad]}
+                value={year}
+                onChangeText={v => setYear(onlyDigits(v).slice(0, 4))}
+                placeholder="YYYY"
+                placeholderTextColor={C.ink4}
+                keyboardType="number-pad"
+                maxLength={4}
+                accessibilityLabel="Tug'ilgan yil"
+              />
             </View>
           </Reveal>
 
-          <Reveal y={14} delay={170} duration={340}>
+          {!!error && <Text style={styles.error}>{error}</Text>}
+
+          <Reveal y={14} delay={140} duration={340}>
             <View style={styles.summary}>
               <View style={styles.summaryIcon}>
                 <Ionicons name="calendar" size={16} color={C.brand} />
               </View>
               <View style={styles.summaryMid}>
                 <Text style={styles.summaryLabel}>Tanlangan sana</Text>
-                <Text style={styles.summaryValue}>{birthDate}</Text>
+                <Text style={styles.summaryValue}>{valid ? birthDate : 'hali kiritilmagan'}</Text>
               </View>
-              <View style={styles.gradePill}>
-                <Text style={styles.gradePillText}>{gradeFromBirthDate(birthDate)}</Text>
-              </View>
+              {valid && (
+                <View style={styles.gradePill}>
+                  <Text style={styles.gradePillText}>{gradeFromBirthDate(birthDate)}</Text>
+                </View>
+              )}
             </View>
           </Reveal>
 
           <View style={styles.spacer} />
 
-          <LimeButton label="Boshlash" onPress={done} style={styles.submit} />
+          <LimeButton label="Boshlash" onPress={done} disabled={!valid} style={styles.submit} />
           <Text style={styles.footNote}>Sana faqat qurilmada saqlanadi.</Text>
         </ScrollView>
       </View>
@@ -268,16 +189,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.55)',
   },
   content: { flexGrow: 1, paddingHorizontal: 24 },
-  track: { height: 4, borderRadius: R.full, backgroundColor: '#DCE6D4', overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: R.full, backgroundColor: C.limeDeep },
-  kicker: { ...T.tiny, marginTop: 20, color: C.brand },
-  title: { ...T.h1, marginTop: 8, color: C.ink },
+  title: { ...T.h1, marginTop: 20, color: C.ink },
   sub: { ...T.bodyMd, marginTop: 6, color: C.ink3 },
 
   pickerCard: {
-    marginTop: 22,
-    paddingTop: 14,
-    paddingBottom: 10,
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 24,
+    padding: 16,
     borderRadius: R.xl,
     backgroundColor: '#FFFFFF',
     shadowColor: '#33502A',
@@ -285,27 +204,26 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
     elevation: 3,
-    overflow: 'hidden',
   },
-  band: {
-    position: 'absolute',
-    left: 8,
-    right: 8,
-    top: ITEM_H * 2,
-    height: ITEM_H,
-    borderRadius: 12,
-    backgroundColor: '#EAF7DA',
+  col: { flex: 0.8 },
+  colMonth: { flex: 0.8 },
+  colYear: { flex: 1.2 },
+  colHead: { ...T.tiny, textAlign: 'center', color: C.ink4, marginBottom: 8 },
+  input: {
+    height: 54,
+    borderRadius: 14,
+    backgroundColor: C.surface2,
+    borderWidth: 1,
+    borderColor: C.line,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    color: C.ink,
+    fontVariant: ['tabular-nums'],
+    paddingVertical: 0,
   },
-  headRow: { flexDirection: 'row', paddingHorizontal: 6, marginBottom: 2 },
-  colHead: { ...T.tiny, fontSize: 11.5, textAlign: 'center', color: C.ink4 },
-  wheelsWrap: { position: 'relative' },
-  wheels: { flexDirection: 'row', alignItems: 'center' },
-  wheelDay: { flex: 0.9 },
-  wheelMonth: { flex: 1.5 },
-  wheelYear: { flex: 1 },
-  wheelItem: { height: ITEM_H, alignItems: 'center', justifyContent: 'center' },
-  wheelText: { fontSize: 17, fontWeight: '500', color: C.ink4 },
-  wheelTextOn: { fontSize: 20, fontWeight: '600', color: C.ink },
+  inputBad: { borderColor: '#E4A6A0', backgroundColor: '#FFFBFA' },
+  error: { marginTop: 10, textAlign: 'center', fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#C2453D' },
 
   summary: {
     flexDirection: 'row',
