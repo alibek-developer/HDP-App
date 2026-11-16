@@ -9,6 +9,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { triggerHaptic } from '../lib/haptics'
 import { Reveal } from '../components/Reveal'
+import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { PROBLEM_SETS } from '../data/content'
 import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
@@ -289,6 +290,8 @@ const FormulasScreen = () => {
           </View>
         )}
       </ScrollView>
+
+      <TopScrim height={insets.top} line="#E6EBE0" />
 
       {/* ── Formula tafsilotlari ── */}
       <Modal visible={!!detail} transparent animationType="none" onRequestClose={() => setDetail(null)}>

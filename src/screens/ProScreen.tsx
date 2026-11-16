@@ -10,6 +10,7 @@ import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { useExit } from '../lib/nav'
 import { PopIn } from '../components/Reveal'
+import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM, shadow } from '../theme/tokens'
 import {
@@ -262,6 +263,8 @@ const ProScreen = () => {
           </Pressable>
         )}
       </ScrollView>
+
+      <TopScrim height={insets.top} line="#E6EBE0" />
 
       {/* ── Xarid paneli — bosh barmaq zonasi, doim ko'z oldida ── */}
       {!isPro && (

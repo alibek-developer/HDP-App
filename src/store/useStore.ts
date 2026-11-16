@@ -2,13 +2,14 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
-  LESSONS, PROBLEM_SETS, findLesson, findProblemSet, dailyProblem,
+  LESSONS, PROBLEM_SETS, findLesson, findProblemSet,
   CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_BONUS, findProduct,
   type ConsumableKind,
 } from '../data/content'
 import {
   findTopic, findTopicLesson, topicLessonIds as lessonIdsOf, topicTestOf,
 } from '../data/curriculum'
+import { PROBLEM_LEVELS, starsForLevel, weekStartKey } from '../data/problems'
 
 /**
  * Ilovaning yagona holat manbai.
@@ -58,9 +59,28 @@ export interface SessionResult {
   refId: string
   title: string
   /** foydalanuvchi javoblari, tartib saqlanadi. `skipped` — o'tkazilgan, xato emas */
-  answers: { prompt: string; picked: number; correct: number; options: string[]; explain: string; ok: boolean; skipped?: boolean }[]
+  answers: { qid?: string; prompt: string; picked: number; correct: number; options: string[]; explain: string; ok: boolean; skipped?: boolean }[]
   coinsEarned: number
   xpEarned: number
+  /** daraja sessiyasida qo'lga kiritilgan yulduz (0..3) */
+  stars?: number
+}
+
+/** Kunlik AI masala — kuniga bitta, javobdan keyin qulflanadi */
+export interface DailyQuestion {
+  /** qaysi kunga tegishli (YYYY-MM-DD) */
+  day: string
+  topic: string
+  topicNum: number
+  difficulty: string
+  prompt: string
+  options: string[]
+  correct: number
+  explain: string
+  /** 'ai' — serverdan (tekshirilgan); 'gen' — ilovada tuzilgan; 'bank' — mavzu testidan */
+  source: 'ai' | 'gen' | 'bank'
+  /** tanlangan variant; null — hali javob berilmagan */
+  picked: number | null
 }
 
 /** Do'kon xarid tarixi yozuvi */
@@ -133,6 +153,10 @@ interface AppState {
   blitzBest: number
   /** Blitz sprint necha marta o'ynalgan */
   blitzPlays: number
+  /** mini-o'yin eng yaxshi yulduzi: `balance:easy` -> 0..3 */
+  gameStars: Record<string, number>
+  /** mini-o'yin sessiyalari: `balance` -> o'ynalgan soni */
+  gamePlays: Record<string, number>
   /** zanjir uzilmagan oxirgi kun */
   lastActiveDay: string | null
   solvedCount: number
@@ -152,6 +176,12 @@ interface AppState {
   lessons: Record<number, LessonProgress>
   /** to'plamda yechilgan savol id'lari */
   solvedQuestions: Record<string, string[]>
+  /** Masalalar darajalari: `algebra-oson` -> eng yaxshi yulduz (0..3) */
+  levelStars: Record<string, number>
+  /** haftalik yulduz maqsadi: joriy hafta kaliti (dushanba) */
+  starWeek: string
+  /** shu haftada yangi olingan yulduzlar */
+  starsThisWeek: number
   /** coin evaziga ochilgan to'plamlar */
   unlocked: string[]
   /** kunlik hisoblagichlar kaliti (sana) — o'zgarsa nollanadi */
@@ -161,6 +191,8 @@ interface AppState {
   claimedMissions: string[]
   /** kunlik mega masala bonusi olingan sana */
   dailyBonusOn: string | null
+  /** bugungi AI masala (kun yarim tunda almashadi) */
+  dailyQuestion: DailyQuestion | null
   /** oxirgi natija ekrani ma'lumoti */
   lastResult: SessionResult | null
   /** zanjir davomida ochib turadigan dars id'si */
@@ -212,8 +244,14 @@ interface AppState {
   finishLessonTest: (lessonId: number, result: SessionResult) => void
   finishProblemSet: (setId: string, result: SessionResult) => void
   finishDaily: (result: SessionResult) => void
+  /** bugungi savolni saqlash (AI yoki zaxira) */
+  setDailyQuestion: (question: DailyQuestion) => void
+  /** javobni qayd etish — to'g'ri bo'lsa kunlik bonus, keyin qulflanadi */
+  answerDailyQuestion: (picked: number) => void
   /** Blitz sprint yakuni: ball, coin/XP (sessiya va zanjir hisobi bilan) */
   creditBlitz: (coins: number, xp: number, score: number) => void
+  /** Mini-o'yin yakuni: daraja rekordi + coin/XP */
+  creditGame: (gameId: string, levelId: string, stars: number, coins: number, xp: number) => void
   /** Mavzu bo'limida video dars ochildi */
   markTopicVideoSeen: (id: string) => void
   /** Mavzu bo'limini yakunlash — bir marta mukofot beradi */
@@ -360,6 +398,8 @@ export const useApp = create<AppState>()(
       bestStreak: 0,
       blitzBest: 0,
       blitzPlays: 0,
+      gameStars: {},
+      gamePlays: {},
       lastActiveDay: null,
       solvedCount: 0,
       answeredTotal: 0,
@@ -373,12 +413,16 @@ export const useApp = create<AppState>()(
 
       lessons: {},
       solvedQuestions: {},
+      levelStars: {},
+      starWeek: weekStartKey(),
+      starsThisWeek: 0,
       unlocked: [],
       day: todayKey(),
       solvedToday: 0,
       olympToday: 0,
       claimedMissions: [],
       dailyBonusOn: null,
+      dailyQuestion: null,
       lastResult: null,
       activeLessonId: null,
       authed: false,
@@ -496,28 +540,44 @@ export const useApp = create<AppState>()(
           const day = todayKey()
           const rolled = s.day !== day
           const prev = s.solvedQuestions[setId] ?? []
+          /** Savol id bo'yicha hisoblanadi — sessiyada tartib har safar boshqacha */
           const now = result.answers
-            .map((a, i) => (a.ok ? result.refId + '#' + i : null))
+            .map((a, i) => (a.ok ? a.qid ?? result.refId + '#' + i : null))
             .filter(Boolean) as string[]
           /** Faqat shu urinishda birinchi marta to'g'ri yechilgan savollar to'lanadi */
           const newly = now.filter(id => !prev.includes(id)).length
           const solved = findProblemSet(setId)
-          const dailyHit = dailyProblem().set.id === setId && s.dailyBonusOn !== day
-          const extraCoin = dailyHit ? DAILY_BONUS.coin : 0
-          const extraXp = dailyHit ? DAILY_BONUS.xp : 0
           const credited = applyBoost(s, result)
+          /**
+           * Daraja sessiyasi: yulduz eng yaxshi natijadan pastga tushmaydi,
+           * haftalik maqsadga faqat yangi (yaxshilangan) yulduz qo'shiladi —
+           * bir darajani takrorlab yulduz yig'ib bo'lmaydi.
+           */
+          const isLevel = !!solved?.levelSet
+          const stars = isLevel
+            ? starsForLevel(result.answers.filter((a) => a.ok).length, result.answers.length)
+            : 0
+          const prevStars = s.levelStars[setId] ?? 0
+          const week = weekStartKey()
+          const weekSame = s.starWeek === week
           return {
             solvedQuestions: { ...s.solvedQuestions, [setId]: [...new Set([...prev, ...now])] },
-            coin: s.coin + credited.coinsEarned + extraCoin,
-            xp: s.xp + credited.xpEarned + extraXp,
-            level: levelFromXp(s.xp + credited.xpEarned + extraXp),
+            coin: s.coin + credited.coinsEarned,
+            xp: s.xp + credited.xpEarned,
+            level: levelFromXp(s.xp + credited.xpEarned),
             solvedCount: s.solvedCount + newly,
             day,
             solvedToday: (rolled ? 0 : s.solvedToday) + newly,
             olympToday: (rolled ? 0 : s.olympToday) + (solved?.topic === 'Olimpiada' ? newly : 0),
             claimedMissions: rolled ? [] : s.claimedMissions,
-            dailyBonusOn: dailyHit ? day : s.dailyBonusOn,
-            lastResult: credited,
+            lastResult: isLevel ? { ...credited, stars } : credited,
+            ...(isLevel
+              ? {
+                  levelStars: { ...s.levelStars, [setId]: Math.max(prevStars, stars) },
+                  starWeek: week,
+                  starsThisWeek: (weekSame ? s.starsThisWeek : 0) + Math.max(0, stars - prevStars),
+                }
+              : {}),
             ...bumpStreak(s, day),
             ...creditMinutes(s, day),
             ...(newly > 0 ? creditAnswers(s, result) : {}),
@@ -544,6 +604,22 @@ export const useApp = create<AppState>()(
           }
         }),
 
+      /** Mini-o'yin yakuni — daraja rekordi pasaymaydi, coin/XP har sessiyada yoziladi */
+      creditGame: (gameId, levelId, stars, coins, xp) =>
+        set((s) => {
+          const key = `${gameId}:${levelId}`
+          const day = todayKey()
+          return {
+            gameStars: { ...s.gameStars, [key]: Math.max(s.gameStars[key] ?? 0, stars) },
+            gamePlays: { ...s.gamePlays, [gameId]: (s.gamePlays[gameId] ?? 0) + 1 },
+            coin: s.coin + coins,
+            xp: s.xp + xp,
+            level: levelFromXp(s.xp + xp),
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+          }
+        }),
+
       finishDaily: (result) =>
         set((s) => {
           const day = todayKey()
@@ -556,6 +632,55 @@ export const useApp = create<AppState>()(
             ...bumpStreak(s, day),
             ...creditMinutes(s, day),
             ...creditAnswers(s, result),
+          }
+        }),
+
+      /** Bugungi savolni saqlash — ekran va Home kartasi bitta nusxani o'qiydi */
+      setDailyQuestion: (question) => set({ dailyQuestion: question }),
+
+      /** Javob: to'g'ri bo'lsa DAILY_BONUS, xato bo'lsa faqat qayd etiladi */
+      answerDailyQuestion: (picked) =>
+        set((s) => {
+          const q = s.dailyQuestion
+          const day = todayKey()
+          if (!q || q.day !== day || q.picked !== null) return {}
+          const ok = picked === q.correct
+          const coin = ok ? DAILY_BONUS.coin : 0
+          const xp = ok ? DAILY_BONUS.xp : 0
+          const result: SessionResult = {
+            kind: 'daily',
+            refId: `daily-${q.topicNum}`,
+            title: q.topic || 'Kunlik masala',
+            answers: [
+              {
+                prompt: q.prompt,
+                picked,
+                correct: q.correct,
+                options: q.options,
+                explain: q.explain,
+                ok,
+              },
+            ],
+            coinsEarned: coin,
+            xpEarned: xp,
+          }
+          const credited = applyBoost(s, result)
+          const rolled = s.day !== day
+          return {
+            dailyQuestion: { ...q, picked },
+            coin: s.coin + credited.coinsEarned,
+            xp: s.xp + credited.xpEarned,
+            level: levelFromXp(s.xp + credited.xpEarned),
+            solvedCount: s.solvedCount + (ok ? 1 : 0),
+            day,
+            solvedToday: (rolled ? 0 : s.solvedToday) + (ok ? 1 : 0),
+            claimedMissions: rolled ? [] : s.claimedMissions,
+            dailyBonusOn: ok ? day : s.dailyBonusOn,
+            lastResult: credited,
+            ...bumpStreak(s, day),
+            ...creditMinutes(s, day),
+            ...creditAnswers(s, result),
+            ...boostConsume(s),
           }
         }),
 
@@ -802,6 +927,8 @@ export const useApp = create<AppState>()(
           bestStreak: 0,
           blitzBest: 0,
           blitzPlays: 0,
+          gameStars: {},
+          gamePlays: {},
           lastActiveDay: null,
           photoUrl: null,
           name: '',
@@ -820,11 +947,15 @@ export const useApp = create<AppState>()(
           sessionStartedAt: null,
           lessons: {},
           solvedQuestions: {},
+          levelStars: {},
+          starWeek: weekStartKey(),
+          starsThisWeek: 0,
           unlocked: [],
           solvedToday: 0,
           olympToday: 0,
           claimedMissions: [],
           dailyBonusOn: null,
+          dailyQuestion: null,
           lastResult: null,
           activeLessonId: null,
           authed: false,
@@ -893,8 +1024,11 @@ export const useApp = create<AppState>()(
     {
       name: 'hdp_progress_v1',
       storage: createJSONStorage(() => AsyncStorage),
-      /** v2 — test natijalari mavzu raqami bo'yicha (`topicTest` → `topicTests`) */
-      version: 2,
+      /**
+       * v2 — test natijalari mavzu raqami bo'yicha (`topicTest` → `topicTests`)
+       * v3 — daraja savollari id bo'yicha (`algebra-oson#3` → `a-oson-4`)
+       */
+      version: 3,
       migrate: (persisted, version) => {
         let state = (persisted ?? {}) as Record<string, unknown>
         if (version < 1) {
@@ -918,7 +1052,30 @@ export const useApp = create<AppState>()(
         if (version < 2 && 'topicTest' in state) {
           const old = state.topicTest as TopicTestEntry | null
           const { topicTest: _drop, ...rest } = state
-          return { ...rest, topicTests: old ? { 1: old } : {} }
+          state = { ...rest, topicTests: old ? { 1: old } : {} }
+        }
+        if (version < 3 && state.solvedQuestions) {
+          /** Eski yozuvlar indeks bo'yicha edi; daraja savollari endi id bilan yuritiladi */
+          const byIndex = new Map<string, string[]>()
+          for (const level of PROBLEM_LEVELS) {
+            byIndex.set(level.id, level.questions.map(q => q.id))
+          }
+          const old = state.solvedQuestions as Record<string, string[]>
+          const next: Record<string, string[]> = {}
+          for (const [setId, ids] of Object.entries(old)) {
+            const table = byIndex.get(setId)
+            if (!table) {
+              next[setId] = ids
+              continue
+            }
+            const mapped = ids.map(id => {
+              const [prefix, idx] = id.split('#')
+              if (prefix !== setId || idx === undefined) return id
+              return table[Number(idx)] ?? id
+            })
+            next[setId] = [...new Set(mapped)]
+          }
+          state = { ...state, solvedQuestions: next }
         }
         return state
       },
@@ -938,6 +1095,8 @@ export const useApp = create<AppState>()(
         bestStreak: s.bestStreak,
         blitzBest: s.blitzBest,
         blitzPlays: s.blitzPlays,
+        gameStars: s.gameStars,
+        gamePlays: s.gamePlays,
         lastActiveDay: s.lastActiveDay,
         solvedCount: s.solvedCount,
         answeredTotal: s.answeredTotal,
@@ -949,12 +1108,16 @@ export const useApp = create<AppState>()(
         theme: s.theme,
         lessons: s.lessons,
         solvedQuestions: s.solvedQuestions,
+        levelStars: s.levelStars,
+        starWeek: s.starWeek,
+        starsThisWeek: s.starsThisWeek,
         unlocked: s.unlocked,
         day: s.day,
         solvedToday: s.solvedToday,
         olympToday: s.olympToday,
         claimedMissions: s.claimedMissions,
         dailyBonusOn: s.dailyBonusOn,
+        dailyQuestion: s.dailyQuestion,
         authed: s.authed,
         onboarded: s.onboarded,
         topicLessons: s.topicLessons,

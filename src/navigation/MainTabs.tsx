@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomNav, navBottomSpace } from '../components/BottomNav'
 import HomeScreen from '../screens/HomeScreen'
 import ProblemsScreen from '../screens/ProblemsScreen'
+import GamesScreen from '../screens/GamesScreen'
 import ShopScreen from '../screens/ShopScreen'
 import ProfileScreen from '../screens/ProfileScreen'
 import { ROUTE_TAB, TAB_ROUTE } from './types'
@@ -53,6 +54,7 @@ const MainTabs = () => (
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Problems" component={ProblemsScreen} />
+    <Tab.Screen name="Games" component={GamesScreen} />
     <Tab.Screen name="Shop" component={ShopScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>

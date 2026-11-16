@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useEffect } from 'react'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import Ionicons from '@expo/vector-icons/Ionicons'
+import MCI from '@expo/vector-icons/MaterialCommunityIcons'
 import { useNavigation } from '@react-navigation/native'
 import type { CompositeNavigationProp } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
@@ -11,38 +11,28 @@ import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { navBottomSpace } from '../components/BottomNav'
 import { MidnightClock } from '../components/MidnightClock'
+import { TopScrim } from '../components/ui'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { ABS_FILL, C, MATH_FONT, NUM } from '../theme/tokens'
-import { Bar } from '../components/Bar'
-import { DAILY_BONUS, EXAM_SET, MISSION_REWARDS, PROBLEM_SETS, dailyProblem, type ProblemSet } from '../data/content'
+import { ABS_FILL, C, MATH_FONT, NUM, R } from '../theme/tokens'
+import ProblemSubjectCard from '../components/ProblemSubjectCard'
+import { DAILY_BONUS, FORMULA_GROUPS } from '../data/content'
 import {
-  AMBER_BTN, AMBER_TEXT, BTN_BASE, CARD, CARD_LIFT, GRAD_HEADER, GRAD_LIME, GRAD_RAIL,
-  LIME_BTN, LIME_TEXT, OUT_BTN, OUT_TEXT, SOLVER_BODY,
-} from '../theme/solver'
+  PROBLEM_SUBJECTS, WEEKLY_STAR_GOAL, levelsOf, weekStartKey,
+} from '../data/problems'
+import { difficultyLabel, sourceLabel } from '../lib/daily'
+import { useDailyQuestion } from '../lib/useDailyQuestion'
+import { CARD_LIFT, GRAD_HEADER, GRAD_LIME, GRAD_RAIL, LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
 
 /**
- * Masalalar — mintaqaviy «davotar» tili (burchakli kvadrat chip, chap reysli
- * qatorlar, ledger ustunlari, ticket-karta). Home doira/pill morfologiyasida.
+ * Masalalar — fan → daraja → 10 masalalik sessiya xaritasi.
+ * Kunlik masala va formulalar shu yerda qoladi, lekin mashqning asosiy
+ * yo'li bitta: fan kartasi, ichida uchta daraja.
  */
 
 type Nav = CompositeNavigationProp<
   BottomTabNavigationProp<TabParamList>,
   NativeStackNavigationProp<RootStackParamList>
 >
-
-const DIFF_RAIL: Record<string, string> = {
-  oson: '#7ED321',
-  "o'rta": '#E8A33D',
-  qiyin: '#D9534F',
-}
-
-const TOPIC_GLYPH: Record<string, keyof typeof Ionicons.glyphMap> = {
-  Algebra: 'calculator',
-  Geometriya: 'triangle',
-  Trigonometriya: 'compass',
-  Analiz: 'infinite',
-  Olimpiada: 'trophy',
-}
 
 const TIERS = [
   { name: "Boshlang'ich", need: 0 },
@@ -66,138 +56,33 @@ const ProblemsScreen = () => {
   const streak = useApp(s => s.streak)
   const solvedCount = useApp(s => s.solvedCount)
   const solvedToday = useApp(s => s.solvedToday)
-  const olympToday = useApp(s => s.olympToday)
-  const claimedMissions = useApp(s => s.claimedMissions)
   const solvedQuestions = useApp(s => s.solvedQuestions)
-  const unlocked = useApp(s => s.unlocked)
-  const isPro = useApp(s => s.isPro)
+  const levelStars = useApp(s => s.levelStars)
+  const starWeek = useApp(s => s.starWeek)
+  const starsThisWeek = useApp(s => s.starsThisWeek)
   const rollDay = useApp(s => s.rollDay)
-  const claimMission = useApp(s => s.claimMission)
-  const unlockSet = useApp(s => s.unlockSet)
-  const canOpenSet = useApp(s => s.canOpenSet)
   const dailyBonusOn = useApp(s => s.dailyBonusOn)
+  const { question: daily, status: dailyStatus } = useDailyQuestion()
 
-  const [cat, setCat] = useState('Barchasi')
-  /** Coin evaziga ochiladigan to'plam — avval tasdiqlash varag'i */
-  const [unlockTarget, setUnlockTarget] = useState<ProblemSet | null>(null)
-  /** Bajarilmagan vazifadagi «Olish» bosilganda sabab ko'rsatiladi */
-  const [claimHint, setClaimHint] = useState<string | null>(null)
+  /** Hafta almashgan bo'lsa eski yulduzlar ko'rinmaydi */
+  const weekStars = starWeek === weekStartKey() ? starsThisWeek : 0
 
   useEffect(() => {
     rollDay()
   }, [rollDay])
 
-  const daily = useMemo(() => dailyProblem(), [])
   const dailyClaimed = dailyBonusOn === todayKey()
+  const dailyDone = daily ? daily.picked !== null : false
 
-  const categories = useMemo(
-    () => ['Barchasi', ...Array.from(new Set(PROBLEM_SETS.map(s => s.topic)))],
-    []
-  )
-  const list = useMemo(
-    () => (cat === 'Barchasi' ? PROBLEM_SETS : PROBLEM_SETS.filter(s => s.topic === cat)),
-    [cat]
-  )
-
-  const openSet = (set: ProblemSet) => {
-    if (canOpenSet(set.id)) {
-      triggerHaptic('medium')
-      navigation.navigate('ProblemSet', { setId: set.id })
-      return
-    }
-    if (set.unlockPrice) {
-      triggerHaptic('light')
-      setUnlockTarget(set)
-      return
-    }
-    triggerHaptic('warning')
-    navigation.navigate('Pro', { reason: 'problem-set', setId: set.id })
+  const openSubject = (subjectId: string) => {
+    triggerHaptic('medium')
+    navigation.navigate('SubjectLevels', { subjectId })
   }
 
-  const confirmUnlock = () => {
-    if (!unlockTarget) return
-    const target = unlockTarget
-    const ok = unlockSet(target.id, target.unlockPrice ?? 0)
-    setUnlockTarget(null)
-    triggerHaptic(ok ? 'success' : 'error')
-    if (ok) navigation.navigate('ProblemSet', { setId: target.id })
+  const openLevel = (setId: string) => {
+    triggerHaptic('medium')
+    navigation.navigate('ProblemSet', { setId })
   }
-
-  const solvedIn = (set: ProblemSet) => (solvedQuestions[set.id] ?? []).length
-
-  const missions = [
-    {
-      key: 'solve5',
-      label: 'Bugun 5 ta masala yech',
-      reward: MISSION_REWARDS.solve5,
-      ratio: Math.min(solvedToday, 5) / 5,
-      detail: `${Math.min(solvedToday, 5)}/5`,
-    },
-    {
-      key: 'streak',
-      label: 'Bugun ham masala yech',
-      reward: MISSION_REWARDS.streak,
-      ratio: streak > 0 ? 1 : 0,
-      detail: streak > 0 ? `zanjir ${streak} kun` : 'bugun hali yo\'q',
-    },
-    {
-      key: 'olymp',
-      label: 'Bitta olimpiada masalasi yech',
-      reward: MISSION_REWARDS.olymp,
-      ratio: Math.min(olympToday, 1) / 1,
-      detail: `${Math.min(olympToday, 1)}/1`,
-    },
-  ]
-
-  const modes = [
-    {
-      key: 'blitz',
-      icon: 'flash' as const,
-      tile: '#FCF1DC',
-      fg: '#B87A22',
-      name: 'Tezkor blits',
-      desc: '30 soniyada 5 ta savol',
-      reward: "har javob 5 coin",
-      pro: false,
-      run: () => {
-        triggerHaptic('medium')
-        navigation.navigate('Blitz')
-      },
-    },
-    {
-      key: 'streak',
-      icon: 'flame' as const,
-      tile: '#FDE8E4',
-      fg: '#C2410C',
-      name: 'Ketma-ket seriya',
-      desc: "10 ta ketma-ket to'g'ri javob — coin ikki barobar",
-      reward: 'coin 2x',
-      pro: false,
-      run: () => {
-        triggerHaptic('medium')
-        navigation.navigate('ProblemSet', { setId: 'ps-streak' })
-      },
-    },
-    {
-      key: 'exam',
-      icon: 'trophy' as const,
-      tile: '#E5ECFE',
-      fg: '#3560C4',
-      name: 'Sinov testi',
-      desc: `${EXAM_SET.questions.length} ta savollik to'liq imtihon`,
-      reward: `${EXAM_SET.coinPerSolve} coin / masala`,
-      pro: true,
-      run: () => {
-        if (!isPro) {
-          triggerHaptic('warning')
-          navigation.navigate('Pro', { reason: 'problem-set', setId: 'ps-exam' })
-          return
-        }
-        triggerHaptic('medium')
-        navigation.navigate('ProblemSet', { setId: 'ps-exam' })
-      },
-    },
-  ]
 
   const tierIdx = Math.max(0, TIERS.reduce((acc, t, i) => (solvedCount >= t.need ? i : acc), 0))
   const tier = TIERS[tierIdx]
@@ -205,6 +90,13 @@ const ProblemsScreen = () => {
   const tierPct = nextTier
     ? Math.min(100, Math.round(((solvedCount - tier.need) / (nextTier.need - tier.need)) * 100))
     : 100
+
+  /** Jami hajm — sarlavha yonidagi raqamlar qo'lda yozilmaydi */
+  const allLevels = PROBLEM_SUBJECTS.reduce((n, sub) => n + levelsOf(sub.id).length, 0)
+  const allQuestions = PROBLEM_SUBJECTS.reduce(
+    (n, sub) => n + levelsOf(sub.id).reduce((m, lvl) => m + lvl.questions.length, 0),
+    0,
+  )
 
   return (
     <View style={styles.screen}>
@@ -222,11 +114,11 @@ const ProblemsScreen = () => {
           <View style={styles.headerTop}>
             <View style={styles.titleRow}>
               <View style={styles.glyphTile}>
-                <Ionicons name="calculator" size={18} color="#9BE04B" />
+                <MCI name="calculator-variant" size={18} color="#9BE04B" />
               </View>
               <View>
                 <Text style={styles.h1}>Masalalar</Text>
-                <Text style={styles.h1Sub}>Kunlik masaladan boshlang</Text>
+                <Text style={styles.h1Sub}>Fan → daraja → 10 masala</Text>
               </View>
             </View>
 
@@ -237,15 +129,15 @@ const ProblemsScreen = () => {
               }}
               style={({ pressed }) => [styles.coinChip, pressed && { transform: [{ scale: 0.97 }] }]}
             >
-              <Ionicons name="cash" size={14} color="#F3C88A" />
+              <MCI name="cash" size={14} color="#F3C88A" />
               <Text style={[styles.coinChipText, NUM]}>{num(coin)}</Text>
             </Pressable>
           </View>
 
           <View style={styles.ledger}>
             {[
-              { v: `${streak}`, u: 'kun ketma-ket', icon: 'flame' as const, c: '#F3C88A' },
-              { v: `${solvedCount}`, u: 'ta yechilgan', icon: 'checkmark' as const, c: '#9BE04B' },
+              { v: `${streak}`, u: 'kun ketma-ket', icon: 'fire' as const, c: '#F3C88A' },
+              { v: `${solvedCount}`, u: 'ta yechilgan', icon: 'check' as const, c: '#9BE04B' },
               { v: `${solvedToday}`, u: 'bugun', icon: 'flash' as const, c: '#CDE9AE' },
             ].map((cell, i) => (
               <View key={cell.u} style={styles.ledgerCell}>
@@ -253,7 +145,7 @@ const ProblemsScreen = () => {
                 <View style={styles.ledgerInner}>
                   <Text style={[styles.ledgerValue, NUM]}>{cell.v}</Text>
                   <View style={styles.ledgerLabelRow}>
-                    <Ionicons name={cell.icon} size={12} color={cell.c} />
+                    <MCI name={cell.icon} size={12} color={cell.c} />
                     <Text style={styles.ledgerLabel}>{cell.u}</Text>
                   </View>
                 </View>
@@ -261,16 +153,18 @@ const ProblemsScreen = () => {
             ))}
           </View>
 
-          <View style={styles.tierRow}>
+          <View style={styles.tierBlock}>
+            <View style={styles.tierMeta}>
+              <Text style={styles.tierName}>{tier.name}</Text>
+              <Text style={[styles.tierNext, NUM]}>
+                {nextTier
+                  ? `${solvedCount}/${nextTier.need} · keyingi: ${nextTier.name}`
+                  : 'eng yuqori daraja'}
+              </Text>
+            </View>
             <View style={styles.tierTrack}>
               <View style={[styles.tierTrackFill, { width: `${tierPct}%` }]} />
             </View>
-            <Text style={styles.tierText}>
-              <Text style={styles.tierStrong}>{tier.name}</Text>
-              {nextTier
-                ? ` · keyingi daraja: ${nextTier.name} — yana ${nextTier.need - solvedCount} ta masala`
-                : ' · eng yuqori daraja'}
-            </Text>
           </View>
           <View style={styles.headerTail} />
         </LinearGradient>
@@ -278,261 +172,126 @@ const ProblemsScreen = () => {
         <View style={styles.body}>
           {/* ── 2. Bugungi masala — ticket ── */}
           <View style={[CARD_LIFT, styles.ticket]}>
-            <LinearGradient colors={GRAD_RAIL} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.ticketRail} />
+            <LinearGradient
+              colors={GRAD_RAIL}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.ticketStub}
+            >
+              <MCI name="calendar-star" size={15} color="#F4FFE8" />
+              <Text style={styles.ticketStubLabel}>BUGUN</Text>
+            </LinearGradient>
+
+            <View style={styles.ticketTear} pointerEvents="none">
+              {Array.from({ length: 11 }).map((_, i) => (
+                <View key={i} style={styles.ticketTearDash} />
+              ))}
+            </View>
+            <View pointerEvents="none" style={[styles.notch, styles.notchTop]} />
+            <View pointerEvents="none" style={[styles.notch, styles.notchBottom]} />
+
             <View style={styles.ticketBody}>
               <View style={styles.ticketHead}>
-                <Text style={styles.ticketKicker}>Bugungi masala</Text>
+                <Text style={styles.ticketTitle} numberOfLines={1}>
+                  {daily ? daily.topic : 'Kunlik savol'}
+                </Text>
                 <View style={styles.clockChip}>
-                  <Ionicons name="time-outline" size={12} color="#9AA995" />
+                  <MCI name="timer-outline" size={11} color="#9AA995" />
                   <MidnightClock style={[styles.clockText, NUM]} />
                 </View>
               </View>
 
-              <Text style={styles.ticketTitle}>{daily.set.title}</Text>
               <Text style={styles.ticketMeta}>
-                {daily.set.topic} · {daily.set.grade} · har kuni yangilanadi
+                {daily ? sourceLabel(daily.source) : 'Kunlik mashq'}
+                {daily ? ` · ${difficultyLabel(daily.difficulty)}` : ''}
               </Text>
 
               <View style={styles.promptBox}>
-                <Text style={styles.promptText}>{daily.question.prompt}</Text>
+                <Text style={styles.promptText}>
+                  {daily
+                    ? daily.prompt
+                    : dailyStatus === 'error'
+                      ? "Savolni yuklab bo'lmadi — qayta urinib ko'ring"
+                      : 'Savol tayyorlanmoqda…'}
+                </Text>
               </View>
-
-              <View style={styles.perforation} />
 
               <View style={styles.ticketBottom}>
                 <View style={styles.rewardLedger}>
-                  <View style={styles.rewardCol}>
-                    <Text style={[styles.rewardCoin, NUM]}>+{DAILY_BONUS.coin}</Text>
-                    <Text style={styles.rewardUnit}>coin</Text>
-                  </View>
+                  <Text style={[styles.rewardCoin, NUM]}>+{DAILY_BONUS.coin}</Text>
+                  <Text style={styles.rewardUnit}>coin</Text>
                   <View style={styles.rewardDivider} />
-                  <View style={[styles.rewardCol, { paddingLeft: 12, paddingRight: 0 }]}>
-                    <Text style={[styles.rewardXp, NUM]}>+{DAILY_BONUS.xp}</Text>
-                    <Text style={styles.rewardUnit}>XP</Text>
-                  </View>
+                  <Text style={[styles.rewardXp, NUM]}>+{DAILY_BONUS.xp}</Text>
+                  <Text style={styles.rewardUnit}>XP</Text>
                   {dailyClaimed && <Text style={styles.claimedNote}>bugun olindi</Text>}
                 </View>
 
                 <Pressable
-                  onPress={() => openSet(daily.set)}
+                  onPress={() => {
+                    triggerHaptic('medium')
+                    navigation.navigate('Daily')
+                  }}
                   style={({ pressed }) => [LIME_BTN, styles.ticketCta, pressed && { transform: [{ scale: 0.97 }] }]}
                 >
                   <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
-                  <Text style={[styles.ticketCtaText, LIME_TEXT]}>Yechish</Text>
-                  <Ionicons name="arrow-forward" size={15} color="#1C3214" />
+                  <Text style={[styles.ticketCtaText, LIME_TEXT]}>{dailyDone ? "Ko'rish" : 'Yechish'}</Text>
+                  <MCI name="arrow-right" size={15} color="#1C3214" />
                 </Pressable>
               </View>
             </View>
           </View>
 
-          {/* ── 3. Masala to'plamlari ── */}
+          {/* ── 3. Fanlar: fan → daraja → 10 masala ── */}
           <View style={styles.section}>
             <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Masala to&apos;plamlari</Text>
-              <Text style={[styles.sectionCount, NUM]}>{list.length} ta</Text>
+              <View style={styles.sectionHeadText}>
+                <Text style={styles.sectionTitle}>Fanlar</Text>
+                <Text style={[styles.sectionCount, NUM]}>
+                  {allLevels} daraja · {allQuestions} masala
+                </Text>
+              </View>
+
+              <View style={[styles.weekChip, weekStars >= WEEKLY_STAR_GOAL && styles.weekChipDone]}>
+                <MCI
+                  name="star"
+                  size={12}
+                  color={weekStars >= WEEKLY_STAR_GOAL ? C.limeDeep : '#B87A22'}
+                />
+                <Text
+                  style={[styles.weekChipText, weekStars >= WEEKLY_STAR_GOAL && styles.weekChipTextDone, NUM]}
+                >
+                  haftalik {Math.min(weekStars, WEEKLY_STAR_GOAL)}/{WEEKLY_STAR_GOAL} yulduz
+                </Text>
+              </View>
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow} contentContainerStyle={styles.chipRowInner}>
-              {categories.map(c => {
-                const active = cat === c
-                const count = c === 'Barchasi' ? PROBLEM_SETS.length : PROBLEM_SETS.filter(s => s.topic === c).length
+            <View style={styles.subjectList}>
+              {PROBLEM_SUBJECTS.map((sub, i) => {
+                const levels = levelsOf(sub.id)
+                const total = levels.reduce((n, l) => n + l.questions.length, 0)
+                const solved = levels.reduce((n, l) => n + (solvedQuestions[l.id]?.length ?? 0), 0)
                 return (
-                  <Pressable
-                    key={c}
-                    onPress={() => {
-                      triggerHaptic('selection')
-                      setCat(c)
-                    }}
-                    style={({ pressed }) => [
-                      styles.chip,
-                      active ? styles.chipActive : styles.chipIdle,
-                      pressed && { opacity: 0.85 },
-                    ]}
-                  >
-                    <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextIdle]}>{c}</Text>
-                    <Text style={[styles.chipCount, NUM, { color: active ? '#CDE9AE' : '#9AA995' }]}>{count}</Text>
-                  </Pressable>
-                )
-              })}
-            </ScrollView>
-
-            <View style={styles.setList}>
-              {list.map(set => {
-                const open = set.free || isPro || unlocked.includes(set.id)
-                const done = solvedIn(set)
-                const partial = done > 0 && done < set.questions.length
-                return (
-                  <View key={set.id} style={[CARD_LIFT, styles.setRow]}>
-                    <View style={[styles.setRail, { backgroundColor: DIFF_RAIL[set.difficulty] ?? '#7ED321' }]} />
-                    <View style={styles.setBody}>
-                      <View style={styles.setTop}>
-                        <View style={styles.setText}>
-                          <Text style={styles.setTitle}>{set.title}</Text>
-                          <View style={styles.setMetaRow}>
-                            <Ionicons name={TOPIC_GLYPH[set.topic] ?? 'help-circle-outline'} size={13} color="#9AA995" />
-                            <Text style={styles.setMeta}>
-                              {set.difficulty} · {set.topic} · {set.grade}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <Pressable
-                          onPress={() => openSet(set)}
-                          style={({ pressed }) => [
-                            BTN_BASE,
-                            styles.setCta,
-                            !open
-                              ? [AMBER_BTN, pressed && { transform: [{ scale: 0.96 }] }]
-                              : done > 0 && !partial
-                                ? [OUT_BTN, pressed && { transform: [{ scale: 0.96 }] }]
-                                : [LIME_BTN, pressed && { transform: [{ scale: 0.96 }] }],
-                          ]}
-                        >
-                          {(!open || (done > 0 && !partial)) && (
-                            <LinearGradient
-                              colors={!open ? (['#F6D8A6', '#E8A33D'] as const) : (['#FFFFFF', '#FFFFFF'] as const)}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 1 }}
-                              style={ABS_FILL}
-                            />
-                          )}
-                          {open && !(done > 0 && !partial) && (
-                            <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
-                          )}
-                          <Text
-                            style={[
-                              styles.setCtaText,
-                              NUM,
-                              !open ? AMBER_TEXT : done > 0 && !partial ? OUT_TEXT : LIME_TEXT,
-                            ]}
-                          >
-                            {!open ? (set.unlockPrice ? `${set.unlockPrice} coin` : 'Pro') : done ? "Ko'rish" : 'Yechish'}
-                          </Text>
-                        </Pressable>
-                      </View>
-
-                      <View style={styles.setBottom}>
-                        <Text style={[styles.setCoin, NUM]}>+{set.coinPerSolve} coin</Text>
-                        <Text style={[styles.setXp, NUM]}>+{set.xpPerSolve} XP</Text>
-                        <View style={styles.setBarWrap}>
-                          <Bar
-                            ratio={done / set.questions.length}
-                            color={done === set.questions.length ? '#5FAF22' : '#0B6E4F'}
-                          />
-                        </View>
-                        <Text style={[styles.setCount, NUM, { color: open ? '#6B7C66' : '#B87A22' }]}>
-                          {open ? `${done}/${set.questions.length}` : 'qulflangan'}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
+                  <ProblemSubjectCard
+                    key={sub.id}
+                    subject={sub}
+                    levels={levels}
+                    starsByLevel={levelStars}
+                    solved={solved}
+                    total={total}
+                    index={i}
+                    onOpen={() => openSubject(sub.id)}
+                    onLevel={openLevel}
+                  />
                 )
               })}
             </View>
-          </View>
 
-          {/* ── 4. Bugungi vazifalar ── */}
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Bugungi vazifalar</Text>
-              <Text style={styles.sectionHint}>har kuni yangilanadi</Text>
-            </View>
-
-            <View style={[CARD, styles.missionsPanel]}>
-              {missions.map((m, i) => {
-                const claimed = claimedMissions.includes(m.key)
-                const done = m.ratio >= 1
-                return (
-                  <View key={m.key} style={[styles.missionRow, i > 0 && styles.missionRowBorder]}>
-                    <View style={[styles.missionBox, done ? styles.missionBoxOn : styles.missionBoxOff]}>
-                      {done && <Ionicons name="checkmark" size={13} color="#1C3214" />}
-                    </View>
-
-                    <View style={styles.missionBody}>
-                      <Text style={styles.missionLabel}>{m.label}</Text>
-                      <View style={styles.missionBarRow}>
-                        <Bar ratio={m.ratio} color={done ? '#5FAF22' : '#E8A33D'} />
-                        <Text style={[styles.missionDetail, NUM]}>{m.detail}</Text>
-                        <Text style={[styles.missionReward, NUM]}>+{m.reward}</Text>
-                      </View>
-                    </View>
-
-                    <Pressable
-                      disabled={claimed}
-                      hitSlop={6}
-                      onPress={() => {
-                        if (!done) {
-                          triggerHaptic('warning')
-                          setClaimHint(`«${m.label}» bajarilgach «Olish» ochiladi.`)
-                          return
-                        }
-                        triggerHaptic('success')
-                        setClaimHint(null)
-                        claimMission(m.key, m.reward)
-                      }}
-                      style={({ pressed }) => [
-                        styles.missionCta,
-                        claimed
-                          ? [OUT_BTN, { opacity: 1 }]
-                          : done
-                            ? [LIME_BTN, pressed && { transform: [{ scale: 0.97 }] }]
-                            : [OUT_BTN, { opacity: 0.5 }],
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.missionCtaText,
-                          claimed ? OUT_TEXT : done ? LIME_TEXT : [OUT_TEXT, { color: '#9AA995' }],
-                        ]}
-                      >
-                        {claimed ? 'Olindi' : 'Olish'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                )
-              })}
-            </View>
-            {claimHint && <Text style={styles.claimHint}>{claimHint}</Text>}
-          </View>
-
-          {/* ── 5. Qo'shimcha rejimlar ── */}
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Qo&apos;shimcha rejimlar</Text>
-            </View>
-
-            <View style={[CARD, styles.modesPanel]}>
-              {modes.map((m, i) => {
-                const proLocked = m.pro && !isPro
-                return (
-                  <Pressable
-                    key={m.key}
-                    onPress={m.run}
-                    style={({ pressed }) => [
-                      styles.modeRow,
-                      i > 0 && styles.modeRowBorder,
-                      proLocked && { backgroundColor: '#FBFCF8' },
-                      pressed && { backgroundColor: '#F3F7EE' },
-                    ]}
-                  >
-                    <View style={[styles.modeTile, { backgroundColor: m.tile }]}>
-                      <Ionicons name={m.icon} size={16} color={m.fg} />
-                    </View>
-                    <View style={styles.modeBody}>
-                      <Text style={styles.modeName}>{m.name}</Text>
-                      <Text style={styles.modeDesc}>{m.desc}</Text>
-                    </View>
-                    {proLocked ? (
-                      <View style={styles.proBadge}>
-                        <Text style={styles.proBadgeText}>Pro</Text>
-                      </View>
-                    ) : (
-                      <Text style={[styles.modeCoin, NUM]}>{m.reward}</Text>
-                    )}
-                    <Ionicons name="chevron-forward" size={15} color="#9AA995" />
-                  </Pressable>
-                )
-              })}
+            <View style={styles.subjectHint}>
+              <MCI name="star-circle-outline" size={13} color="#B87A22" />
+              <Text style={styles.subjectHintText}>
+                Har darajada <Text style={styles.subjectHintStrong}>6, 8 va 10</Text> to&apos;g&apos;ri javob —
+                1, 2 va 3 yulduz.
+              </Text>
             </View>
           </View>
 
@@ -542,93 +301,32 @@ const ProblemsScreen = () => {
               triggerHaptic('light')
               navigation.navigate('Formulas')
             }}
-            style={({ pressed }) => [
-              styles.formulasCta,
-              CARD,
-              pressed && { transform: [{ scale: 0.985 }], backgroundColor: '#F6F8F3' },
-            ]}
+            style={({ pressed }) => [styles.formulasCta, pressed && { transform: [{ scale: 0.985 }] }]}
           >
+            <LinearGradient
+              colors={['#0E1A12', '#17512F']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={ABS_FILL}
+            />
             <View style={styles.formulasTile}>
-              <Ionicons name="calculator" size={16} color="#0B6E4F" />
+              <MCI name="function-variant" size={20} color="#CDE9AE" />
             </View>
             <View style={styles.formulasText}>
               <Text style={styles.formulasTitle}>Formulalar qo'llanmasi</Text>
-              <Text style={styles.formulasSub}>Yechimda kerak bo'ladigan ifodalar — bir bosishda</Text>
+              <Text style={[styles.formulasSub, NUM]}>
+                {FORMULA_GROUPS.reduce((n, g) => n + g.items.length, 0)} formula · {FORMULA_GROUPS.length} bo'lim
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#9AA995" />
+            <View style={styles.formulasArrow}>
+              <MCI name="arrow-right" size={15} color="#1C3214" />
+            </View>
           </Pressable>
         </View>
       </ScrollView>
 
-      {/* ── Coin evaziga ochish — tasdiqlash varag'i ── */}
-      <Modal
-        visible={!!unlockTarget}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setUnlockTarget(null)}
-      >
-        {unlockTarget && (() => {
-          const price = unlockTarget.unlockPrice ?? 0
-          const poor = coin < price
-          return (
-            <View style={styles.sheetRoot}>
-              <Pressable style={ABS_FILL} onPress={() => setUnlockTarget(null)} accessibilityLabel="Yopish" />
-              <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
-                <View style={styles.sheetGrip} />
-                <Text style={styles.sheetKicker}>To&apos;plamni ochish</Text>
-                <Text style={styles.sheetTitle}>{unlockTarget.title}</Text>
-                <Text style={styles.sheetMeta}>
-                  {unlockTarget.difficulty} · {unlockTarget.topic} · {unlockTarget.questions.length} ta masala
-                </Text>
-
-                <View style={styles.sheetRows}>
-                  {[
-                    { k: 'Narxi', v: `${num(price)} coin` },
-                    { k: 'Hamyonda', v: `${num(coin)} coin` },
-                    { k: 'Ochilgach qoladi', v: `${num(Math.max(0, coin - price))} coin` },
-                  ].map(r => (
-                    <View key={r.k} style={styles.sheetRow}>
-                      <Text style={styles.sheetK}>{r.k}</Text>
-                      <Text style={[styles.sheetV, NUM]}>{r.v}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                {poor && (
-                  <Text style={styles.sheetPoor}>
-                    Yana {num(price - coin)} coin kerak — bepul to&apos;plamlardan yig&apos;ing.
-                  </Text>
-                )}
-
-                <View style={styles.sheetBtns}>
-                  <Pressable
-                    onPress={() => { triggerHaptic('light'); setUnlockTarget(null) }}
-                    style={({ pressed }) => [styles.sheetCancel, pressed && { opacity: 0.9 }]}
-                  >
-                    <Text style={styles.sheetCancelText}>Bekor</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={confirmUnlock}
-                    disabled={poor}
-                    style={({ pressed }) => [
-                      styles.sheetOk,
-                      poor && styles.sheetOkOff,
-                      pressed && !poor && { transform: [{ scale: 0.98 }] },
-                    ]}
-                  >
-                    {!poor && (
-                      <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
-                    )}
-                    <Text style={[styles.sheetOkText, poor && styles.sheetOkTextOff, NUM]}>
-                      {poor ? 'Coin yetmaydi' : `${num(price)} coin — ochish`}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          )
-        })()}
-      </Modal>
+      {/* Status bar zonasi — qora sarlavha shu chegara ostidan siljiydi */}
+      <TopScrim height={insets.top} colors={['#0E1A12', '#0F1D14']} line="rgba(255,255,255,0.10)" />
     </View>
   )
 }
@@ -636,12 +334,12 @@ const ProblemsScreen = () => {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: SOLVER_BODY },
   content: { paddingBottom: 120 },
-  body: { paddingHorizontal: 20 },
+  body: { paddingHorizontal: 16 },
 
   header: {
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 26,
-    borderBottomRightRadius: 26,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: R['2xl'],
+    borderBottomRightRadius: R['2xl'],
     overflow: 'hidden',
   },
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12 },
@@ -657,7 +355,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(205,233,174,0.22)',
   },
   h1: { fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.6, color: '#F7FCED' },
-  h1Sub: { marginTop: 2, fontSize: 12, letterSpacing: 0.1, fontWeight: '500', color: 'rgba(205,233,174,0.72)' },
+  h1Sub: { marginTop: 2, fontSize: 12, letterSpacing: 0.1, fontWeight: '500', color: 'rgba(205,233,174,0.82)' },
   coinChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -678,203 +376,168 @@ const styles = StyleSheet.create({
   ledgerValue: { fontSize: 20, lineHeight: 20, fontWeight: '600', color: '#F7FCED' },
   ledgerLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
   ledgerLabel: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: '500',
     letterSpacing: 0.1,
-    color: 'rgba(205,233,174,0.72)',
+    color: 'rgba(205,233,174,0.86)',
   },
-  tierRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  tierBlock: { marginTop: 14 },
+  tierMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 7,
+  },
+  tierName: { fontSize: 11.5, fontWeight: '600', letterSpacing: 0.1, color: '#CDE9AE' },
+  tierNext: { fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.86)' },
   tierTrack: {
-    flex: 1,
-    height: 5,
+    height: 6,
     borderRadius: 3,
     backgroundColor: 'rgba(205,233,174,0.16)',
     overflow: 'hidden',
   },
   tierTrackFill: { height: '100%', borderRadius: 3, backgroundColor: '#9BE04B' },
-  tierText: { fontSize: 12, lineHeight: 17, fontWeight: '500', color: 'rgba(205,233,174,0.8)' },
-  tierStrong: { fontWeight: '600', color: '#CDE9AE' },
   headerTail: { height: 16 },
 
-  ticket: { marginTop: -4, borderRadius: 16, overflow: 'hidden', flexDirection: 'row' },
-  ticketRail: { width: 6 },
-  ticketBody: { flex: 1, paddingLeft: 14, paddingRight: 16, paddingTop: 16, paddingBottom: 16 },
-  ticketHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  ticketKicker: { fontSize: 12, letterSpacing: 0.2, fontWeight: '600', color: '#6B7C66' },
+  ticket: {
+    marginTop: 12,
+    borderRadius: 16,
+    flexDirection: 'row',
+    backgroundColor: C.surface,
+  },
+  ticketStub: {
+    width: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    borderTopLeftRadius: 15,
+    borderBottomLeftRadius: 15,
+    overflow: 'hidden',
+  },
+  ticketStubLabel: {
+    fontSize: 7.5,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: 'rgba(255,255,255,0.92)',
+  },
+  ticketTear: {
+    position: 'absolute',
+    left: 47,
+    top: 8,
+    bottom: 8,
+    width: 2,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  ticketTearDash: { width: 1.5, height: 4, borderRadius: 1, backgroundColor: '#C9D4C0' },
+  notch: {
+    position: 'absolute',
+    left: 41,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: SOLVER_BODY,
+  },
+  notchTop: { top: -7 },
+  notchBottom: { bottom: -7 },
+  ticketBody: { flex: 1, paddingLeft: 14, paddingRight: 12, paddingVertical: 12 },
+  ticketHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   clockChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    height: 22,
+    paddingHorizontal: 7,
+    borderRadius: 7,
+    backgroundColor: '#F6F8F3',
+    borderWidth: 1,
+    borderColor: '#E7ECE0',
+  },
+  clockText: { fontSize: 11, fontWeight: '600', color: '#33452F' },
+  ticketTitle: { flex: 1, fontSize: 15, lineHeight: 19, fontWeight: '600', color: C.ink },
+  ticketMeta: { marginTop: 3, fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
+  promptBox: {
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    backgroundColor: '#F7F9F3',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#D5DECC',
+    borderRadius: 9,
+  },
+  promptText: { fontFamily: MATH_FONT, fontWeight: '400', fontSize: 13, lineHeight: 18, color: C.ink },
+  ticketBottom: { marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  rewardLedger: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  rewardDivider: { width: 3, height: 3, borderRadius: 2, marginHorizontal: 3, backgroundColor: '#C9D4C0' },
+  rewardCoin: { fontSize: 13.5, fontWeight: '600', color: '#B87A22' },
+  rewardXp: { fontSize: 13.5, fontWeight: '600', color: '#3560C4' },
+  rewardUnit: { fontSize: 11, fontWeight: '500', color: '#9AA995' },
+  claimedNote: { marginLeft: 4, fontSize: 11, fontWeight: '500', color: '#9AA995' },
+  ticketCta: { height: 38, paddingHorizontal: 14, gap: 5, overflow: 'hidden' },
+  ticketCtaText: { fontSize: 12.5 },
+
+  section: { marginTop: 24 },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  sectionHeadText: { flex: 1, minWidth: 0 },
+  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: C.ink },
+  sectionCount: { marginTop: 2, fontSize: 12, fontWeight: '500', color: C.ink3 },
+  weekChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     height: 26,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    backgroundColor: '#F6F8F3',
+    paddingHorizontal: 9,
+    borderRadius: R.full,
+    backgroundColor: '#FCF7EC',
     borderWidth: 1,
-    borderColor: '#E1E7DA',
+    borderColor: 'rgba(232,163,61,0.3)',
   },
-  clockText: { fontSize: 12, fontWeight: '600', color: '#33452F' },
-  ticketTitle: { marginTop: 12, fontSize: 15.5, lineHeight: 20, fontWeight: '600', color: C.ink },
-  ticketMeta: { marginTop: 4, fontSize: 12, fontWeight: '500', color: '#9AA995' },
-  promptBox: {
-    marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    backgroundColor: '#F6F8F3',
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#CFD9C6',
-    borderRadius: 10,
-  },
-  promptText: { fontFamily: MATH_FONT, fontWeight: '400', fontSize: 13.5, lineHeight: 20, color: C.ink },
-  perforation: { marginTop: 16, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#CFD9C6' },
-  ticketBottom: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  rewardLedger: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  rewardCol: { paddingRight: 12 },
-  rewardDivider: { width: 1, height: 26, backgroundColor: '#E1E7DA' },
-  rewardCoin: { fontSize: 15, lineHeight: 15, fontWeight: '600', color: '#B87A22' },
-  rewardXp: { fontSize: 15, lineHeight: 15, fontWeight: '600', color: '#3560C4' },
-  rewardUnit: { marginTop: 4, fontSize: 12, fontWeight: '500', color: '#9AA995' },
-  claimedNote: { marginLeft: 12, fontSize: 12, fontWeight: '500', color: '#9AA995' },
-  ticketCta: { height: 44, paddingHorizontal: 16, gap: 6, overflow: 'hidden' },
-  ticketCtaText: { fontSize: 13 },
+  weekChipDone: { backgroundColor: C.leafTint, borderColor: 'rgba(11,110,79,0.22)' },
+  weekChipText: { fontSize: 11.5, fontWeight: '700', color: '#8A6520' },
+  weekChipTextDone: { color: C.brand },
 
-  chipRow: { marginHorizontal: -20, marginBottom: 14 },
-  chipRowInner: { paddingHorizontal: 20, gap: 8 },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    height: 44,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-  },
-  chipActive: { backgroundColor: '#0E1A12' },
-  chipIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
-  chipText: { fontSize: 12.5, fontWeight: '600' },
-  chipTextActive: { color: '#CDE9AE' },
-  chipTextIdle: { color: '#6B7C66' },
-  chipCount: { fontSize: 11.5, fontWeight: '500' },
-
-  section: { marginTop: 24 },
-  sectionHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: C.ink },
-  sectionHint: { fontSize: 12, fontWeight: '500', color: '#9AA995' },
-  sectionCount: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
-
-  modesPanel: { overflow: 'hidden' },
-  modeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  modeRowBorder: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
-  modeTile: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  modeBody: { flex: 1, minWidth: 0 },
-  proBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: '#FCF1DC',
-    borderWidth: 1,
-    borderColor: 'rgba(232,163,61,0.4)',
-  },
-  proBadgeText: { fontSize: 11.5, fontWeight: '600', color: '#B87A22' },
-  modeName: { fontSize: 13.5, lineHeight: 17, fontWeight: '600', color: C.ink },
-  modeDesc: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
-  modeCoin: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
-
-  missionsPanel: { overflow: 'hidden' },
-  claimHint: { marginTop: 10, paddingHorizontal: 4, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#B87A22' },
-  missionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  missionRowBorder: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
-  missionBox: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  missionBoxOn: { backgroundColor: '#7ED321', borderWidth: 1, borderColor: '#7ED321' },
-  missionBoxOff: { backgroundColor: '#F6F8F3', borderWidth: 1, borderColor: '#E1E7DA' },
-  missionBody: { flex: 1, minWidth: 0 },
-  missionLabel: { fontSize: 13, fontWeight: '600', color: C.ink },
-  missionBarRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
-  missionDetail: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
-  missionReward: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
-  missionCta: { height: 40, paddingHorizontal: 12, borderRadius: 12, justifyContent: 'center' },
-  missionCtaText: { fontSize: 12 },
-
-  setList: { gap: 12 },
-  setRow: { borderRadius: 14, flexDirection: 'row', overflow: 'hidden' },
-  setRail: { width: 4 },
-  setBody: { flex: 1, paddingLeft: 14, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },
-  setTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
-  setText: { flex: 1, minWidth: 0 },
-  setTitle: { fontSize: 14.5, lineHeight: 19, fontWeight: '600', color: C.ink },
-  setMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  setMeta: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
-  setCta: { height: 44, paddingHorizontal: 14, borderRadius: 12, overflow: 'hidden' },
-  setCtaText: { fontSize: 12 },
-  setBottom: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  setCoin: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
-  setXp: { fontSize: 12, fontWeight: '600', color: '#3560C4' },
-  setBarWrap: { flex: 1 },
-  setCount: { fontSize: 12, fontWeight: '500' },
-
-  barTrack: { flex: 1, height: 5, borderRadius: 3, backgroundColor: '#EAEEE3', overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 3 },
+  subjectList: { gap: 10 },
+  subjectHint: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 },
+  subjectHintText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
+  subjectHintStrong: { fontWeight: '600', color: C.ink2 },
 
   formulasCta: {
-    marginTop: 20,
+    marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderStyle: 'dashed',
-    borderColor: '#CFD9C6',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 22,
+    overflow: 'hidden',
   },
   formulasTile: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F6F8F3',
+    backgroundColor: 'rgba(205,233,174,0.12)',
     borderWidth: 1,
-    borderColor: '#E1E7DA',
+    borderColor: 'rgba(205,233,174,0.18)',
   },
-  formulasText: { flex: 1 },
-  formulasTitle: { fontSize: 13.5, fontWeight: '600', color: C.ink },
-  formulasSub: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
-
-  sheetRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(14,26,18,0.55)' },
-  sheet: {
-    width: '100%',
-    maxWidth: 430,
-    alignSelf: 'center',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 16,
-    paddingTop: 12,
+  formulasText: { flex: 1, minWidth: 0 },
+  formulasTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600', color: '#F7FCED' },
+  formulasSub: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.72)' },
+  formulasArrow: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#9BE04B',
   },
-  sheetGrip: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#E1E7DA', alignSelf: 'center', marginBottom: 14 },
-  sheetKicker: { fontSize: 12, letterSpacing: 0.2, fontWeight: '600', color: '#6B7C66' },
-  sheetTitle: { marginTop: 6, fontSize: 19, lineHeight: 24, fontWeight: '600', color: C.ink },
-  sheetMeta: { marginTop: 4, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#6B7C66' },
-  sheetRows: { marginTop: 14, backgroundColor: '#F7F9F6', borderRadius: 12, paddingVertical: 6, paddingHorizontal: 14 },
-  sheetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  sheetK: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
-  sheetV: { fontSize: 13, fontWeight: '600', color: C.ink },
-  sheetPoor: { marginTop: 10, fontSize: 12, lineHeight: 18, fontWeight: '500', color: '#B87A22' },
-  sheetBtns: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sheetCancel: {
-    flex: 1, height: 50, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 100, backgroundColor: '#F1F4F0',
-  },
-  sheetCancelText: { fontSize: 13, fontWeight: '600', color: '#6B7C66' },
-  sheetOk: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 100, backgroundColor: '#7ED321', overflow: 'hidden' },
-  sheetOkOff: { backgroundColor: '#E9EEE8' },
-  sheetOkText: { fontSize: 13, fontWeight: '600', color: '#1C3214' },
-  sheetOkTextOff: { color: '#9AA995' },
 })
 
 export default ProblemsScreen

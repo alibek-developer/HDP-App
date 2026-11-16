@@ -4,6 +4,9 @@
  * Har bir dars o'z misoli va test to'plami bilan bog'langan.
  */
 
+// `problems.ts` bu yerdan faqat tiplarni oladi — runtime aylanish yo'q
+import { LEVEL_SETS } from './problems'
+
 export interface Question {
   id: string
   prompt: string
@@ -61,6 +64,8 @@ export interface ProblemSet {
   unlockPrice?: number
   /** barcha javoblar to'g'ri bo'lsa mukofot ikkilanadi */
   perfectBonus?: boolean
+  /** Masalalar bo'limidagi fan → daraja sessiyasi (yulduz bilan baholanadi) */
+  levelSet?: boolean
   questions: Question[]
 }
 
@@ -596,7 +601,7 @@ export const EXAM_SET: ProblemSet = {
   ].slice(0, 30),
 }
 
-export const ALL_SETS: ProblemSet[] = [...PROBLEM_SETS, STREAK_SET, EXAM_SET]
+export const ALL_SETS: ProblemSet[] = [...PROBLEM_SETS, STREAK_SET, EXAM_SET, ...LEVEL_SETS]
 
 /* ─────────────────── IQTISOD: yagona raqamlar manbasi ─────────────────── */
 /* Do'kon «coin qanday keladi» bloki shu konstantalarni o'qiydi —
@@ -1218,18 +1223,6 @@ export const findProduct = (id: string) => PRODUCTS.find(p => p.id === id)
 /** «necha kunda yig'ib bo'lasan» — EARN_PER_DAY asosidagi taxmin */
 export const daysToEarn = (price: number) => Math.max(1, Math.ceil(price / EARN_PER_DAY))
 
-
-/**
- * Kunlik mega masala — kun raqamiga qarab bepul to'plamlardan biri aylanadi.
- * Yarim tunda yangilanadi; bonus bir marta beriladi.
- */
-export function dailyProblem(date = new Date()) {
-  const free = PROBLEM_SETS.filter(s => s.free)
-  const start = new Date(date.getFullYear(), 0, 0)
-  const day = Math.floor((date.getTime() - start.getTime()) / 86_400_000)
-  const set = free[day % free.length]
-  return { set, question: set.questions[day % set.questions.length], day }
-}
 
 /* ─────────────────── PROFIL: YUTUQLAR ─────────────────── */
 

@@ -10,8 +10,9 @@ import { useExit } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import { Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, MATH_FONT, NUM, TICK } from '../theme/tokens'
+import { ABS_FILL, NUM, TICK } from '../theme/tokens'
 import { CARD, GRAD_RAIL, LIME_BTN, OUT_BTN } from '../theme/solver'
+import { AnswerOption, QuestionStage, SolveProgress, SolveTopBar } from '../components/SolveKit'
 
 /**
  * Blitz sprint — 30 soniyalik yakka chaqmoq test. Har to'g'ri javob coin
@@ -50,7 +51,6 @@ const BlitzScreen = () => {
   const [myScore, setMyScore] = useState(0)
   const [record, setRecord] = useState(false)
   const [answered, setAnswered] = useState(false)
-  const [flash, setFlash] = useState<'ok' | 'bad' | null>(null)
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null)
   const credited = useRef(false)
   /** Natija yozilishidan oldingi rekord — «birinchi o'yin»ni ajratish uchun */
@@ -84,10 +84,8 @@ const BlitzScreen = () => {
     setAnswered(true)
     const ok = i === QUESTIONS[qIdx].correct
     triggerHaptic(ok ? 'success' : 'error')
-    setFlash(ok ? 'ok' : 'bad')
     if (ok) setMyScore(s => s + 10)
     advance.current = setTimeout(() => {
-      setFlash(null)
       if (qIdx < QUESTIONS.length - 1) { setQIdx(q => q + 1); setAnswered(false) }
       else setPhase('result')
     }, 700)
@@ -226,101 +224,83 @@ const BlitzScreen = () => {
   const urgent = timeLeft <= 10
 
   return (
-    <ScrollView
-      style={s.screen}
-      contentContainerStyle={[s.gamePad, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Hisob varaqasi: ball / to'g'ri javob / taymer */}
-      <View style={s.scoreboard}>
-        <View style={s.scoreRow}>
-          {[
-            { v: String(myScore), u: 'ball', c: INK },
-            { v: String(myScore / 10), u: "to'g'ri", c: GRAY },
-          ].map((cell, i) => (
-            <View key={cell.u} style={s.scoreCellWrap}>
-              {i > 0 && <View style={s.scoreDivider} />}
-              <View style={s.scoreCell}>
-                <Text style={[s.scoreValueBig, NUM, { color: cell.c }]}>{cell.v}</Text>
-                <Text style={s.scoreUnit}>{cell.u}</Text>
+    <View style={s.screen}>
+      {/* Yuqori chegara: hisob va taymer qotirilgan, savollar ostidan siljiydi */}
+      <SolveTopBar style={{ paddingTop: insets.top + 12 }}>
+        <View style={s.scoreboardWrap}>
+          <View style={s.scoreboard}>
+            <View style={s.scoreRow}>
+              {[
+                { v: String(myScore), u: 'ball', c: INK },
+                { v: String(myScore / 10), u: "to'g'ri", c: GRAY },
+              ].map((cell, i) => (
+                <View key={cell.u} style={s.scoreCellWrap}>
+                  {i > 0 && <View style={s.scoreDivider} />}
+                  <View style={s.scoreCell}>
+                    <Text style={[s.scoreValueBig, NUM, { color: cell.c }]}>{cell.v}</Text>
+                    <Text style={s.scoreUnit}>{cell.u}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+            <View style={s.scoreDivider} />
+            <View style={s.timerWrap}>
+              <View
+                style={[
+                  s.timer,
+                  {
+                    backgroundColor: urgent ? '#FBE9E7' : '#F6F8F3',
+                    borderColor: urgent ? '#D9534F' : '#E1E7DA',
+                  },
+                ]}
+              >
+                <Ionicons name="time" size={14} color={urgent ? TICK.bad : FAINT} />
+                <Text style={[s.timerText, NUM, { color: urgent ? TICK.bad : INK }]}>{timeLeft}</Text>
               </View>
             </View>
-          ))}
-        </View>
-        <View style={s.scoreDivider} />
-        <View style={s.timerWrap}>
-          <View
-            style={[
-              s.timer,
-              {
-                backgroundColor: urgent ? '#FBE9E7' : '#F6F8F3',
-                borderColor: urgent ? '#D9534F' : '#E1E7DA',
-              },
-            ]}
-          >
-            <Ionicons name="time" size={14} color={urgent ? TICK.bad : FAINT} />
-            <Text style={[s.timerText, NUM, { color: urgent ? TICK.bad : INK }]}>{timeLeft}</Text>
           </View>
         </View>
-      </View>
 
-      {/* Savol bo'yicha holat chiziqlari */}
-      <View style={s.rail}>
-        {QUESTIONS.map((_, i) => (
-          <View
-            key={i}
-            style={[
-              s.railCell,
-              { backgroundColor: i < qIdx ? TICK.current : i === qIdx ? '#7ED321' : TICK.todo },
-            ]}
-          />
-        ))}
-      </View>
+        {/* Savol bo'yicha progress: qaysi savolda ekani */}
+        <SolveProgress
+          total={QUESTIONS.length}
+          current={qIdx}
+          label="Blitz sprint"
+          style={s.progress}
+        />
+      </SolveTopBar>
 
+      <ScrollView
+        style={s.scroller}
+        contentContainerStyle={[s.gamePad, { paddingBottom: insets.bottom + 40 }]}
+        showsVerticalScrollIndicator={false}
+      >
       <Reveal key={qIdx} y={12} duration={200} style={s.questionBlock}>
-        {/* Savol */}
-        <View style={s.questionCard}>
-          <LinearGradient colors={GRAD_RAIL} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.questionRail} />
-          <View style={s.questionInner}>
-            <Text style={[s.questionKicker, NUM]}>Savol {qIdx + 1} / {QUESTIONS.length}</Text>
-            <Text style={s.questionText}>{q.q}</Text>
-          </View>
-        </View>
+        <QuestionStage prompt={q.q} size="md" />
 
         {/* Variantlar — 2×2 */}
         <View style={s.options}>
-          {q.opts.map((opt, i) => {
-            const isCorrect = i === q.correct
-            const show = answered && flash
-            const active = show && isCorrect
-            const dimmed = show === 'bad' && !isCorrect
-            return (
-              <View key={i} style={s.optionOuter}>
-                <Pressable
-                  onPress={() => handleAnswer(i)}
-                  disabled={answered}
-                  style={({ pressed }) => [
-                    s.option,
-                    active ? s.optionCorrect : dimmed ? s.optionDim : s.optionIdle,
-                    pressed && !answered && { transform: [{ scale: 0.97 }] },
-                  ]}
-                >
-                  <Text style={[s.optionLetter, NUM]}>{['A', 'B', 'C', 'D'][i]}</Text>
-                  <Text style={[s.optionText, { color: active ? '#0B4A34' : dimmed ? FAINT : INK }]}>
-                    {opt}
-                  </Text>
-                </Pressable>
-              </View>
-            )
-          })}
+          {q.opts.map((opt, i) => (
+            <View key={i} style={s.optionOuter}>
+              <AnswerOption
+                compact
+                letter={['A', 'B', 'C', 'D'][i]}
+                label={opt}
+                state={!answered ? 'idle' : i === q.correct ? 'correct' : 'dim'}
+                disabled={answered}
+                onPress={() => handleAnswer(i)}
+              />
+            </View>
+          ))}
         </View>
 
         <View style={s.footNote}>
           <Ionicons name="cash" size={12} color="#E8A33D" />
-          <Text style={[s.footNoteText, NUM]}>har to'g'ri javob {COIN_PER_HIT} coin</Text>
+          <Text style={[s.footNoteText, NUM]}>har to&apos;g&apos;ri javob {COIN_PER_HIT} coin</Text>
         </View>
       </Reveal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
@@ -328,6 +308,7 @@ const GAP = 10
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F3F7EE' },
+  scroller: { flex: 1 },
   centerWrap: { justifyContent: 'center', paddingHorizontal: 16 },
   lobbyPad: { paddingHorizontal: 16, paddingTop: 20 },
 
@@ -377,7 +358,8 @@ const s = StyleSheet.create({
   homeBtn: { ...OUT_BTN, marginTop: 10, height: 48 },
   homeBtnText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
 
-  gamePad: { paddingHorizontal: 16, paddingTop: 20 },
+  gamePad: { paddingHorizontal: 16, paddingTop: 16 },
+  scoreboardWrap: { paddingHorizontal: 16 },
   scoreboard: {
     ...CARD, borderRadius: 14, flexDirection: 'row', alignItems: 'stretch',
     paddingHorizontal: 8, paddingVertical: 10,
@@ -396,27 +378,11 @@ const s = StyleSheet.create({
   },
   timerText: { fontSize: 17, fontWeight: '600' },
 
-  rail: { marginTop: 12, flexDirection: 'row', gap: 6 },
-  railCell: { flex: 1, height: 5, borderRadius: 3 },
+  progress: { marginTop: 12 },
 
   questionBlock: { marginTop: 16 },
-  questionCard: { position: 'relative', overflow: 'hidden', ...CARD, borderRadius: 16 },
-  questionRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
-  questionInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  questionKicker: { fontSize: 11.5, fontWeight: '500', color: GRAY },
-  questionText: { marginTop: 8, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 18, lineHeight: 26, color: INK },
-
   options: { marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: GAP },
   optionOuter: { width: '48%' },
-  option: {
-    height: 68, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10, borderRadius: 14,
-    justifyContent: 'flex-start',
-  },
-  optionIdle: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1 },
-  optionCorrect: { backgroundColor: '#DDF3DC', borderColor: '#5FAF22', borderWidth: 1.5 },
-  optionDim: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, opacity: 0.6 },
-  optionLetter: { fontSize: 10, fontWeight: '600', color: FAINT },
-  optionText: { marginTop: 4, fontSize: 14.5, lineHeight: 19, fontWeight: '600' },
 
   footNote: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   footNoteText: { fontSize: 11.5, fontWeight: '500', color: FAINT },

@@ -6,15 +6,17 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
-import { resetToTopics } from '../lib/nav'
+import { resetToTopics, useExitToTab } from '../lib/nav'
 import { findTopic } from '../data/curriculum'
+import { findLevel, STAR_THRESHOLDS, WEEKLY_STAR_GOAL, weekStartKey } from '../data/problems'
+import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, MATH_FONT, NUM } from '../theme/tokens'
+import { ABS_FILL, C, NUM } from '../theme/tokens'
 import { CARD, GRAD_RAIL, LIME_BTN, LIME_TEXT, OUT_BTN, OUT_TEXT, SOLVER_BODY } from '../theme/solver'
 
 /**
- * 7-qadam: Natija — nechta to'g'ri, qancha coin, va har bir xato uchun
- * «qanday to'g'rilash kerak» tushuntirishi.
+ * 7-qadam: Natija — umumiy hisob: nechta to'g'ri, qancha coin.
+ * To'g'ri javoblar va yechimlar ko'rsatilmaydi.
  */
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -25,9 +27,17 @@ const SKIP_TONE = '#E8A33D'
 const ResultScreen = () => {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
+  const exitToProblems = useExitToTab('problems')
 
   const result = useApp(s => s.lastResult)
   const coin = useApp(s => s.coin)
+  const starWeek = useApp(s => s.starWeek)
+  const starsThisWeek = useApp(s => s.starsThisWeek)
+  const levelStars = useApp(s => s.levelStars)
+
+  /** Fan → daraja sessiyasi natijasi yulduz bilan baholanadi */
+  const level = result && result.kind === 'problem-set' ? findLevel(result.refId) : undefined
+  const isLevel = !!level && result?.stars !== undefined
 
   /** Mavzu testi natijasi — chegara va mavzu raqami refId'dan (`3.12` → 3) */
   const topicNum = result?.kind === 'topic-test' ? Number(result.refId.split('.')[0]) : 1
@@ -74,6 +84,11 @@ const ResultScreen = () => {
   const wrong = result.answers.filter(a => !a.ok && !a.skipped)
   const percent = total === 0 ? 0 : Math.round((correct / total) * 100)
   const tone = percent >= 80 ? TICK.ok : percent >= 50 ? SKIP_TONE : TICK.bad
+  const stars = result.stars ?? 0
+  /** Daraja yulduzi eng yaxshi natijadan pastga tushmaydi — takroriy urinishda ham shu ko'rinadi */
+  const bestStars = level ? levelStars[level.id] ?? 0 : 0
+  const shownStars = Math.max(stars, bestStars)
+  const weekStars = starWeek === weekStartKey() ? starsThisWeek : 0
 
   return (
     <View style={styles.screen}>
@@ -89,9 +104,11 @@ const ResultScreen = () => {
               <View style={styles.cardHead}>
                 <View style={styles.cardHeadText}>
                   <Text style={styles.kicker}>
-                    {result.kind === 'problem-set'
-                      ? "To'plam natijasi"
-                      : 'Mavzu yakuniy testi'}
+                    {isLevel
+                      ? 'Daraja natijasi'
+                      : result.kind === 'problem-set'
+                        ? "To'plam natijasi"
+                        : 'Mavzu yakuniy testi'}
                   </Text>
                   <Text style={styles.cardTitle}>{result.title}</Text>
                 </View>
@@ -118,6 +135,35 @@ const ResultScreen = () => {
                   {wrong.length} ta xato{skipped.length > 0 ? ` · ${skipped.length} o'tkazildi` : ''}
                 </Text>
               </View>
+
+              {isLevel && (
+                <View style={styles.starsBlock}>
+                  <View style={styles.starsRow}>
+                    {[0, 1, 2].map(i => (
+                      <Ionicons
+                        key={i}
+                        name={i < shownStars ? 'star' : 'star-outline'}
+                        size={24}
+                        color={i < shownStars ? '#E8A33D' : '#DCE3D4'}
+                      />
+                    ))}
+                    <Text style={[styles.starsValue, NUM]}>{shownStars}/3</Text>
+                  </View>
+                  <Text style={styles.starsHint}>
+                    {shownStars === 3
+                      ? 'Daraja to‘liq yopildi — uchala yulduz sizda.'
+                      : `Keyingi yulduz: ${STAR_THRESHOLDS[shownStars]} ta to‘g‘ri javob.`}
+                  </Text>
+                  {stars < bestStars && (
+                    <Text style={[styles.starsWeek, NUM]}>
+                      Bu urinishda: {stars}/3 — daraja yulduzlari saqlanib qoldi.
+                    </Text>
+                  )}
+                  <Text style={[styles.starsWeek, NUM]}>
+                    Haftalik maqsad: {Math.min(weekStars, WEEKLY_STAR_GOAL)}/{WEEKLY_STAR_GOAL} yulduz
+                  </Text>
+                </View>
+              )}
 
               {result.kind === 'topic-test' && (
                 <View style={[styles.passNote, { backgroundColor: correct >= pass ? '#EDF8E6' : '#FBE9E7' }]}>
@@ -153,79 +199,7 @@ const ResultScreen = () => {
           </View>
         </View>
 
-        {/* ── Topilgan xatolar ── */}
-        {wrong.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>Topilgan xatolar</Text>
-              <Text style={[styles.sectionCount, NUM]}>{wrong.length} ta</Text>
-            </View>
-
-            <View style={styles.stack}>
-              {wrong.map((a, i) => (
-                <View key={i} style={[styles.card, { borderRadius: 14 }]}>
-                  <View style={[styles.rail, { width: 4, backgroundColor: TICK.bad }]} />
-                  <View style={styles.cardBody}>
-                    <Text style={styles.prompt}>{a.prompt}</Text>
-
-                    <View style={styles.answerRows}>
-                      <View style={styles.answerRow}>
-                        <View style={[styles.mark, { backgroundColor: '#FBE9E7' }]}>
-                          <Ionicons name="close" size={11} color={TICK.bad} />
-                        </View>
-                        <Text style={styles.answerLabel}>Sizning javobingiz:</Text>
-                        <Text style={styles.answerMine}>{a.options[a.picked] ?? '—'}</Text>
-                      </View>
-                      <View style={styles.answerRow}>
-                        <View style={[styles.mark, { backgroundColor: '#DDF3DC' }]}>
-                          <Ionicons name="checkmark" size={11} color={TICK.ok} />
-                        </View>
-                        <Text style={styles.answerLabel}>To'g'ri javob:</Text>
-                        <Text style={styles.answerRight}>{a.options[a.correct]}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.explainBox}>
-                      <Text style={styles.explainKicker}>Qanday to'g'rilash kerak</Text>
-                      <Text style={styles.explainText}>{a.explain}</Text>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* ── O'tkazilgan savollar (buyum sarflangan) ── */}
-        {skipped.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>O'tkazilganlar</Text>
-              <Text style={[styles.sectionCount, NUM, { color: '#B87A22' }]}>{skipped.length} ta</Text>
-            </View>
-
-            <View style={styles.stack}>
-              {skipped.map((a, i) => (
-                <View key={i} style={[styles.card, { borderRadius: 14 }]}>
-                  <View style={[styles.rail, { width: 4, backgroundColor: SKIP_TONE }]} />
-                  <View style={styles.cardBody}>
-                    <Text style={styles.prompt}>{a.prompt}</Text>
-                    <View style={styles.answerRow}>
-                      <Text style={styles.answerLabel}>To'g'ri javob:</Text>
-                      <Text style={styles.answerRight}>{a.options[a.correct]}</Text>
-                    </View>
-                    <View style={styles.explainBox}>
-                      <Text style={styles.explainKicker}>Nima yodda qolishi kerak</Text>
-                      <Text style={styles.explainText}>{a.explain}</Text>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* ── Bajarilganlar o'rniga qisqa yakun ── */}
+        {/* ── Xatosiz yakun ── */}
         {correct > 0 && wrong.length === 0 && skipped.length === 0 && (
           <View style={styles.section}>
             <View style={styles.perfect}>
@@ -238,9 +212,11 @@ const ResultScreen = () => {
               <View style={styles.perfectBody}>
                 <Text style={styles.perfectTitle}>Xatosiz yakunladingiz</Text>
                 <Text style={styles.perfectText}>
-                  {result.kind === 'problem-set'
-                    ? "To'plam to'liq yechildi."
-                    : "Barcha savollarga to'g'ri javob berdingiz."}
+                  {isLevel
+                    ? '10 masala xatosiz — daraja to‘liq yopildi.'
+                    : result.kind === 'problem-set'
+                      ? "To'plam to'liq yechildi."
+                      : "Barcha savollarga to'g'ri javob berdingiz."}
                 </Text>
               </View>
             </View>
@@ -248,23 +224,42 @@ const ResultScreen = () => {
         )}
       </ScrollView>
 
+      <TopScrim height={insets.top} line="#E6EBE0" />
+
       {/* ── Pastki harakat paneli ── */}
       <View style={[styles.dock, { paddingBottom: insets.bottom + 20 }]} pointerEvents="box-none">
         <View style={styles.dockInner} pointerEvents="auto">
           <View style={styles.dockRow}>
             <Pressable
               onPress={() => {
+                if (isLevel) {
+                  exitToProblems()
+                  return
+                }
                 triggerHaptic('light')
                 navigation.navigate('Main', { screen: 'Home' })
               }}
               style={({ pressed }) => [OUT_BTN, styles.dockBtn, pressed && { transform: [{ scale: 0.98 }] }]}
             >
-              <Ionicons name="home-outline" size={15} color={C.ink2} />
-              <Text style={[styles.dockBtnText, OUT_TEXT]}>Bosh sahifa</Text>
+              <Ionicons
+                name={isLevel ? 'chevron-back' : 'home-outline'}
+                size={15}
+                color={C.ink2}
+              />
+              <Text style={[styles.dockBtnText, OUT_TEXT]}>
+                {isLevel ? 'Darajalar' : 'Bosh sahifa'}
+              </Text>
             </Pressable>
 
             <Pressable
-              onPress={exit}
+              onPress={() => {
+                if (isLevel) {
+                  triggerHaptic('medium')
+                  navigation.replace('ProblemSet', { setId: result.refId })
+                  return
+                }
+                exit()
+              }}
               style={({ pressed }) => [LIME_BTN, styles.dockBtn, { overflow: 'hidden' }, pressed && { transform: [{ scale: 0.98 }] }]}
             >
               <LinearGradient colors={GRAD_RAIL} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={ABS_FILL} />
@@ -307,10 +302,6 @@ const styles = StyleSheet.create({
 
   sheet: { paddingHorizontal: 16 },
   section: { marginTop: 24, paddingHorizontal: 16 },
-  sectionHead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: C.ink },
-  sectionCount: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
-  stack: { gap: 12 },
 
   card: { ...CARD, position: 'relative', flexDirection: 'row', overflow: 'hidden' },
   rail: { position: 'absolute', left: 0, top: 0, bottom: 0 },
@@ -340,24 +331,23 @@ const styles = StyleSheet.create({
   percent: { fontSize: 11.5, fontWeight: '600' },
   wrongCount: { fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
 
+  starsBlock: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#EDF1E7',
+  },
+  starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  starsValue: { marginLeft: 4, fontSize: 15, fontWeight: '600', color: '#B87A22' },
+  starsHint: { marginTop: 8, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
+  starsWeek: { marginTop: 6, fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
+
   ledger: { marginTop: 16, flexDirection: 'row', alignItems: 'stretch', borderTopWidth: 1, borderTopColor: '#EDF1E7', paddingTop: 14 },
   ledgerCell: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
   ledgerDivider: { width: 1, backgroundColor: '#EDF1E7' },
   ledgerInner: { flex: 1, alignItems: 'center' },
   ledgerValue: { fontSize: 17, lineHeight: 17, fontWeight: '600' },
   ledgerUnit: { marginTop: 6, fontSize: 11, fontWeight: '500', color: '#9AA995' },
-
-  prompt: { fontFamily: MATH_FONT, fontSize: 14, lineHeight: 21, fontWeight: '400', color: C.ink },
-  answerRows: { marginTop: 12, gap: 6 },
-  answerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  mark: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 6 },
-  answerLabel: { fontSize: 12.5, fontWeight: '500', color: '#6B7C66' },
-  answerMine: { fontSize: 12.5, fontWeight: '600', color: '#8C2F2C' },
-  answerRight: { fontSize: 12.5, fontWeight: '600', color: '#0B6E4F' },
-
-  explainBox: { marginTop: 12, paddingLeft: 12, paddingTop: 10, paddingBottom: 10, paddingRight: 12, backgroundColor: '#FBFCF8', borderLeftWidth: 2, borderLeftColor: '#E1E7DA' },
-  explainKicker: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66', marginBottom: 4 },
-  explainText: { fontSize: 13, lineHeight: 19, color: C.ink2 },
 
   perfect: { backgroundColor: '#0E1A12', borderRadius: 14, overflow: 'hidden', flexDirection: 'row' },
   perfectBody: { flex: 1, paddingLeft: 15, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },

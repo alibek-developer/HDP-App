@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react'
-import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import Ionicons from '@expo/vector-icons/Ionicons'
+import MCI from '@expo/vector-icons/MaterialCommunityIcons'
 import { useNavigation } from '@react-navigation/native'
 import type { CompositeNavigationProp } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
@@ -12,23 +12,21 @@ import { triggerHaptic } from '../lib/haptics'
 import { navBottomSpace } from '../components/BottomNav'
 import { Reveal } from '../components/Reveal'
 import Sheet from '../components/Sheet'
+import { TopScrim } from '../components/ui'
 import StudyAids from '../components/StudyAids'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { ABS_FILL, AMBER_BTN_GRAD, NUM } from '../theme/tokens'
+import { ABS_FILL, C, NUM } from '../theme/tokens'
 import { GRAD_LIME } from '../theme/solver'
 import {
-  PRODUCTS, PRODUCT_CATS, daysToEarn,
+  PRODUCTS, PRODUCT_CATS,
   type Product, type ProductCat,
 } from '../data/content'
 import { PRODUCT_IMAGES, PRODUCT_THUMBS } from '../data/productImages'
 
 /**
- * Do'kon — sovg'a bozori. Coinlar haqiqiy narsa oladi: telefon, sumka, kitob.
- * Ikki ustunli kartalar, ustida balans + qidiruv/sevimli/tarix tugmalari va
- * janr chiplari.
- *
- * Web'ning `ShopScreen.tsx` ekvivalenti. «O'qish uchun» javoni va xaridlar
- * tarixi `StudyAids` komponentida.
+ * Do'kon — oq fonda turuvchi bozor. Hech qanday karta, ramka yoki panel yo'q:
+ * sarlavha, balans, qidiruv, janr qatori va rasm + nom + narx — hammasi to'g'ri
+ * oq yuza ustida. Faqat narx, progress va holat ranglari gapiradi.
  */
 
 type Nav = CompositeNavigationProp<
@@ -37,7 +35,6 @@ type Nav = CompositeNavigationProp<
 >
 
 const INK = '#0E1A12'
-const CANVAS = '#F3F7EE'
 const HAIR = '#E7ECE4'
 const GRAY = '#6B7C66'
 const AMBER_INK = '#854D0E'
@@ -46,11 +43,21 @@ const BAD = '#B4402F'
 type Filter = 'all' | ProductCat | 'fav'
 type Sort = 'yangi' | 'arzon' | 'qimmat'
 
-const SORTS: { key: Sort; label: string }[] = [
-  { key: 'yangi', label: 'Odatiy tartib' },
-  { key: 'arzon', label: 'Arzonlari oldinda' },
-  { key: 'qimmat', label: 'Qimmatlari oldinda' },
+const SORTS: { key: Sort; label: string; icon: keyof typeof MCI.glyphMap }[] = [
+  { key: 'yangi', label: 'Odatiy tartib', icon: 'view-grid-outline' },
+  { key: 'arzon', label: 'Arzonlari oldinda', icon: 'arrow-up' },
+  { key: 'qimmat', label: 'Qimmatlari oldinda', icon: 'arrow-down' },
 ]
+
+const CAT_ICON: Record<ProductCat, keyof typeof MCI.glyphMap> = {
+  Elektronika: 'cellphone',
+  "O'quv qurollari": 'pencil',
+  'Kiyim-kechak': 'tshirt-crew',
+  Sport: 'run',
+  "O'yinlar": 'gamepad-variant',
+  "Uy-ro'zg'or": 'home-variant',
+  Chegirmalar: 'tag-multiple',
+}
 
 const num = (n: number) => n.toLocaleString('en-US')
 
@@ -60,40 +67,40 @@ const fmtDate = (iso: string) => {
   return `${p(d.getDate())}.${p(d.getMonth() + 1)}`
 }
 
-/* ── ProductArt — janrga qarab gradient + belgi ── */
+/* ── ProductArt — rasm, rasm yo'q bo'lsa janr gradienti + belgi ── */
 
-const ART_GLYPH: Record<string, keyof typeof Ionicons.glyphMap> = {
-  phone: 'phone-portrait',
-  tablet: 'tablet-portrait',
-  buds: 'ear',
-  headphones: 'headset',
+const ART_GLYPH: Record<string, keyof typeof MCI.glyphMap> = {
+  phone: 'cellphone',
+  tablet: 'tablet',
+  buds: 'earbuds',
+  headphones: 'headphones',
   watch: 'watch',
-  power: 'battery-full',
-  speaker: 'volume-high',
-  scooter: 'bicycle',
-  bike: 'bicycle',
-  rolik: 'disc',
-  ball: 'football',
-  chess: 'grid',
-  rubik: 'cube',
-  backpack: 'briefcase',
-  tote: 'bag-handle',
-  tee: 'body',
-  hoddie: 'shirt',
+  power: 'battery-charging',
+  speaker: 'speaker',
+  scooter: 'scooter',
+  bike: 'bike',
+  rolik: 'roller-skate',
+  ball: 'soccer',
+  chess: 'chess-knight',
+  rubik: 'cube-outline',
+  backpack: 'bag-personal',
+  tote: 'shopping-outline',
+  tee: 'tshirt-crew',
+  hoddie: 'tshirt-crew-outline',
   cap: 'baseball',
-  bottle: 'water',
-  thermos: 'cafe',
-  cup: 'cafe-outline',
-  discount: 'pricetag',
-  voucher: 'ticket',
-  studyset: 'school',
-  folder: 'folder',
-  penal: 'pencil',
-  notebook: 'albums',
-  pens: 'create',
-  bloc: 'reader',
-  pen: 'create',
-  lamp: 'bulb',
+  bottle: 'bottle-tonic-outline',
+  thermos: 'thermometer',
+  cup: 'cup-outline',
+  discount: 'percent-outline',
+  voucher: 'ticket-percent-outline',
+  studyset: 'school-outline',
+  folder: 'folder-outline',
+  penal: 'pencil-box-outline',
+  notebook: 'notebook-outline',
+  pens: 'pen',
+  bloc: 'book-open-variant',
+  pen: 'fountain-pen',
+  lamp: 'desk-lamp',
 }
 
 const ART_TONE: Record<ProductCat, { grad: readonly [string, string]; ink: string }> = {
@@ -127,32 +134,22 @@ const ProductArt = ({
     <View
       style={[
         art.box,
-        { borderRadius: radius },
+        { borderRadius: radius, backgroundColor: tone.grad[0] },
         fill ? { width: '100%', aspectRatio: 1 } : { width: size, height: size },
       ]}
     >
-      <LinearGradient
-        colors={tone.grad}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[ABS_FILL, { borderRadius: radius }]}
-      />
       {img ? (
-        <Image
-          source={img}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            borderRadius: radius,
-            backgroundColor: '#FFFFFF',
-          }}
-          resizeMode="cover"
-        />
+        <Image source={img} style={art.img} resizeMode="cover" />
       ) : (
-        <Ionicons name={ART_GLYPH[product.art] ?? 'cube'} size={iconSize} color={tone.ink} />
+        <>
+          <LinearGradient
+            colors={tone.grad}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={ABS_FILL}
+          />
+          <MCI name={ART_GLYPH[product.art] ?? 'gift-outline'} size={iconSize} color={tone.ink} />
+        </>
       )}
       {children}
     </View>
@@ -160,7 +157,17 @@ const ProductArt = ({
 }
 
 const art = StyleSheet.create({
-  box: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  box: {
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0E1A12',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  img: { position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' },
 })
 
 /* ── Ekran ── */
@@ -171,7 +178,6 @@ const ShopScreen = () => {
   const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
-  const [searchOpen, setSearchOpen] = useState(false)
   const [sort, setSort] = useState<Sort>('yangi')
   const [sortOpen, setSortOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -181,7 +187,6 @@ const ShopScreen = () => {
   const orders = useApp(s => s.orders)
   const stockTaken = useApp(s => s.stockTaken)
   const goalId = useApp(s => s.goalId)
-  const reviews = useApp(s => s.reviews)
   const toggleFav = useApp(s => s.toggleFav)
 
   const left = (p: Product) => Math.max(0, p.stock - (stockTaken[p.id] ?? 0))
@@ -200,11 +205,12 @@ const ShopScreen = () => {
 
   const goal = goalId ? PRODUCTS.find(p => p.id === goalId) ?? null : null
   const spent = orders.reduce((n, o) => n + o.price, 0)
-  /** Eng arzon mavjud sovg'a — iqtisodni bir qatorda tushuntiradi */
-  const cheapest = useMemo(() => {
-    const inStock = PRODUCTS.filter(p => Math.max(0, p.stock - (stockTaken[p.id] ?? 0)) > 0)
-    return [...inStock].sort((a, b) => a.price - b.price)[0] ?? null
-  }, [stockTaken])
+
+  /** Keyingi sovg'a — balans satri shu sariq chiziq bilan shu yerga qarab yuradi */
+  const nextReward = useMemo(() => {
+    const pool = PRODUCTS.filter(p => Math.max(0, p.stock - (stockTaken[p.id] ?? 0)) > 0 && p.price > coin)
+    return [...pool].sort((a, b) => a.price - b.price)[0] ?? null
+  }, [stockTaken, coin])
 
   const counts: Partial<Record<ProductCat, number>> = {}
   let available = 0
@@ -214,18 +220,21 @@ const ShopScreen = () => {
     counts[p.cat] = (counts[p.cat] ?? 0) + 1
   }
 
-  const chip = (key: Filter, label: string) => {
+  const chip = (key: Filter, label: string, icon: keyof typeof MCI.glyphMap) => {
     const on = filter === key
     const count = key === 'fav' ? favs.length : key === 'all' ? available : counts[key] ?? 0
     return (
       <Pressable
         key={key}
         onPress={() => { triggerHaptic('selection'); setFilter(key) }}
-        style={({ pressed }) => [styles.chip, on ? styles.chipOn : styles.chipIdle, pressed && { opacity: 0.85 }]}
+        style={({ pressed }) => [styles.chip, on ? styles.chipOn : styles.chipOff, pressed && { opacity: 0.85 }]}
       >
-        <Text style={[styles.chipText, on ? styles.chipTextOn : styles.chipTextIdle]}>{label}</Text>
+        <MCI name={icon} size={14} color={on ? '#9BE04B' : '#8B9985'} />
+        <Text style={[styles.chipText, on ? styles.chipTextOn : styles.chipTextOff]}>{label}</Text>
         {count > 0 && (
-          <Text style={[styles.chipCount, NUM, { color: on ? 'rgba(255,255,255,0.7)' : '#9AA995' }]}>{count}</Text>
+          <Text style={[styles.chipCount, NUM, on ? styles.chipCountOn : styles.chipCountOff]}>
+            {count}
+          </Text>
         )}
       </Pressable>
     )
@@ -235,50 +244,43 @@ const ShopScreen = () => {
     const stock = left(p)
     const out = stock === 0
     const fav = favs.includes(p.id)
-    const count = reviews.filter(r => r.productId === p.id).length
+    const ready = coin >= p.price
     return (
       <Pressable
         key={p.id}
         onPress={() => { triggerHaptic('light'); navigation.navigate('Product', { id: p.id }) }}
-        style={({ pressed }) => [styles.cardCell, pressed && { transform: [{ scale: 0.985 }] }] }
+        style={({ pressed }) => [styles.cardCell, pressed && { opacity: 0.92 }]}
       >
-        <Reveal y={12} duration={280} style={styles.cardInner}>
-          <ProductArt product={p} fill radius={12} iconSize={62}>
+        <Reveal y={12} duration={280}>
+          <ProductArt product={p} fill radius={14} iconSize={54}>
             <Pressable
               onPress={() => { triggerHaptic('light'); toggleFav(p.id) }}
-              hitSlop={8}
+              hitSlop={10}
               accessibilityLabel="Sevimli"
               style={({ pressed }) => [styles.favBtn, pressed && { transform: [{ scale: 0.9 }] }]}
             >
-              <Ionicons name={fav ? 'heart' : 'heart-outline'} size={14} color={fav ? BAD : '#9AA995'} />
+              <MCI name={fav ? 'heart' : 'heart-outline'} size={17} color={fav ? BAD : '#5D6B58'} />
             </Pressable>
-            <View style={styles.catBadge}>
-              <Text style={styles.catBadgeText}>{p.cat}</Text>
-            </View>
+
+            {out && (
+              <View style={styles.outWrap}>
+                <Text style={styles.outText}>Tugadi</Text>
+              </View>
+            )}
           </ProductArt>
 
           <View style={styles.cardBody}>
             <Text numberOfLines={1} style={styles.cardTitle}>{p.title}</Text>
-            <Text numberOfLines={2} style={styles.cardBlurb}>{p.blurb}</Text>
-            <Text style={[styles.cardStock, NUM, { color: out ? BAD : INK }]}>
-              {out ? 'Tugagan' : `${stock} dona qoldi`}
-            </Text>
-
             <View style={styles.cardFoot}>
-              <View style={styles.cardPriceRow}>
-                <Ionicons name="cash" size={13} color={AMBER_INK} />
-                <Text style={[styles.cardPrice, NUM]}>{num(p.price)}</Text>
+              <View style={styles.priceRow}>
+                <MCI name="cash" size={11} color={ready ? C.brand : '#B87A22'} />
+                <Text style={[styles.priceText, NUM, ready ? styles.priceReady : styles.priceIdle]}>
+                  {num(p.price)}
+                </Text>
               </View>
-              <View style={styles.cardRateRow}>
-                {count > 0 ? (
-                  <>
-                    <Ionicons name="chatbubble-outline" size={11} color={GRAY} />
-                    <Text style={[styles.cardRate, NUM]}>{count}</Text>
-                  </>
-                ) : (
-                  <Text style={styles.cardNew}>Yangi</Text>
-                )}
-              </View>
+              <Text style={[styles.footNote, NUM, out && { color: BAD }, ready && styles.footReady]}>
+                {out ? "yo'q" : ready ? 'yetadi' : `${stock} dona`}
+              </Text>
             </View>
           </View>
         </Reveal>
@@ -286,149 +288,158 @@ const ShopScreen = () => {
     )
   }
 
+  const resultLabel =
+    filter === 'fav'
+      ? `Sevimlilar · ${list.length}`
+      : filter === 'all'
+        ? `${list.length} sovg'a`
+        : `${filter} · ${list.length}`
+
+  const progress = nextReward ? Math.min(100, (coin / nextReward.price) * 100) : 100
+  const gap = nextReward ? nextReward.price - coin : 0
+
   const header = (
     <View style={styles.head}>
+      <View style={styles.headTop}>
+        <View style={styles.headText}>
           <Text style={styles.h1}>Do&apos;kon</Text>
           <Text style={styles.h1Sub}>Coin yig&apos;ing — sovg&apos;aga almashtiring</Text>
+        </View>
+        <Pressable
+          onPress={() => { triggerHaptic('selection'); setHistoryOpen(true) }}
+          accessibilityLabel="Buyurtmalar tarixi"
+          hitSlop={10}
+          style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.5 }]}
+        >
+          <MCI name="history" size={20} color={INK} />
+          {orders.length > 0 && <View style={styles.iconDot} />}
+        </Pressable>
+      </View>
 
-          {/* Balans + amallar */}
-          <View style={styles.balRow}>
-            <Pressable
-              onPress={() => { triggerHaptic('light'); navigation.navigate('Profile') }}
-              style={({ pressed }) => [styles.balBtn, pressed && { transform: [{ scale: 0.98 }] }]}
-            >
-              <Text style={styles.balLabel}>Balans:</Text>
-              <Reveal key={String(coin)} y={6} duration={300} style={styles.balCoin}>
-                <LinearGradient
-                  colors={AMBER_BTN_GRAD}
-                  start={{ x: 0.2, y: 0 }}
-                  end={{ x: 0.8, y: 1 }}
-                  style={styles.coinBadge}
-                >
-                  <Ionicons name="cash" size={13} color="#7A4A0B" />
-                </LinearGradient>
-                <Text style={[styles.balValue, NUM]}>{num(coin)}</Text>
+      {/* Balans — ramkasiz satr; o'ngda keyingi sovg'a, ostida shu sariq chiziq */}
+      <Pressable
+        onPress={() => { triggerHaptic('light'); navigation.navigate('Profile') }}
+        style={({ pressed }) => [styles.balance, pressed && { opacity: 0.9 }]}
+      >
+        <View style={styles.balanceTop}>
+          <Text style={styles.balanceLabel}>Balans</Text>
+          <Text style={[styles.balanceEta, NUM]}>
+            {nextReward ? `yana ${num(gap)} coin` : 'hammasi yetadi'}
+          </Text>
+        </View>
+
+        <View style={styles.balanceRow}>
+          <View style={styles.balanceMain}>
+            <View style={styles.balanceValueRow}>
+              <Reveal key={String(coin)} y={6} duration={300} style={styles.balanceValueInner}>
+                <MCI name="cash" size={19} color="#B87A22" />
+                <Text style={[styles.balanceValue, NUM]}>{num(coin)}</Text>
+                <Text style={styles.balanceUnit}>coin</Text>
               </Reveal>
-            </Pressable>
-          </View>
+            </View>
 
-          {cheapest && (
-            <Text style={[styles.econNote, NUM]}>
-              Eng arzon sovg&apos;a — {cheapest.title}, {num(cheapest.price)} coin ·{' '}
-              {coin >= cheapest.price
-                ? 'bugun olishingiz mumkin'
-                : `taxminan ${daysToEarn(cheapest.price - coin)} kun yig'asiz`}
-            </Text>
-          )}
-
-          <View style={styles.actionRow}>
-            <Pressable
-              onPress={() => { triggerHaptic('selection'); setSearchOpen(v => !v); setQuery('') }}
-              style={({ pressed }) => [
-                styles.actionPill,
-                searchOpen && styles.actionPillOn,
-                pressed && { opacity: 0.85 },
-              ]}
-            >
-              <Ionicons name="search" size={15} color={searchOpen ? '#FFFFFF' : INK} />
-              <Text style={[styles.actionText, searchOpen && styles.actionTextOn]}>Qidirish</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => { triggerHaptic('selection'); setFilter(f => (f === 'fav' ? 'all' : 'fav')) }}
-              style={({ pressed }) => [
-                styles.actionPill,
-                filter === 'fav' && styles.actionPillOn,
-                pressed && { opacity: 0.85 },
-              ]}
-            >
-              <Ionicons name="heart" size={15} color={filter === 'fav' ? '#FFFFFF' : INK} />
-              <Text style={[styles.actionText, filter === 'fav' && styles.actionTextOn]}>Sevimli</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => { triggerHaptic('selection'); setHistoryOpen(true) }}
-              style={({ pressed }) => [styles.actionPill, pressed && { opacity: 0.85 }]}
-            >
-              <Ionicons name="time" size={15} color={INK} />
-              <Text style={styles.actionText}>Tarix</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => { triggerHaptic('selection'); setSortOpen(true) }}
-              accessibilityLabel="Saralash"
-              style={({ pressed }) => [
-                styles.actionPill,
-                sort !== 'yangi' && styles.actionPillOn,
-                pressed && { opacity: 0.9 },
-              ]}
-            >
-              <Ionicons name="options" size={15} color={sort === 'yangi' ? INK : '#FFFFFF'} />
-              <Text style={[styles.actionText, sort !== 'yangi' && styles.actionTextOn]}>Tartib</Text>
-            </Pressable>
-          </View>
-
-          {searchOpen && (
-            <View style={styles.searchWrap}>
-              <View style={styles.searchBox}>
-                <Ionicons name="search" size={16} color={GRAY} />
-                <TextInput
-                  autoFocus
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder="Telefon, sumka, ruchka..."
-                  placeholderTextColor="#9AA995"
-                  style={styles.searchInput}
-                />
-                {query.length > 0 && (
-                  <Pressable
-                    onPress={() => setQuery('')}
-                    hitSlop={10}
-                    accessibilityLabel="Tozalash"
-                    style={({ pressed }) => [pressed && { opacity: 0.6 }]}
-                  >
-                    <Ionicons name="close" size={16} color={GRAY} />
-                  </Pressable>
-                )}
+            <View style={styles.balanceTrack}>
+              <View style={{ width: `${progress}%`, height: '100%', borderRadius: 100, overflow: 'hidden' }}>
+                <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={ABS_FILL} />
               </View>
             </View>
-          )}
-
-          {/* Filtr chiplari */}
-          <View style={styles.chipWrap}>
-            {chip('all', 'Barchasi')}
-            {PRODUCT_CATS.map(c => chip(c, c))}
-            {favs.length > 0 && chip('fav', 'Sevimli')}
           </View>
 
-          {/* Maqsad chizig'i */}
-          {goal && (
+          {nextReward && (
             <Pressable
-              onPress={() => { triggerHaptic('light'); navigation.navigate('Product', { id: goal.id }) }}
-              style={({ pressed }) => [styles.goalCard, pressed && { opacity: 0.94 }]}
+              onPress={() => { triggerHaptic('light'); navigation.navigate('Product', { id: nextReward.id }) }}
+              accessibilityLabel={`Keyingi sovg'a: ${nextReward.title}`}
+              style={({ pressed }) => [styles.next, pressed && { opacity: 0.7 }]}
             >
-              <View style={styles.goalTop}>
-                <View style={styles.goalTitleRow}>
-                  <Ionicons name="flag" size={13} color="#CDE9AE" style={styles.goalFlag} />
-                  <Text numberOfLines={1} style={styles.goalTitle}>{goal.title}</Text>
-                </View>
-                <Text style={[styles.goalRight, NUM]}>
-                  {Math.max(0, goal.price - coin) === 0 ? 'olish mumkin' : `${num(goal.price - coin)} coin qoldi`}
-                </Text>
+              <Image
+                source={PRODUCT_THUMBS[nextReward.id] ?? PRODUCT_IMAGES[nextReward.id]}
+                style={styles.nextImg}
+                resizeMode="cover"
+              />
+              <View style={styles.nextText}>
+                <Text numberOfLines={1} style={styles.nextTitle}>{nextReward.title}</Text>
+                <Text style={[styles.nextPrice, NUM]}>{num(nextReward.price)} coin</Text>
               </View>
-              <View style={styles.goalTrack}>
-                <View
-                  style={{ width: `${Math.min(100, (coin / goal.price) * 100)}%`, height: 5, borderRadius: 100, overflow: 'hidden' }}
-                >
-                  <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={ABS_FILL} />
-                </View>
-              </View>
-              <Text style={[styles.goalNote, NUM]}>
-                {num(coin)} / {num(goal.price)} ·{' '}
-                {goal.price - coin <= 0 ? 'bugun olishingiz mumkin' : `taxminan ${daysToEarn(goal.price - coin)} kun`}
-              </Text>
             </Pressable>
           )}
         </View>
+      </Pressable>
 
+      {/* Qidiruv — to'ldirilgan yuza, chegara yo'q */}
+      <View style={styles.searchBox}>
+        <MCI name="magnify" size={17} color="#8C9A87" />
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Telefon, sumka, ruchka..."
+          placeholderTextColor="#9AA995"
+          style={styles.searchInput}
+          returnKeyType="search"
+        />
+        {query.length > 0 && (
+          <Pressable
+            onPress={() => setQuery('')}
+            hitSlop={10}
+            accessibilityLabel="Tozalash"
+            style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+          >
+            <MCI name="close" size={16} color="#8C9A87" />
+          </Pressable>
+        )}
+      </View>
+
+      {/* Janrlar — ramkasiz qator, faol janr tagida ingichka chiziq */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.rail}
+        keyboardShouldPersistTaps="handled"
+      >
+        {chip('all', 'Barchasi', 'view-grid-outline')}
+        {PRODUCT_CATS.map(c => chip(c, c, CAT_ICON[c]))}
+      </ScrollView>
+
+      {/* Natija qatori */}
+      <View style={styles.resultRow}>
+        <Text style={styles.resultText}>{resultLabel}</Text>
+        <View style={styles.resultActions}>
+          <Pressable
+            onPress={() => { triggerHaptic('selection'); setFilter(f => (f === 'fav' ? 'all' : 'fav')) }}
+            accessibilityLabel="Sevimlilar"
+            hitSlop={10}
+            style={({ pressed }) => [pressed && { opacity: 0.55 }]}
+          >
+            <MCI
+              name={filter === 'fav' ? 'heart' : 'heart-outline'}
+              size={19}
+              color={filter === 'fav' ? BAD : INK}
+            />
+          </Pressable>
+          <Pressable
+            onPress={() => { triggerHaptic('selection'); setSortOpen(true) }}
+            accessibilityLabel="Saralash"
+            hitSlop={10}
+            style={({ pressed }) => [pressed && { opacity: 0.55 }]}
+          >
+            <MCI name="tune-variant" size={19} color={sort === 'yangi' ? INK : C.brand} />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Maqsad — faqat tanlangan sovg'a bo'lsa ko'rinadi */}
+      {goal && (
+        <Pressable
+          onPress={() => { triggerHaptic('light'); navigation.navigate('Product', { id: goal.id }) }}
+          style={({ pressed }) => [styles.goalRow, pressed && { opacity: 0.7 }]}
+        >
+          <MCI name="flag" size={13} color={C.brand} />
+          <Text numberOfLines={1} style={styles.goalTitle}>{goal.title}</Text>
+          <Text style={[styles.goalRight, NUM]}>
+            {goal.price - coin <= 0 ? 'olish mumkin' : `${num(goal.price - coin)} coin`}
+          </Text>
+        </Pressable>
+      )}
+    </View>
   )
 
   return (
@@ -443,13 +454,18 @@ const ShopScreen = () => {
         ListEmptyComponent={
           <View style={styles.gridWrap}>
             <View style={styles.empty}>
+              <MCI
+                name={filter === 'fav' ? 'heart-outline' : 'gift-outline'}
+                size={22}
+                color="#9AA995"
+              />
               <Text style={styles.emptyTitle}>
-                {filter === 'fav' ? 'Sevimlilar bo\'sh' : 'Bu javonda hozircha yo\'q'}
+                {filter === 'fav' ? "Sevimlilar bo'sh" : "Bu javonda hozircha yo'q"}
               </Text>
               <Text style={styles.emptySub}>
                 {filter === 'fav'
-                  ? 'Kartadagi yurakchani bosib, keyin oladigan sovug\'alarni yig\'ib qo\'ying.'
-                  : 'Boshqa janrni tanlang yoki qidiruvni tozalang.'}
+                  ? "Kartadagi yurakchani bosib, keyin oladigan sovg'alarni yig'ib qo'ying."
+                  : "Boshqa janrni tanlang yoki qidiruvni tozalang."}
               </Text>
             </View>
           </View>
@@ -461,11 +477,14 @@ const ShopScreen = () => {
         }
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: navBottomSpace(insets.bottom) }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: navBottomSpace(insets.bottom) }]}
         initialNumToRender={8}
         maxToRenderPerBatch={8}
         windowSize={5}
       />
+
+      {/* Status bar zonasi — kontent shu chegara ostidan o'tadi */}
+      <TopScrim height={insets.top} line={HAIR} />
 
       {/* ── Saralash varaqasi ── */}
       <Sheet open={sortOpen} onClose={() => setSortOpen(false)} title="Saralash">
@@ -474,14 +493,13 @@ const ShopScreen = () => {
             <Pressable
               key={o.key}
               onPress={() => { triggerHaptic('selection'); setSort(o.key); setSortOpen(false) }}
-              style={({ pressed }) => [styles.sortRow, pressed && { backgroundColor: '#F7F9F6' }]}
+              style={({ pressed }) => [styles.sortRow, pressed && { opacity: 0.6 }]}
             >
-              <Text style={styles.sortLabel}>{o.label}</Text>
-              {sort === o.key && (
-                <View style={styles.sortCheck}>
-                  <Ionicons name="checkmark" size={13} color="#FFFFFF" />
-                </View>
-              )}
+              <View style={styles.sortRowLeft}>
+                <MCI name={o.icon} size={16} color={GRAY} />
+                <Text style={styles.sortLabel}>{o.label}</Text>
+              </View>
+              {sort === o.key && <MCI name="check" size={17} color={INK} />}
             </Pressable>
           ))}
         </View>
@@ -491,7 +509,8 @@ const ShopScreen = () => {
       <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title="Buyurtmalar">
         {orders.length === 0 ? (
           <Text style={styles.histEmpty}>
-            Hali birorta sovg'a buyurtma qilinmagan. Kartani ochib, ichidan «Buyurtma berish» tugmasi bilan olasiz.
+            Hali birorta sovg&apos;a buyurtma qilinmagan. Kartani ochib, ichidan «Buyurtma berish»
+            tugmasi bilan olasiz.
           </Text>
         ) : (
           <>
@@ -500,7 +519,7 @@ const ShopScreen = () => {
               <Text style={[styles.histSpent, NUM]}>jami {num(spent)} coin</Text>
             </View>
             {orders.map((o, i) => (
-              <View key={o.at + i} style={[styles.histRow, i === orders.length - 1 && { borderBottomWidth: 0 }]}>
+              <View key={o.at + i} style={styles.histRow}>
                 <Text style={[styles.histDate, NUM]}>{fmtDate(o.at)}</Text>
                 <View style={styles.histMid}>
                   <Text numberOfLines={1} style={styles.histTitle}>{o.title}</Text>
@@ -511,161 +530,154 @@ const ShopScreen = () => {
             ))}
           </>
         )}
-        <Text style={styles.histFoot}>
-          Buyurtmalar shu qurilmadagi Profilingizda saqlanadi.
-        </Text>
+        <Text style={styles.histFoot}>Buyurtmalar shu qurilmadagi Profilingizda saqlanadi.</Text>
       </Sheet>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: CANVAS },
-  content: { paddingTop: 20 },
+  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { paddingTop: 16 },
 
-  head: { paddingHorizontal: 16, marginBottom: 16 },
-  h1: { textAlign: 'center', fontSize: 20, fontWeight: '600', letterSpacing: -0.4, color: INK },
-  h1Sub: { marginTop: 4, textAlign: 'center', fontSize: 12, fontWeight: '500', color: GRAY },
-
-  balRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  balBtn: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  balLabel: { fontSize: 15, fontWeight: '600', color: INK },
-  balCoin: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  coinBadge: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 100 },
-  balValue: { fontSize: 17, fontWeight: '600', color: AMBER_INK },
-  econNote: { marginTop: 8, fontSize: 12, lineHeight: 17, fontWeight: '500', color: GRAY },
-
-  actionRow: { marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
-  actionPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    height: 40,
-    paddingHorizontal: 11,
+  head: { paddingHorizontal: 16, marginBottom: 4 },
+  headTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headText: { flex: 1, minWidth: 0 },
+  h1: { fontSize: 21, lineHeight: 26, fontWeight: '600', letterSpacing: -0.6, color: INK },
+  h1Sub: { marginTop: 2, fontSize: 12, letterSpacing: 0.1, fontWeight: '500', color: GRAY },
+  iconBtn: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
+  iconDot: {
+    position: 'absolute',
+    right: 4,
+    top: 4,
+    width: 6,
+    height: 6,
     borderRadius: 100,
-    backgroundColor: '#FFFFFF',
-    borderColor: HAIR,
-    borderWidth: 1,
+    backgroundColor: C.coin,
   },
-  actionPillOn: { backgroundColor: INK, borderColor: INK },
-  actionText: { fontSize: 12, fontWeight: '500', color: INK },
-  actionTextOn: { color: '#FFFFFF' },
 
-  searchWrap: { marginTop: 12 },
-  searchBox: {
-    height: 44,
+  balance: { marginTop: 18 },
+  balanceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  balanceLabel: {
+    fontSize: 10.5,
+    letterSpacing: 0.8,
+    fontWeight: '600',
+    color: '#8A6520',
+    textTransform: 'uppercase',
+  },
+  balanceEta: { fontSize: 11.5, fontWeight: '700', color: C.brand },
+  balanceRow: { marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  balanceMain: { flex: 1, minWidth: 0 },
+  balanceValueRow: { flexDirection: 'row', alignItems: 'center' },
+  balanceValueInner: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  balanceValue: { fontSize: 32, lineHeight: 36, fontWeight: '700', letterSpacing: -1, color: INK },
+  balanceUnit: { fontSize: 12, fontWeight: '600', color: GRAY },
+  balanceTrack: {
+    marginTop: 10,
+    height: 4,
     borderRadius: 100,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: HAIR,
+    backgroundColor: C.lineSoft,
+    overflow: 'hidden',
+  },
+  next: { flexDirection: 'row', alignItems: 'center', gap: 9, maxWidth: 168 },
+  nextImg: { width: 46, height: 46, borderRadius: 11, backgroundColor: C.surface2 },
+  nextText: { flex: 1, minWidth: 0 },
+  nextTitle: { fontSize: 12, lineHeight: 15, fontWeight: '600', color: INK },
+  nextPrice: { marginTop: 2, fontSize: 11, fontWeight: '600', color: AMBER_INK },
+
+  searchBox: {
+    marginTop: 18,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: C.surface2,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 12,
   },
-  searchInput: { flex: 1, fontSize: 14, fontWeight: '500', color: INK, paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 13.5, fontWeight: '500', color: INK, paddingVertical: 0 },
 
-  chipWrap: { marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { height: 36, paddingHorizontal: 12, borderRadius: 100, flexDirection: 'row', alignItems: 'center' },
-  chipIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: HAIR },
-  chipOn: { backgroundColor: INK },
-  chipText: { fontSize: 12.5, fontWeight: '500' },
-  chipTextOn: { color: '#FFFFFF' },
-  chipTextIdle: { color: GRAY },
-  chipCount: { marginLeft: 6, fontSize: 12.5, fontWeight: '500' },
-
-  goalCard: { marginTop: 12, backgroundColor: INK, borderRadius: 14, paddingVertical: 11, paddingHorizontal: 13 },
-  goalTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  goalTitleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  goalFlag: { flexShrink: 0 },
-  goalTitle: { flex: 1, fontSize: 12.5, fontWeight: '600', color: '#CDE9AE' },
-  goalRight: { fontSize: 12, fontWeight: '500', color: '#9BE04B' },
-  goalTrack: { marginTop: 8, backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 100, height: 5 },
-  goalNote: { marginTop: 6, fontSize: 12, fontWeight: '500', color: 'rgba(205,233,174,0.7)' },
-
-  gridWrap: { paddingHorizontal: 16 },
-  aidsWrap: { marginTop: 24, paddingHorizontal: 16 },
-  gridRow: { paddingHorizontal: 10 },
-
-  cardCell: { flex: 1, maxWidth: '50%', paddingHorizontal: 6, paddingBottom: 12 },
-  cardInner: { backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1, borderRadius: 16, padding: 8 },
-  favBtn: {
-    position: 'absolute',
-    right: 6,
-    top: 6,
-    width: 32,
-    height: 32,
+  rail: { marginTop: 14, paddingHorizontal: 0, gap: 8, alignItems: 'center' },
+  chip: {
+    height: 34,
+    paddingHorizontal: 12,
+    borderRadius: 11,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    zIndex: 3,
+    gap: 6,
   },
-  catBadge: {
-    position: 'absolute',
-    left: 6,
-    bottom: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    backgroundColor: 'rgba(14,26,18,0.82)',
-    borderRadius: 6,
-  },
-  catBadgeText: { fontSize: 11.5, fontWeight: '600', color: '#EAF3E2' },
+  chipOff: { backgroundColor: C.surface2 },
+  chipOn: { backgroundColor: INK },
+  chipText: { fontSize: 12.5, fontWeight: '600' },
+  chipTextOn: { color: '#FFFFFF' },
+  chipTextOff: { color: '#4C5C46' },
+  chipCount: { fontSize: 11, fontWeight: '600' },
+  chipCountOn: { color: 'rgba(255,255,255,0.62)' },
+  chipCountOff: { color: '#95A38F' },
 
-  cardBody: { paddingTop: 9, paddingHorizontal: 3, paddingBottom: 2 },
-  cardTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
-  cardBlurb: { marginTop: 3, fontSize: 12, lineHeight: 17, color: GRAY, minHeight: 34 },
-  cardStock: { marginTop: 8, fontSize: 12, fontWeight: '600' },
-  cardFoot: {
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: HAIR,
-    paddingTop: 8,
+  resultRow: {
+    marginTop: 16,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 12,
   },
-  cardPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardPrice: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
-  cardRateRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardRate: { fontSize: 12, fontWeight: '600', color: INK },
-  cardNew: { fontSize: 12, fontWeight: '500', color: GRAY },
+  resultText: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '600', color: GRAY },
+  resultActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
 
-  empty: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D7E0D3',
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingVertical: 28,
-    paddingHorizontal: 20,
+  goalRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  goalTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '600', color: INK },
+  goalRight: { fontSize: 12, fontWeight: '600', color: C.brand },
+
+  gridWrap: { paddingHorizontal: 16 },
+  aidsWrap: { marginTop: 28, paddingHorizontal: 16 },
+  gridRow: { paddingHorizontal: 10 },
+
+  cardCell: { flex: 1, maxWidth: '50%', paddingHorizontal: 6, paddingBottom: 18 },
+  favBtn: {
+    position: 'absolute',
+    right: 4,
+    top: 4,
+    width: 26,
+    height: 26,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  emptyTitle: { fontSize: 14, fontWeight: '600', color: INK, textAlign: 'center' },
-  emptySub: { marginTop: 6, fontSize: 12.5, color: GRAY, textAlign: 'center' },
+  outWrap: {
+    ...ABS_FILL,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(14,26,18,0.38)',
+  },
+  outText: { fontSize: 11.5, fontWeight: '700', color: '#FFFFFF' },
 
-  sortList: { marginTop: 8 },
+  cardBody: { paddingTop: 8, paddingHorizontal: 1 },
+  cardTitle: { fontSize: 13, lineHeight: 17, fontWeight: '600', color: INK },
+  cardFoot: { marginTop: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  priceText: { fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 },
+  priceReady: { color: C.brand },
+  priceIdle: { color: AMBER_INK },
+  footNote: { fontSize: 10.5, fontWeight: '500', color: '#9AA995' },
+  footReady: { color: C.brand, fontWeight: '700' },
+
+  empty: { paddingTop: 28, paddingBottom: 8, alignItems: 'center' },
+  emptyTitle: { marginTop: 10, fontSize: 14, fontWeight: '600', color: INK, textAlign: 'center' },
+  emptySub: { marginTop: 6, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: GRAY, textAlign: 'center' },
+
+  sortList: { marginTop: 4 },
   sortRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 14,
-    paddingHorizontal: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: HAIR,
   },
+  sortRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sortLabel: { fontSize: 14, fontWeight: '600', color: INK },
-  sortCheck: {
-    width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 100,
-    backgroundColor: INK,
-  },
 
   histEmpty: { fontSize: 13, lineHeight: 20, fontWeight: '500', color: GRAY },
-  histHead: { marginTop: 4, marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  histHead: { marginTop: 4, marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   histCount: { fontSize: 12.5, fontWeight: '500', color: GRAY },
   histSpent: { fontSize: 12.5, fontWeight: '600', color: AMBER_INK },
   histRow: {
@@ -673,9 +685,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     paddingVertical: 12,
-    paddingHorizontal: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: HAIR,
   },
   histDate: { width: 42, fontSize: 12, fontWeight: '500', color: '#9AA995' },
   histMid: { flex: 1, minWidth: 0 },

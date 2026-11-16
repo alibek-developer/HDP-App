@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons'
 import { LinearGradient } from 'expo-linear-gradient'
+import { TelegramMark } from './TelegramAuthSheet'
 import { C, R, T } from '../theme/tokens'
 
 /**
@@ -11,12 +14,37 @@ import { C, R, T } from '../theme/tokens'
 
 export const ScreenBg = ({ children, style }: { children?: React.ReactNode; style?: StyleProp<ViewStyle> }) => (
   <LinearGradient
-    colors={['#CDE9AE', '#E6F5D2', '#F7FCED']}
-    locations={[0, 0.4, 0.76]}
+    colors={['#D9EFC1', '#EBF7D9', '#F8FCEE']}
+    locations={[0, 0.42, 0.82]}
     style={[StyleSheet.absoluteFill, style]}
   >
     {children}
   </LinearGradient>
+)
+
+/**
+ * Android edge-to-edge: kontent status bar ostidan o'tadi. Bu qatlam o'sha
+ * zonani ekran foni bilan yopadi — skroll paytida hech narsa ikonkalar tagida
+ * ko'rinmaydi, pastdagi chiziq esa yuqori chegara hosil qiladi.
+ */
+export const TopScrim = ({
+  height,
+  colors = ['#F3F7EE', '#F3F7EE'],
+  line,
+}: {
+  height: number
+  colors?: readonly [string, string, ...string[]]
+  line?: string
+}) => (
+  <View pointerEvents="none" style={[styles.topScrim, { height }]}>
+    <LinearGradient
+      colors={colors}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={StyleSheet.absoluteFill}
+    />
+    {line ? <View style={[styles.topScrimLine, { backgroundColor: line }]} /> : null}
+  </View>
 )
 
 type BtnProps = {
@@ -26,6 +54,7 @@ type BtnProps = {
   busy?: boolean
   busyLabel?: string
   height?: number
+  trailing?: React.ReactNode
   style?: StyleProp<ViewStyle>
 }
 
@@ -37,25 +66,55 @@ export const LimeButton = ({
   busy,
   busyLabel = 'Kuting...',
   height = 56,
+  trailing,
   style,
 }: BtnProps) => (
   <Pressable
     onPress={onPress}
     disabled={disabled || busy}
+    accessibilityRole="button"
+    accessibilityState={{ disabled: !!disabled || !!busy }}
     style={({ pressed }) => [
       { opacity: disabled ? 0.45 : 1, transform: [{ scale: pressed && !disabled ? 0.975 : 1 }] },
       style,
     ]}
   >
     <LinearGradient
-      colors={['#9BE04B', '#7ED321']}
+      colors={['#A6EA55', '#7ED321']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.lime, { height }, !disabled && styles.limeShadow]}
     >
       {busy ? <ActivityIndicator size="small" color={C.inkOnLime} /> : null}
       <Text style={styles.limeText}>{busy ? busyLabel : label}</Text>
+      {!busy && trailing}
     </LinearGradient>
+  </Pressable>
+)
+
+/** Ikkinchi darajali harakat — oq yuza, siyoh matn */
+export const GhostButton = ({
+  label,
+  onPress,
+  height = 52,
+  icon,
+  style,
+}: {
+  label: string
+  onPress: () => void
+  height?: number
+  icon?: React.ReactNode
+  style?: StyleProp<ViewStyle>
+}) => (
+  <Pressable
+    onPress={onPress}
+    accessibilityRole="button"
+    style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.98 : 1 }] }, style]}
+  >
+    <View style={[styles.ghost, { height }]}>
+      {icon}
+      <Text style={styles.ghostText}>{label}</Text>
+    </View>
   </Pressable>
 )
 
@@ -66,6 +125,8 @@ export const Field = ({
   label,
   error,
   style,
+  onFocus,
+  onBlur,
   ...input
 }: TextInputProps & {
   icon?: React.ReactNode
@@ -73,22 +134,34 @@ export const Field = ({
   label?: string
   error?: string | null
   style?: StyleProp<ViewStyle>
-}) => (
-  <View style={style}>
-    {label ? <Text style={styles.fieldLabel}>{label}</Text> : null}
-    <View style={[styles.field, !!error && styles.fieldBad]}>
-      {icon}
-      <TextInput
-        {...input}
-        placeholderTextColor={C.ink4}
-        style={styles.fieldInput}
-        autoCapitalize={input.autoCapitalize ?? 'none'}
-      />
-      {right}
+}) => {
+  const [focused, setFocused] = useState(false)
+
+  return (
+    <View style={style}>
+      {label ? <Text style={styles.fieldLabel}>{label}</Text> : null}
+      <View style={[styles.field, focused && styles.fieldFocus, !!error && styles.fieldBad]}>
+        {icon}
+        <TextInput
+          {...input}
+          onFocus={e => {
+            setFocused(true)
+            onFocus?.(e)
+          }}
+          onBlur={e => {
+            setFocused(false)
+            onBlur?.(e)
+          }}
+          placeholderTextColor={C.ink4}
+          style={styles.fieldInput}
+          autoCapitalize={input.autoCapitalize ?? 'none'}
+        />
+        {right}
+      </View>
+      {error ? <Text style={styles.fieldErrorText}>{error}</Text> : null}
     </View>
-    {error ? <Text style={styles.fieldErrorText}>{error}</Text> : null}
-  </View>
-)
+  )
+}
 
 /** Kirish ↔ Ro'yxatdan o'tish — bitta qarashda tanlanadigan rejim */
 export const AuthSwitch = ({
@@ -129,33 +202,31 @@ export const AuthSwitch = ({
   </View>
 )
 
-/** Onboarding savollari uchun oddiy qadam ko'rsatkichi (1/2, 2/2) */
+/** Onboarding savollari uchun qadam ko'rsatkichi — segmentlar + sanoq */
 export const StepHeader = ({ step, total = 2 }: { step: number; total?: number }) => (
   <View style={styles.stepHead}>
-    <View style={styles.stepTrack}>
-      <View style={[styles.stepFill, { width: `${(step / total) * 100}%` }]} />
+    <View style={styles.stepSegs}>
+      {Array.from({ length: total }, (_, i) => (
+        <View key={i} style={[styles.stepSeg, i < step && styles.stepSegOn]} />
+      ))}
     </View>
-    <Text style={styles.stepText}>{step}/{total}</Text>
+    <Text style={styles.stepText}>
+      {step}
+      <Text style={styles.stepTextDim}>/{total}</Text>
+    </Text>
   </View>
 )
 
-/** «yoki quyidagilar orqali» — ikki tomonlama chiziq */
-export const OrDivider = ({ label }: { label: string }) => (
-  <View style={styles.divider}>
-    <View style={styles.dividerLine} />
-    <Text style={styles.dividerText}>{label.toUpperCase()}</Text>
-    <View style={styles.dividerLine} />
-  </View>
-)
-
-/** Ijtimoiy tugma katakchasi (Telegram) */
-export const SocialTile = ({
-  children,
+/** Telegram — parolsiz kirishning asosiy yo'li */
+export const TelegramButton = ({
+  label = 'Telegram bilan davom etish',
+  sub,
   onPress,
   disabled,
   style,
 }: {
-  children: React.ReactNode
+  label?: string
+  sub?: string
   onPress: () => void
   disabled?: boolean
   style?: StyleProp<ViewStyle>
@@ -163,14 +234,24 @@ export const SocialTile = ({
   <Pressable
     onPress={onPress}
     disabled={disabled}
+    accessibilityRole="button"
     style={({ pressed }) => [
-      styles.social,
+      styles.tg,
       style,
-      pressed && !disabled && { transform: [{ scale: 0.98 }] },
+      pressed && !disabled && { transform: [{ scale: 0.985 }] },
       disabled && { opacity: 0.55 },
     ]}
   >
-    {children}
+    <View style={styles.tgIcon}>
+      <TelegramMark size={24} />
+    </View>
+    <View style={styles.tgMid}>
+      <Text style={styles.tgTitle}>{label}</Text>
+      {!!sub && <Text style={styles.tgSub}>{sub}</Text>}
+    </View>
+    <View style={styles.tgArrow}>
+      <Ionicons name="arrow-forward" size={13} color="#1B87BE" />
+    </View>
   </Pressable>
 )
 
@@ -189,6 +270,8 @@ export const TapText = ({
 )
 
 const styles = StyleSheet.create({
+  topScrim: { position: 'absolute', left: 0, right: 0, top: 0, zIndex: 20 },
+  topScrimLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: StyleSheet.hairlineWidth },
   lime: {
     borderRadius: R.full,
     alignItems: 'center',
@@ -205,18 +288,46 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     elevation: 14,
   },
-  limeText: { ...T.h3, fontSize: 16, fontWeight: '600', color: C.inkOnLime },
-  fieldLabel: { ...T.label, fontWeight: '600', color: C.ink2, marginBottom: 6, marginLeft: 4 },
+  limeText: { ...T.h3, fontSize: 15.5, fontWeight: '600', color: C.inkOnLime },
+  ghost: {
+    borderRadius: R.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: '#F6FAF2',
+    borderWidth: 1,
+    borderColor: 'rgba(28,50,20,0.1)',
+  },
+  ghostText: { fontSize: 14.5, fontWeight: '600', color: C.ink2 },
+  fieldLabel: {
+    fontSize: 11.5,
+    lineHeight: 15,
+    letterSpacing: 0.3,
+    fontWeight: '600',
+    color: C.ink3,
+    marginBottom: 7,
+    marginLeft: 4,
+  },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     height: 54,
     paddingHorizontal: 16,
-    borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    backgroundColor: '#F8FBF3',
     borderWidth: 1,
-    borderColor: '#E4E9DD',
+    borderColor: '#E6EEDF',
+  },
+  fieldFocus: {
+    backgroundColor: '#FFFFFF',
+    borderColor: C.limeDeep,
+    shadowColor: C.limeDeep,
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   fieldBad: { borderColor: '#E4A6A0', backgroundColor: '#FFFBFA' },
   fieldErrorText: { marginTop: 6, marginLeft: 4, fontSize: 12.5, lineHeight: 17, fontWeight: '500', color: '#C2453D' },
@@ -224,24 +335,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 4,
     borderRadius: R.full,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.62)',
     borderWidth: 1,
     borderColor: 'rgba(28,50,20,0.08)',
   },
   switchTab: {
     flex: 1,
-    height: 44,
+    height: 42,
     borderRadius: R.full,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  switchText: { fontSize: 14, fontWeight: '600', color: C.ink3 },
+  switchText: { fontSize: 13.5, fontWeight: '600', color: C.ink3 },
   switchTextOn: { color: C.inkOnLime },
   stepHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  stepTrack: { flex: 1, height: 6, borderRadius: R.full, backgroundColor: '#DCE6D4', overflow: 'hidden' },
-  stepFill: { height: '100%', borderRadius: R.full, backgroundColor: C.limeDeep },
-  stepText: { ...T.label, fontWeight: '600', color: C.brand, fontVariant: ['tabular-nums'] },
+  stepSegs: { flex: 1, flexDirection: 'row', gap: 6 },
+  stepSeg: { flex: 1, height: 5, borderRadius: R.full, backgroundColor: '#D5E2CC' },
+  stepSegOn: { backgroundColor: C.limeDeep },
+  stepText: { ...T.label, fontSize: 12.5, fontWeight: '600', color: C.brand, fontVariant: ['tabular-nums'] },
+  stepTextDim: { color: C.ink4, fontWeight: '500' },
+  tg: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 56,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 18,
+    backgroundColor: '#F2FAFE',
+    borderWidth: 1,
+    borderColor: '#CFE8F7',
+  },
+  tgIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DBEFFA',
+  },
+  tgMid: { flex: 1, minWidth: 0 },
+  tgTitle: { fontSize: 14.5, fontWeight: '600', color: C.ink },
+  tgSub: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: '#4E7C93' },
+  tgArrow: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E1F3FC',
+  },
   fieldInput: {
     flex: 1,
     alignSelf: 'stretch',
@@ -250,20 +396,5 @@ const styles = StyleSheet.create({
     color: C.ink,
     paddingVertical: 0,
     textAlignVertical: 'center',
-  },
-  divider: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 24, marginBottom: 16 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: C.line },
-  dividerText: { ...T.tiny, color: C.ink4 },
-  social: {
-    height: 54,
-    borderRadius: 18,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E4E9DD',
-    borderStyle: 'solid',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    flexDirection: 'row',
   },
 })

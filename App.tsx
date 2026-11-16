@@ -21,7 +21,10 @@ import TopicTestScreen from './src/screens/TopicTestScreen'
 import ProductScreen from './src/screens/ProductScreen'
 import ProScreen from './src/screens/ProScreen'
 import BlitzScreen from './src/screens/BlitzScreen'
+import BalanceScreen from './src/screens/BalanceScreen'
 import ProblemSetScreen from './src/screens/ProblemSetScreen'
+import SubjectLevelsScreen from './src/screens/SubjectLevelsScreen'
+import DailyScreen from './src/screens/DailyScreen'
 import ResultScreen from './src/screens/ResultScreen'
 import MainTabs from './src/navigation/MainTabs'
 import type { RootStackParamList } from './src/navigation/types'
@@ -86,6 +89,8 @@ const App = () => {
           <Stack.Screen name="Forgot" component={ForgotPasswordScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="ProblemSet" component={ProblemSetScreen} />
+          <Stack.Screen name="SubjectLevels" component={SubjectLevelsScreen} />
+          <Stack.Screen name="Daily" component={DailyScreen} />
           <Stack.Screen name="Result" component={ResultScreen} />
           <Stack.Screen name="Formulas" component={FormulasScreen} />
           <Stack.Screen name="Subject" component={SubjectScreen} />
@@ -95,6 +100,7 @@ const App = () => {
           <Stack.Screen name="Product" component={ProductScreen} />
           <Stack.Screen name="Pro" component={ProScreen} />
           <Stack.Screen name="Blitz" component={BlitzScreen} />
+          <Stack.Screen name="Balance" component={BalanceScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

@@ -12,9 +12,9 @@ import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { useExitToTab } from '../lib/nav'
 import { PopIn, Reveal } from '../components/Reveal'
+import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM } from '../theme/tokens'
-import { GRAD_RAIL } from '../theme/solver'
 import {
   PROBLEM_SETS, daysToEarn, findProduct, type Product, type ProductCat,
 } from '../data/content'
@@ -28,7 +28,6 @@ import { PRODUCT_IMAGES, PRODUCT_THUMBS } from '../data/productImages'
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
 const INK = '#0E1A12'
-const CANVAS = '#F3F7EE'
 const HAIR = '#E7ECE4'
 const GRAY = '#6B7C66'
 const AMBER_BG = '#FEF3C7'
@@ -337,8 +336,6 @@ const ProductScreen = () => {
     }
   }
 
-  const railColors: readonly [string, string] = out ? [BAD, BAD] : GRAD_RAIL
-
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -370,67 +367,64 @@ const ProductScreen = () => {
 
         {/* ── Rasm ── */}
         <View style={styles.artWrap}>
-          <ProductArt product={product} fill radius={18} iconSize={150}>
-            <View style={styles.artCat}>
-              <Text style={styles.artCatText}>{product.cat}</Text>
-            </View>
-            <View style={styles.artStock}>
-              <Text style={[styles.artStockText, NUM, { color: out ? BAD : INK }]}>
-                {out ? 'tugagan' : `${left} dona`}
-              </Text>
-            </View>
-          </ProductArt>
+          <View style={styles.heroShadow}>
+            <ProductArt product={product} fill radius={20} iconSize={150} />
+          </View>
         </View>
 
-        {/* ── Narx varag'i ── */}
+        {/* ── Narx ── */}
         <View style={styles.section}>
-          <View style={styles.priceCard}>
-            <LinearGradient colors={railColors} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.priceRail} />
-            <View style={styles.priceBody}>
-              <Text style={styles.priceTitle}>{product.title}</Text>
-              <View style={styles.rateRow}>
-                {count > 0 ? (
-                  <>
-                    <Stars value={avg} />
-                    <Text style={[styles.rateValue, NUM]}>{avg.toFixed(1)}</Text>
-                    <Text style={styles.rateCount}>· {count} izoh</Text>
-                  </>
-                ) : (
-                  <Text style={styles.rateEmpty}>Yangi sovg'a · hali izoh yo'q</Text>
-                )}
-              </View>
+          <View style={styles.panel}>
+            <View style={styles.metaRow}>
+              <Text style={styles.meta}>{product.cat}</Text>
+              <Text style={styles.meta}>·</Text>
+              <Text style={[styles.meta, out && { color: BAD }]}>
+                {out ? 'tugagan' : `${left} dona bor`}
+              </Text>
+            </View>
+            <Text style={styles.priceTitle}>{product.title}</Text>
+            <View style={styles.rateRow}>
+              {count > 0 ? (
+                <>
+                  <Stars value={avg} />
+                  <Text style={[styles.rateValue, NUM]}>{avg.toFixed(1)}</Text>
+                  <Text style={styles.rateCount}>· {count} izoh</Text>
+                </>
+              ) : (
+                <Text style={styles.rateEmpty}>Yangi sovg&apos;a · hali izoh yo&apos;q</Text>
+              )}
+            </View>
 
-              <View style={styles.priceLine}>
-                <View style={styles.priceLeft}>
-                  <Ionicons name="cash" size={20} color={AMBER_INK} />
-                  <Text style={[styles.priceValue, NUM]}>{num(product.price)}</Text>
-                </View>
-                <View style={styles.priceRight}>
-                  <Text style={styles.walletLabel}>hamyonda</Text>
-                  <Text style={[styles.walletValue, NUM, { color: coin >= product.price ? '#0B6E4F' : AMBER_INK }]}>
-                    {num(coin)}
-                  </Text>
-                </View>
+            <View style={styles.priceLine}>
+              <View style={styles.priceLeft}>
+                <Ionicons name="cash" size={21} color={AMBER_INK} />
+                <Text style={[styles.priceValue, NUM]}>{num(product.price)}</Text>
               </View>
-
-              <View style={styles.timerRow}>
-                <Ionicons name="time" size={13} color="#5FAF22" />
-                <Text style={styles.timerText}>
-                  {out
-                    ? 'Keyingi partiyaga navbatga turing'
-                    : gap > 0
-                      ? `yana ${num(gap)} coin · taxminan ${daysToEarn(gap)} kunlik yechim`
-                      : 'hozir olishga yetarli'}
+              <View style={styles.priceRight}>
+                <Text style={styles.walletLabel}>hamyonda</Text>
+                <Text style={[styles.walletValue, NUM, { color: coin >= product.price ? '#0B6E4F' : AMBER_INK }]}>
+                  {num(coin)}
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.timerRow}>
+              <Ionicons name="time" size={13} color="#5FAF22" />
+              <Text style={styles.timerText}>
+                {out
+                  ? 'Keyingi partiyaga navbatga turing'
+                  : gap > 0
+                    ? `yana ${num(gap)} coin · taxminan ${daysToEarn(gap)} kunlik yechim`
+                    : 'hozir olishga yetarli'}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* ── Tavsif ── */}
         <View style={styles.section}>
-          <Text style={styles.kicker}>Mahsulot haqida</Text>
-          <View style={styles.descCard}>
+          <Text style={styles.kicker}>MAHSULOT HAQIDA</Text>
+          <View style={styles.panel}>
             <Text style={styles.descText}>{product.desc}</Text>
 
             <View style={styles.specWrap}>
@@ -445,15 +439,15 @@ const ProductScreen = () => {
               ))}
             </View>
 
-            <View style={styles.tiles}>
+            <View style={styles.notes}>
               {[
                 { icon: 'car' as const, k: 'Yetkazib berish', v: 'Toshkent 2 kun · viloyat 4 kun' },
                 { icon: 'shield-checkmark' as const, k: 'Kafolat', v: 'Rasmiy hujjat bilan' },
               ].map(b => (
-                <View key={b.k} style={styles.tile}>
+                <View key={b.k} style={styles.noteRow}>
                   <Ionicons name={b.icon} size={15} color="#5FAF22" />
-                  <Text style={styles.tileK}>{b.k}</Text>
-                  <Text style={styles.tileV}>{b.v}</Text>
+                  <Text style={styles.noteK}>{b.k}</Text>
+                  <Text style={styles.noteV}>{b.v}</Text>
                 </View>
               ))}
             </View>
@@ -542,7 +536,12 @@ const ProductScreen = () => {
           {/* Ro'yxat */}
           <View style={styles.revList}>
             {all.map((r, i) => (
-              <Reveal key={r.text + i} y={8} duration={240} style={styles.revCard}>
+              <Reveal
+                key={r.text + i}
+                y={8}
+                duration={240}
+                style={i === all.length - 1 ? styles.revCardLast : styles.revCard}
+              >
                 <View style={styles.revTop}>
                   <View style={[styles.avatar, { backgroundColor: r.own ? INK : '#EDF3E7' }]}>
                     <Text style={[styles.avatarText, { color: r.own ? '#9BE04B' : '#33501F' }]}>
@@ -580,6 +579,8 @@ const ProductScreen = () => {
           </View>
         </View>
       </ScrollView>
+
+      <TopScrim height={insets.top} colors={['#FFFFFF', '#FFFFFF']} line={HAIR} />
 
       {/* ── Buyurtma paneli ── */}
       <View style={[styles.orderBar, { paddingBottom: insets.bottom + 20 }]}>
@@ -736,28 +737,20 @@ const ProductScreen = () => {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: CANVAS },
+  screen: { flex: 1, backgroundColor: '#FFFFFF' },
   content: {},
 
-  topBar: {
-    backgroundColor: 'rgba(243,247,238,0.92)',
-    borderBottomWidth: 1,
-    borderBottomColor: HAIR,
-  },
-  topRow: { height: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  topBar: { backgroundColor: '#FFFFFF' },
+  topRow: { height: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   topBtn: {
-    width: 40,
-    height: 40,
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 100,
-    backgroundColor: '#FFFFFF',
-    borderColor: HAIR,
-    borderWidth: 1,
   },
-  topTitle: { flex: 1, fontSize: 15, fontWeight: '600', color: INK },
+  topTitle: { flex: 1, fontSize: 15, fontWeight: '600', color: INK, marginLeft: 2 },
 
-  notFound: { flex: 1, backgroundColor: CANVAS, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
+  notFound: { flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   notFoundTitle: { fontSize: 16, fontWeight: '600', color: INK },
   notFoundSub: { fontSize: 12.5, color: GRAY, textAlign: 'center' },
   notFoundBtn: {
@@ -772,122 +765,93 @@ const styles = StyleSheet.create({
   notFoundBtnText: { fontSize: 13.5, fontWeight: '600', color: '#CDE9AE' },
 
   art: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  artWrap: { paddingHorizontal: 16, paddingTop: 16 },
-  artCat: {
-    position: 'absolute',
-    left: 12,
-    top: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: 'rgba(14,26,18,0.82)',
-    borderRadius: 8,
-  },
-  artCatText: { fontSize: 11.5, fontWeight: '600', color: '#EAF3E2' },
-  artStock: {
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 8,
-  },
-  artStockText: { fontSize: 11.5, fontWeight: '600' },
-
-  section: { paddingHorizontal: 16, marginTop: 16 },
-
-  priceCard: {
+  artWrap: { paddingHorizontal: 16, paddingTop: 14 },
+  heroShadow: {
+    borderRadius: 20,
     backgroundColor: '#FFFFFF',
-    borderColor: HAIR,
-    borderWidth: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
+    shadowColor: '#0E1A12',
+    shadowOpacity: 0.11,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
-  priceRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
-  priceBody: { paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  priceTitle: { fontSize: 21, lineHeight: 27, fontWeight: '600', color: INK },
-  rateRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
+
+  section: { paddingHorizontal: 16, marginTop: 18 },
+  panel: {
+    backgroundColor: '#F6F8F3',
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+  },
+
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  meta: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: GRAY,
+  },
+  priceTitle: { marginTop: 7, fontSize: 24, lineHeight: 29, fontWeight: '600', letterSpacing: -0.7, color: INK },
+  rateRow: { marginTop: 7, flexDirection: 'row', alignItems: 'center', gap: 8 },
   rateValue: { fontSize: 12, fontWeight: '600', color: INK },
   rateCount: { fontSize: 12, fontWeight: '500', color: GRAY },
   rateEmpty: { fontSize: 12, fontWeight: '500', color: GRAY },
-  priceLine: { marginTop: 16, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
+  priceLine: { marginTop: 14, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
   priceLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  priceValue: { fontSize: 28, lineHeight: 28, fontWeight: '600', color: AMBER_INK },
+  priceValue: { fontSize: 30, lineHeight: 30, fontWeight: '600', letterSpacing: -0.8, color: AMBER_INK },
   priceRight: { alignItems: 'flex-end' },
   walletLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
   walletValue: { fontSize: 15, fontWeight: '600', marginTop: 2 },
-  timerRow: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  timerRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
   timerText: { fontSize: 12, fontWeight: '500', color: GRAY, flex: 1 },
 
-  kicker: { fontSize: 12.5, fontWeight: '600', color: GRAY, marginBottom: 8 },
-  descCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: HAIR,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-  },
-  descText: { fontSize: 13.5, lineHeight: 22, color: INK },
-  specWrap: { marginTop: 16, borderTopWidth: 1, borderTopColor: HAIR },
+  kicker: { fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: GRAY, marginBottom: 10 },
+  descText: { fontSize: 13.5, lineHeight: 22, color: '#33452F' },
+  specWrap: { marginTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(14,26,18,0.07)' },
   specRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    paddingVertical: 11,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: HAIR,
+    borderBottomColor: 'rgba(14,26,18,0.07)',
   },
   specK: { fontSize: 12.5, fontWeight: '500', color: GRAY },
   specV: { fontSize: 13, fontWeight: '600', color: INK, textAlign: 'right', flexShrink: 1 },
-  tiles: { marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tile: {
-    width: '48.5%',
-    backgroundColor: '#F7F9F6',
-    borderColor: HAIR,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-  },
-  tileK: { marginTop: 6, fontSize: 12, fontWeight: '600', color: GRAY },
-  tileV: { marginTop: 3, fontSize: 12, fontWeight: '500', lineHeight: 17, color: INK },
+  notes: { marginTop: 8 },
+  noteRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
+  noteK: { fontSize: 12.5, fontWeight: '600', color: INK },
+  noteV: { flex: 1, fontSize: 12, fontWeight: '500', color: GRAY, textAlign: 'right' },
 
   goalBtn: {
-    marginTop: 12,
+    marginTop: 10,
     borderRadius: 14,
-    paddingVertical: 13,
+    paddingVertical: 14,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  goalBtnIdle: { backgroundColor: '#FFFFFF', borderColor: HAIR, borderWidth: 1 },
-  goalBtnOn: { backgroundColor: INK, borderColor: INK, borderWidth: 1 },
+  goalBtnIdle: { backgroundColor: '#F6F8F3' },
+  goalBtnOn: { backgroundColor: INK },
   goalLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   goalLabel: { fontSize: 13, fontWeight: '600' },
   goalHint: { fontSize: 12, fontWeight: '500' },
 
-  revHead: { marginBottom: 12, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  revHead: { marginTop: 4, marginBottom: 12, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   revTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   revTitle: { fontSize: 17, fontWeight: '600', color: INK },
   revCount: { fontSize: 12, fontWeight: '600', color: GRAY },
 
-  compose: {
-    backgroundColor: '#FFFFFF',
-    borderColor: HAIR,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 14,
-  },
+  compose: {},
   composeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   composeLabel: { fontSize: 12.5, fontWeight: '600', color: INK },
   composeInput: {
     marginTop: 10,
     minHeight: 72,
-    backgroundColor: '#F7F9F6',
-    borderColor: HAIR,
-    borderWidth: 1,
+    backgroundColor: '#F6F8F3',
     borderRadius: 12,
     paddingVertical: 11,
     paddingHorizontal: 12,
@@ -911,16 +875,14 @@ const styles = StyleSheet.create({
   boughtRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
   boughtText: { fontSize: 12, fontWeight: '500', color: '#0B6E4F' },
 
-  revList: { marginTop: 12, gap: 10 },
+  revList: { marginTop: 6 },
   revCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: HAIR,
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    overflow: 'hidden',
+    paddingVertical: 14,
+    paddingHorizontal: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F4EF',
   },
+  revCardLast: { paddingVertical: 14, paddingHorizontal: 0 },
   revTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   avatar: {
     width: 30,
@@ -943,15 +905,7 @@ const styles = StyleSheet.create({
   },
   boughtBadgeText: { fontSize: 11.5, fontWeight: '600', color: AMBER_INK },
   revText: { marginTop: 8, fontSize: 13, lineHeight: 20, color: '#33452F' },
-  revEmpty: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D7DED6',
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-  },
+  revEmpty: { paddingVertical: 6 },
   revEmptyTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
   revEmptySub: { marginTop: 4, fontSize: 12.5, lineHeight: 19, color: GRAY },
 
@@ -962,9 +916,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(243,247,238,0.94)',
-    borderTopWidth: 1,
-    borderTopColor: HAIR,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#0E1A12',
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 12,
   },
   orderInner: {
     width: '100%',

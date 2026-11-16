@@ -13,7 +13,7 @@ import { triggerHaptic } from '../lib/haptics'
  * faqat opacity bilan chiqadi.
  */
 
-export type TabKey = 'home' | 'problems' | 'shop' | 'profile'
+export type TabKey = 'home' | 'problems' | 'games' | 'shop' | 'profile'
 
 type Tab = {
   key: TabKey
@@ -25,20 +25,23 @@ type Tab = {
 }
 
 const TABS: Tab[] = [
-  { key: 'home', label: 'Asosiy', icon: 'home-outline', iconActive: 'home', labelW: 52 },
-  { key: 'problems', label: 'Masalalar', icon: 'calculator-outline', iconActive: 'calculator', labelW: 80 },
-  { key: 'shop', label: "Do'kon", icon: 'storefront-outline', iconActive: 'storefront', labelW: 52 },
-  { key: 'profile', label: 'Profil', icon: 'person-outline', iconActive: 'person', labelW: 48 },
+  { key: 'home', label: 'Asosiy', icon: 'home-outline', iconActive: 'home', labelW: 48 },
+  { key: 'problems', label: 'Masalalar', icon: 'calculator-outline', iconActive: 'calculator', labelW: 74 },
+  { key: 'games', label: "O'yinlar", icon: 'game-controller-outline', iconActive: 'game-controller', labelW: 59 },
+  { key: 'shop', label: "Do'kon", icon: 'storefront-outline', iconActive: 'storefront', labelW: 48 },
+  { key: 'profile', label: 'Profil', icon: 'person-outline', iconActive: 'person', labelW: 44 },
 ]
 
-const DOT = 50 // faol tabdagi oq doira
+const DOT = 44 // faol tabdagi oq doira
 const BTN = 56 // tugma balandligi (44 pt minimal talabidan katta)
-const PAD = 7 // pill ichki bo'shlig'i
+const SLOT = 46 // nofaol tab kengligi — besh tab qatorga sig'ishi uchun
+const PAD = 6 // pill ichki bo'shlig'i
+
 const BAR_H = BTN + PAD * 2
 
 const EASE = Easing.out(Easing.cubic)
 
-const widthOf = (tab: Tab, active: boolean) => (active ? DOT + 8 + tab.labelW + 21 : BTN)
+const widthOf = (tab: Tab, active: boolean) => (active ? DOT + 6 + tab.labelW + 14 : SLOT)
 
 const TabButton = ({ tab, active, onPress }: { tab: Tab; active: boolean; onPress: () => void }) => {
   const width = useRef(new Animated.Value(widthOf(tab, active))).current
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
     padding: PAD,
     borderRadius: 100,
     overflow: 'hidden',
@@ -170,10 +173,10 @@ const styles = StyleSheet.create({
   },
   labelBox: {
     position: 'absolute',
-    left: DOT + 11,
+    left: DOT + 9,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
   },
-  label: { fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
+  label: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
 })

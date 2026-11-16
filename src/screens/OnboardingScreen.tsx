@@ -1,236 +1,172 @@
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Fragment } from 'react'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { BrandMark, Wordmark } from '../components/Brand'
+import { Fade, Reveal } from '../components/Reveal'
+import OnboardingHero from '../components/OnboardingHero'
+import { LimeButton } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
+import { TOPICS } from '../data/curriculum'
 import type { RootStackParamList } from '../navigation/types'
+import { C, NUM } from '../theme/tokens'
 
-type OnboardingProps = NativeStackScreenProps<RootStackParamList, 'Onboarding'>
+type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>
 
-const TRIPTYCH_IMG = require('../assets/onboarding-triptych.png')
+const CHAIN = [
+  { icon: 'play' as const, label: 'Video' },
+  { icon: 'bulb-outline' as const, label: 'Misol' },
+  { icon: 'checkmark' as const, label: 'Test' },
+]
 
-export const OnboardingScreen = ({ navigation }: OnboardingProps) => {
+/**
+ * Kutib olish — bitta ekran, scrollsiz. Sahna oq fonda chiziladi va nafas
+ * oladi; matn qisqa: yo'l nima ekanini rasm emas, uchta so'z aytadi.
+ */
+const OnboardingScreen = ({ navigation }: Props) => {
   const insets = useSafeAreaInsets()
-  const { width: winWidth, height: winHeight } = useWindowDimensions()
 
-  const handleStart = () => {
+  const start = () => {
     triggerHaptic('medium')
     navigation.replace('SignUp')
   }
 
-  const handleLogin = () => {
+  const login = () => {
     triggerHaptic('light')
     navigation.replace('Login')
   }
 
-  const imgWidth = Math.min(winWidth * 0.9, 380)
-  const imgHeight = Math.round(imgWidth * (260 / 376))
-
   return (
-    <View style={styles.root}>
-      {/* ── Yumshoq och-yashil gradient fon ── */}
-      <LinearGradient
-        colors={['#DDF2D5', '#EAF5E4', '#F7FAF5']}
-        locations={[0, 0.42, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-
+    <Fade>
       <View
         style={[
-          styles.container,
-          {
-            paddingTop: insets.top + (winHeight > 700 ? 18 : 10),
-            paddingBottom: insets.bottom + (winHeight > 700 ? 22 : 14),
-          },
+          styles.screen,
+          { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 14 },
         ]}
       >
-        {/* ── 1. Yuqori sarlavha: HDP Matematika ── */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>HDP Matematika</Text>
+          <BrandMark size={30} />
+          <Wordmark size={18} />
         </View>
 
-        {/* ── 2. 3 ta fotosurat klasteri va o'rtadagi HDP emblemasi ── */}
-        <View style={styles.heroWrap}>
-          <Image
-            source={TRIPTYCH_IMG}
-            style={{ width: imgWidth, height: imgHeight }}
-            resizeMode="contain"
+        <Reveal y={18} duration={440} style={styles.heroWrap}>
+          <OnboardingHero />
+        </Reveal>
+
+        <Reveal y={14} delay={80} duration={380}>
+          <Text style={styles.title}>
+            <Text style={styles.titleDim}>Har dars — </Text>
+            <Text style={styles.titleStrong}>bir qadam</Text>
+          </Text>
+          <Text style={styles.sub}>
+            Video, misol va test — har mavzuni bitta yo&apos;lda o&apos;zlashtirasiz.
+          </Text>
+        </Reveal>
+
+        <Reveal y={12} delay={140} duration={360} style={styles.chainWrap}>
+          <View style={styles.chainRow}>
+            {CHAIN.map((step, i) => (
+              <Fragment key={step.label}>
+                {i > 0 && <View style={styles.chainLink} />}
+                <View style={styles.chainCol}>
+                  <View style={[styles.chainNode, i === CHAIN.length - 1 && styles.chainNodeOn]}>
+                    <Ionicons
+                      name={step.icon}
+                      size={15}
+                      color={i === CHAIN.length - 1 ? C.inkOnLime : C.brand}
+                    />
+                  </View>
+                  <Text style={[styles.chainLabel, i === CHAIN.length - 1 && styles.chainLabelOn]}>
+                    {step.label}
+                  </Text>
+                </View>
+              </Fragment>
+            ))}
+          </View>
+        </Reveal>
+
+        <View style={styles.spacer} />
+
+        <Reveal y={12} delay={190} duration={360}>
+          <LimeButton
+            label="Boshlash"
+            onPress={start}
+            trailing={<Ionicons name="arrow-forward" size={16} color={C.inkOnLime} />}
           />
 
-          {/* Pastdagi ikkita pagination nuqtasi */}
-          <View style={styles.dotsRow}>
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={[styles.dot, styles.dotInactive]} />
-          </View>
-        </View>
-
-        {/* ── 3. Matn qismi (Chap tomonga tekislangan) ── */}
-        <View style={styles.textWrap}>
-          <Text style={styles.titleLine}>
-            <Text style={styles.titleDim}>Sizning </Text>
-            <Text style={styles.titleBold}>shaxsiy</Text>
-          </Text>
-          <Text style={styles.titleLine}>
-            <Text style={styles.titleDim}>matematika </Text>
-            <Text style={styles.titleBold}>ustozingiz</Text>
-          </Text>
-
-          <Text style={styles.subtitle}>
-            Video dars, misol va test — bittasi ikkinchisiga olib kiradigan izchil yo&apos;l.
-          </Text>
-        </View>
-
-        {/* ── 4. Pastki ikkita tugma: Boshlash va Kirish ── */}
-        <View style={styles.btnWrap}>
-          {/* Asosiy Lime tugma */}
           <Pressable
-            onPress={handleStart}
-            style={({ pressed }) => [
-              styles.btnPrimary,
-              pressed && { transform: [{ scale: 0.98 }], opacity: 0.92 },
-            ]}
+            onPress={login}
             accessibilityRole="button"
-            accessibilityLabel="Boshlash"
+            style={({ pressed }) => [styles.loginRow, pressed && { opacity: 0.65 }]}
           >
-            <Text style={styles.btnPrimaryText}>Boshlash</Text>
+            <Text style={styles.loginText}>Hisobingiz bormi?</Text>
+            <Text style={styles.loginLink}>Kirish</Text>
+            <Ionicons name="chevron-forward" size={13} color={C.brand} />
           </Pressable>
 
-          {/* Ikkilamchi Oq tugma */}
-          <Pressable
-            onPress={handleLogin}
-            style={({ pressed }) => [
-              styles.btnSecondary,
-              pressed && { transform: [{ scale: 0.98 }], opacity: 0.75 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Kirish"
-          >
-            <Text style={styles.btnSecondaryText}>Kirish</Text>
-          </Pressable>
-        </View>
+          <Text style={[styles.footNote, NUM]}>{TOPICS.length} mavzu · bepul boshlash</Text>
+        </Reveal>
       </View>
-    </View>
+    </Fade>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
+  screen: {
     flex: 1,
-    backgroundColor: '#DDF2D5',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
   },
 
-  /* Sarlavha */
-  header: {
-    alignItems: 'center',
-    paddingTop: 6,
-  },
-  headerTitle: {
-    fontSize: 25,
-    fontWeight: '500',
-    color: '#0C452B',
-    letterSpacing: -0.3,
-  },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 2 },
 
-  /* Hero rasm klasteri */
-  heroWrap: {
+  heroWrap: { flex: 1, minHeight: 150, justifyContent: 'center' },
+
+  title: { marginTop: 6, fontSize: 29, lineHeight: 35, letterSpacing: -0.7 },
+  titleDim: { color: '#77947D', fontWeight: '400' },
+  titleStrong: { color: C.ink, fontWeight: '700' },
+  sub: { marginTop: 6, maxWidth: 330, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink3 },
+
+  chainWrap: { marginTop: 16 },
+  chainRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  chainCol: { alignItems: 'center', minWidth: 64 },
+  chainLink: {
+    flex: 1,
+    height: 2,
+    borderRadius: 1,
+    marginTop: 17,
+    backgroundColor: '#E3EEDB',
+  },
+  chainNode: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 4,
+    backgroundColor: '#F2F8EA',
+    borderWidth: 1,
+    borderColor: '#E3EEDB',
   },
-  dotsRow: {
+  chainNodeOn: {
+    backgroundColor: C.limeBright,
+    borderColor: 'rgba(95,175,34,0.5)',
+  },
+  chainLabel: { marginTop: 6, fontSize: 12, fontWeight: '600', color: C.ink3 },
+  chainLabelOn: { color: C.ink },
+
+  spacer: { flexGrow: 0.35, minHeight: 14 },
+
+  loginRow: {
+    marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    marginTop: 18,
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-  },
-  dotActive: {
-    backgroundColor: '#385744',
-  },
-  dotInactive: {
-    backgroundColor: '#B2CEBA',
-  },
-
-  /* Matn qismi */
-  textWrap: {
-    paddingHorizontal: 4,
-    marginBottom: 6,
-  },
-  titleLine: {
-    fontSize: 32,
-    lineHeight: 40,
-    letterSpacing: -0.6,
-  },
-  titleDim: {
-    color: '#76947D',
-    fontWeight: '400',
-  },
-  titleBold: {
-    color: '#0D2718',
-    fontWeight: '800',
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '400',
-    color: '#536E5B',
-    marginTop: 16,
-    maxWidth: 320,
-  },
-
-  /* Tugmalar */
-  btnWrap: {
-    gap: 12,
-  },
-  btnPrimary: {
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: '#7CD524',
-    alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#7CD524',
-    shadowOpacity: 0.28,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    gap: 5,
   },
-  btnPrimaryText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0E2914',
-    letterSpacing: -0.2,
-  },
-  btnSecondary: {
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: '#F3F9F0',
-    borderWidth: 1.2,
-    borderColor: '#DEECE0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnSecondaryText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#0E2914',
-    letterSpacing: -0.2,
-  },
+  loginText: { fontSize: 13, fontWeight: '500', color: C.ink3 },
+  loginLink: { fontSize: 13, fontWeight: '600', color: C.brand },
+  footNote: { marginTop: 8, textAlign: 'center', fontSize: 11, fontWeight: '500', color: C.ink4 },
 })
 
 export default OnboardingScreen

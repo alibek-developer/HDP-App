@@ -5,6 +5,7 @@ import type { TabKey } from '../components/BottomNav'
 export type TabParamList = {
   Home: undefined
   Problems: undefined
+  Games: undefined
   Shop: undefined
   Profile: undefined
 }
@@ -13,6 +14,7 @@ export type TabParamList = {
 export const TAB_ROUTE: Record<TabKey, keyof TabParamList> = {
   home: 'Home',
   problems: 'Problems',
+  games: 'Games',
   shop: 'Shop',
   profile: 'Profile',
 }
@@ -20,6 +22,7 @@ export const TAB_ROUTE: Record<TabKey, keyof TabParamList> = {
 export const ROUTE_TAB: Record<keyof TabParamList, TabKey> = {
   Home: 'home',
   Problems: 'problems',
+  Games: 'games',
   Shop: 'shop',
   Profile: 'profile',
 }
@@ -47,6 +50,10 @@ export type RootStackParamList = {
 
   // Masala zanjiri
   ProblemSet: { setId: string }
+  /** Masalalar: fan ichidagi uch daraja */
+  SubjectLevels: { subjectId: string }
+  /** Kunlik AI masala — kuniga bitta savol */
+  Daily: undefined
 
   // Mavzu zanjiri (1–10)
   Topic: { topicNum: number }
@@ -58,6 +65,8 @@ export type RootStackParamList = {
   Pro: { reason?: string; setId?: string } | undefined
   Product: { id: string }
   Blitz: undefined
+  /** Muvozanat — tarozi mini-o'yini */
+  Balance: undefined
 }
 
 /** Parametr talab qilmaydigan yo'lar — `navigate(route)` uchun xavfli variant */

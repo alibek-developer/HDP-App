@@ -39,7 +39,6 @@ const DIRECT_LIMIT = 100
 const INK = '#0E1A12'
 const HAIR = '#E7ECE4'
 const GRAY = '#6B7C66'
-const AMBER_BG = '#FEF3C7'
 const AMBER_INK = '#854D0E'
 const GREEN_TILE = '#00A855'
 
@@ -186,15 +185,13 @@ const StudyAids = () => {
     const stamped = stamp === o.id
     const isAmber = o.icon === 'hint' || o.icon === 'skip' || o.icon === 'boost'
 
-    const tileStyle = pro
-      ? { backgroundColor: '#E7F7EE', color: GREEN_TILE }
-      : has
-        ? { backgroundColor: GREEN_TILE, color: '#FFFFFF' }
-        : isAmber
-          ? { backgroundColor: AMBER_BG, color: AMBER_INK }
-          : o.kind === 'trial'
-            ? { backgroundColor: INK, color: '#9BE04B' }
-            : { backgroundColor: '#F1F4F0', color: GRAY }
+    const tone = pro || has
+      ? GREEN_TILE
+      : isAmber
+        ? AMBER_INK
+        : o.kind === 'trial'
+          ? INK
+          : '#86957F'
 
     return (
       <View key={o.id} style={[st.row, last ? undefined : st.rowLine]}>
@@ -203,12 +200,11 @@ const StudyAids = () => {
             <Text style={st.stampText}>olindi</Text>
           </PopIn>
         )}
-
-        <View style={[st.tile, { backgroundColor: tileStyle.backgroundColor }]}>
+        <View style={st.tile}>
           <Ionicons
-            name={pro ? 'diamond' : has ? 'checkmark' : GLYPH[o.icon]}
-            size={19}
-            color={tileStyle.color}
+            name={pro ? 'diamond' : has ? 'checkmark-circle' : GLYPH[o.icon]}
+            size={20}
+            color={tone}
           />
         </View>
 
@@ -235,21 +231,22 @@ const StudyAids = () => {
 
         <Pressable
           onPress={() => tap(o)}
-          style={({ pressed }) => [st.pill, pillStyle(has, full, poor), pressed && { transform: [{ scale: 0.97 }] }]}
+          hitSlop={8}
+          style={({ pressed }) => [st.pill, pressed && { opacity: 0.55 }]}
         >
           {has ? (
             <View style={st.pillRow}>
-              <Text style={[st.pillText, { color: '#FFFFFF' }]}>
+              <Text style={[st.pillText, { color: GREEN_TILE }]}>
                 {o.kind === 'trial' ? 'faol' : 'yechish'}
               </Text>
-              {o.kind === 'set' && <Ionicons name="chevron-forward" size={13} color="#FFFFFF" />}
+              {o.kind === 'set' && <Ionicons name="chevron-forward" size={13} color={GREEN_TILE} />}
             </View>
           ) : full ? (
             <Text style={[st.pillText, { color: '#9AA995' }]}>to&apos;la</Text>
           ) : poor ? (
             <View style={st.pillRow}>
-              <Ionicons name="trending-up" size={12} color={GRAY} />
-              <Text style={[st.pillText, { color: GRAY }]}>+{num(o.cost - coin)}</Text>
+              <Ionicons name="trending-up" size={12} color="#86957F" />
+              <Text style={[st.pillText, { color: '#86957F' }]}>+{num(o.cost - coin)}</Text>
             </View>
           ) : (
             <View style={st.pillRow}>
@@ -279,8 +276,8 @@ const StudyAids = () => {
           onPress={() => { triggerHaptic('selection'); setOpen(v => !v) }}
           style={({ pressed }) => [st.head, pressed && { opacity: 0.85 }]}
         >
-          <View style={st.headTile}>
-            <Ionicons name="bulb" size={19} color="#9BE04B" />
+          <View style={st.headIcon}>
+            <Ionicons name="bulb" size={20} color={GREEN_TILE} />
           </View>
           <View style={st.headMid}>
             <Text style={st.headTitle}>O&apos;qish uchun</Text>
@@ -406,97 +403,71 @@ const StudyAids = () => {
   )
 }
 
-type Pill = { backgroundColor: string; color: string; borderColor?: string; borderStyle?: 'solid' | 'dashed' }
-
-function pillStyle(has: boolean, full: boolean, poor: boolean): Pill {
-  if (has) return { backgroundColor: INK, color: '#FFFFFF' }
-  if (full) return { backgroundColor: '#F1F4F0', color: '#9AA995' }
-  if (poor) return { backgroundColor: '#FFFFFF', color: GRAY, borderColor: '#D7DED6', borderStyle: 'dashed' }
-  return { backgroundColor: AMBER_BG, color: AMBER_INK }
-}
-
 const st = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderColor: HAIR,
-    borderWidth: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  head: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
-  headTile: {
-    width: 40, height: 40, borderRadius: 10, backgroundColor: INK,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  card: { backgroundColor: '#FFFFFF' },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 2 },
+  headIcon: { width: 26, alignItems: 'center', justifyContent: 'center' },
   headMid: { flex: 1, minWidth: 0 },
   headTitle: { fontSize: 14, fontWeight: '600', color: INK },
   headSub: { marginTop: 3, fontSize: 12, color: GRAY, lineHeight: 16 },
   headCount: { fontSize: 11.5, fontWeight: '600', color: GRAY },
   headChevron: { marginLeft: 4 },
-  bodyWrap: { borderTopWidth: 1, borderTopColor: HAIR },
+  bodyWrap: { marginTop: 4 },
 
   groupHead: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 14, paddingVertical: 10, backgroundColor: '#FAFBF8',
-    borderBottomWidth: 1, borderBottomColor: HAIR,
+    paddingTop: 20, paddingBottom: 6,
   },
   groupHeadRow: { marginTop: 0 },
   groupLabel: { fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: GRAY },
   groupHint: { fontSize: 10.5, fontWeight: '500', color: GRAY },
 
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
-  rowLine: { borderBottomWidth: 1, borderBottomColor: HAIR },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
+  rowLine: { borderBottomWidth: 1, borderBottomColor: '#F1F4EF' },
   tile: {
-    width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+    width: 24, alignItems: 'center', justifyContent: 'center',
   },
   mid: { flex: 1, minWidth: 0 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { fontSize: 14, fontWeight: '600', color: INK, flexShrink: 1 },
-  hold: {
-    fontSize: 11, fontWeight: '500', color: GRAY, borderWidth: 1, borderColor: HAIR,
-    borderRadius: 100, paddingHorizontal: 6, paddingVertical: 1,
-  },
+  hold: { fontSize: 11, fontWeight: '500', color: GRAY },
   desc: { marginTop: 3, fontSize: 12, lineHeight: 17, color: GRAY },
   goalBtn: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   pill: {
-    minHeight: 32, paddingHorizontal: 12, borderRadius: 100,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'transparent',
+    minHeight: 30, alignItems: 'flex-end', justifyContent: 'center',
   },
   pillRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   pillText: { fontSize: 12, fontWeight: '600' },
 
   stamp: {
     position: 'absolute', right: 96, top: '50%', marginTop: -11, zIndex: 10,
-    backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: GREEN_TILE,
-    borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
+    paddingHorizontal: 4, paddingVertical: 2,
   },
-  stampText: { fontSize: 11, fontWeight: '600', color: GREEN_TILE },
+  stampText: { fontSize: 11, fontWeight: '700', color: GREEN_TILE },
 
   earnCta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   earnCtaText: { fontSize: 11.5, fontWeight: '600', color: GREEN_TILE },
-  earnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12 },
+  earnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 11 },
   earnLabel: { fontSize: 12, color: GRAY },
   earnValue: { fontSize: 12, fontWeight: '600', color: AMBER_INK },
 
   proRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14,
-    backgroundColor: '#FAFBF8', borderTopWidth: 1, borderTopColor: HAIR,
+    flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 22,
   },
   proTile: {
-    width: 40, height: 40, borderRadius: 10, backgroundColor: '#E7F7EE',
-    alignItems: 'center', justifyContent: 'center',
+    width: 26, alignItems: 'center', justifyContent: 'center',
   },
   proMid: { flex: 1, minWidth: 0 },
 
-  basket: { marginTop: 12 },
+  basket: { marginTop: 28 },
   basketHead: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 14, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: HAIR,
+    paddingVertical: 8,
   },
   basketTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
   basketSum: { fontSize: 12, fontWeight: '600', color: AMBER_INK },
-  basketEmpty: { paddingHorizontal: 14, paddingVertical: 13, fontSize: 12, color: GRAY },
-  basketRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 11 },
+  basketEmpty: { paddingVertical: 8, fontSize: 12, color: GRAY },
+  basketRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
   basketName: { flex: 1, fontSize: 13, color: INK },
   basketCost: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
 
