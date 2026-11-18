@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator, AppState, Linking, Modal, Pressable, StyleSheet, Text, View,
+  ActivityIndicator, Animated, AppState, Easing, Linking, Modal, Pressable, StyleSheet, Text, View,
 } from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons'
 import { LinearGradient } from 'expo-linear-gradient'
 import Svg, { Path } from 'react-native-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -163,58 +164,121 @@ const TelegramAuthSheet = ({ visible, onClose, onDone }: Props) => {
     }
   }, [visible, phase, nonce, onClose, onDone, signInWithTelegram])
 
+  /** Kutish indikatori: nuqta atrofida kengayib so'nuvchi halqa */
+  const ring = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    if (!visible || phase !== 'waiting') {
+      ring.setValue(0)
+      return undefined
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ring, {
+          toValue: 1,
+          duration: 1400,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ring, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ]),
+    )
+    loop.start()
+    return () => loop.stop()
+  }, [visible, phase, ring])
+
   const waiting = phase === 'waiting'
+  const activeStep = phase === 'starting' ? 0 : waiting ? 1 : -1
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.root}>
         <Pressable style={ABS_FILL} onPress={onClose} accessibilityLabel="Yopish" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
           <View style={styles.grip} />
 
-          <View style={styles.head}>
-            <View style={styles.logoTile}>
-              <TelegramMark size={26} />
-            </View>
-            <View style={styles.headText}>
-              <Text style={styles.title}>Telegram bilan kirish</Text>
-            </View>
-          </View>
+          <View style={styles.hero}>
+            <LinearGradient
+              colors={['#0A1B26', '#0F3040']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={ABS_FILL}
+            />
+            <LinearGradient
+              colors={['rgba(42,171,238,0.22)', 'rgba(42,171,238,0)']}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0.3, y: 0.95 }}
+              style={ABS_FILL}
+              pointerEvents="none"
+            />
 
-          <View style={[styles.statusCard, phase === 'error' && styles.statusCardBad]}>
-            {phase === 'starting' ? (
-              <>
-                <ActivityIndicator size="small" color={C.brand} />
-                <Text style={styles.statusTitle}>Telegram ochilmoqda...</Text>
-              </>
-            ) : waiting ? (
-              <>
-                <ActivityIndicator size="small" color="#229ED9" />
-                <View style={styles.statusMid}>
-                  <Text style={styles.statusTitle}>Tasdiqlash kutilmoqda</Text>
-                  <Text style={styles.statusSub}>Telegram'da «Start» tugmasini bosing</Text>
+            <View style={styles.heroHead}>
+              <View style={styles.logo}>
+                <TelegramMark size={24} />
+              </View>
+              <View style={styles.heroText}>
+                <Text style={styles.heroTitle}>Telegram bilan kirish</Text>
+                <Text style={styles.heroSub}>Parolsiz va xavfsiz — bir bosishda</Text>
+              </View>
+            </View>
+
+            <View style={[styles.status, phase === 'error' && styles.statusBad]}>
+              {phase === 'starting' ? (
+                <>
+                  <ActivityIndicator size="small" color="#7FD6FF" />
+                  <Text style={styles.statusText}>Telegram ochilmoqda…</Text>
+                </>
+              ) : waiting ? (
+                <>
+                  <View style={styles.dotWrap}>
+                    <Animated.View
+                      style={[
+                        styles.dotRing,
+                        {
+                          opacity: ring.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] }),
+                          transform: [
+                            { scale: ring.interpolate({ inputRange: [0, 1], outputRange: [1, 2.6] }) },
+                          ],
+                        },
+                      ]}
+                    />
+                    <View style={styles.dot} />
+                    <View style={styles.dotCore} />
+                  </View>
+                  <View style={styles.statusMid}>
+                    <Text style={styles.statusText}>Tasdiqlash kutilmoqda</Text>
+                    <Text style={styles.statusHint}>Telegram'da «Start» tugmasini bosing</Text>
+                  </View>
                   <Pressable
                     onPress={() => { triggerHaptic('light'); recheck.current() }}
-                    hitSlop={8}
-                    style={({ pressed }) => [styles.checkNow, pressed && { opacity: 0.6 }]}
+                    hitSlop={10}
+                    style={({ pressed }) => [styles.recheck, pressed && { opacity: 0.65 }]}
                   >
-                    <Text style={styles.checkNowText}>Tasdiqladim — tekshirish</Text>
+                    <Text style={styles.recheckText}>Tekshirish</Text>
                   </Pressable>
-                </View>
-              </>
-            ) : (
-              <View style={styles.statusMid}>
-                <Text style={[styles.statusTitle, { color: '#B5403A' }]}>Kirish yakunlanmadi</Text>
-                <Text style={styles.statusSub}>{detail}</Text>
-              </View>
-            )}
+                </>
+              ) : (
+                <>
+                  <View style={[styles.dot, styles.dotBad]} />
+                  <View style={styles.statusMid}>
+                    <Text style={[styles.statusText, styles.statusTitleBad]}>Kirish yakunlanmadi</Text>
+                    <Text style={styles.statusHint}>{detail}</Text>
+                  </View>
+                </>
+              )}
+            </View>
           </View>
 
           <View style={styles.steps}>
-            {STEPS.map(step => (
+            {STEPS.map((step, i) => (
               <View key={step.n} style={styles.stepRow}>
-                <View style={styles.stepN}>
-                  <Text style={styles.stepNText}>{step.n}</Text>
+                <View style={styles.stepCol}>
+                  <View style={[styles.stepN, i === activeStep && styles.stepNActive]}>
+                    <Text style={[styles.stepNText, i === activeStep && styles.stepNTextActive]}>
+                      {step.n}
+                    </Text>
+                  </View>
+                  {i < STEPS.length - 1 && <View style={styles.stepLine} />}
                 </View>
                 <View style={styles.stepMid}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
@@ -224,33 +288,35 @@ const TelegramAuthSheet = ({ visible, onClose, onDone }: Props) => {
             ))}
           </View>
 
-          <Text style={styles.note}>
-            Parol kerak emas — hisob Telegram tasdiqlashi bilan ochiladi.
-          </Text>
-
-          <View style={styles.btns}>
-            <Pressable
-              onPress={() => { triggerHaptic('light'); onClose() }}
-              style={({ pressed }) => [styles.cancel, pressed && { opacity: 0.85 }]}
-            >
-              <Text style={styles.cancelText}>Bekor</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                triggerHaptic('medium')
-                if (phase === 'error' || !url) { void begin(); return }
-                void openBot(url, nonce ?? undefined)
-              }}
-              style={({ pressed }) => [styles.ok, pressed && { transform: [{ scale: 0.98 }] }]}
-            >
-              <LinearGradient colors={['#2AABEE', '#229ED9']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
-              <TelegramMark size={18} />
-              <Text style={styles.okText}>
-                {phase === 'error' ? 'Qaytadan urinish' : 'Telegramni ochish'}
-              </Text>
-            </Pressable>
+          <View style={styles.trust}>
+            <Ionicons name="shield-checkmark-outline" size={14} color={C.ink4} />
+            <Text style={styles.trustText}>
+              Parol kerak emas — hisob Telegram tasdiqlashi bilan ochiladi.
+            </Text>
           </View>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium')
+              if (phase === 'error' || !url) { void begin(); return }
+              void openBot(url, nonce ?? undefined)
+            }}
+            style={({ pressed }) => [styles.primary, pressed && { transform: [{ scale: 0.985 }] }]}
+          >
+            <LinearGradient colors={['#3EB8F5', '#1E8FD1']} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={ABS_FILL} />
+            <TelegramMark size={19} />
+            <Text style={styles.primaryText}>
+              {phase === 'error' ? 'Qaytadan urinish' : 'Telegramni ochish'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => { triggerHaptic('light'); onClose() }}
+            hitSlop={6}
+            style={({ pressed }) => [styles.cancel, pressed && { opacity: 0.6 }]}
+          >
+            <Text style={styles.cancelText}>Bekor qilish</Text>
+          </Pressable>
         </View>
       </View>
     </Modal>
@@ -258,86 +324,129 @@ const TelegramAuthSheet = ({ visible, onClose, onDone }: Props) => {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(14,26,18,0.55)' },
+  root: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(9,17,13,0.6)' },
   sheet: {
     width: '100%',
     maxWidth: 430,
     alignSelf: 'center',
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    borderTopLeftRadius: R['3xl'],
+    borderTopRightRadius: R['3xl'],
+    paddingHorizontal: 16,
+    paddingTop: 9,
+    shadowColor: C.ink,
+    shadowOpacity: 0.18,
+    shadowRadius: 26,
+    shadowOffset: { width: 0, height: -8 },
+    elevation: 18,
   },
-  grip: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#E1E7DA', alignSelf: 'center', marginBottom: 16 },
+  grip: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#E6EAE2',
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
 
-  head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  logoTile: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
+  hero: { borderRadius: R.lg + 2, padding: 16, overflow: 'hidden', backgroundColor: '#0A1B26' },
+  heroHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  logo: {
+    width: 46,
+    height: 46,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EAF6FD',
-    borderWidth: 1,
-    borderColor: '#CBE8F8',
+    backgroundColor: '#FFFFFF',
   },
-  headText: { flex: 1, minWidth: 0 },
-  title: { fontSize: 18, lineHeight: 23, fontWeight: '600', color: C.ink },
+  heroText: { flex: 1, minWidth: 0 },
+  heroTitle: { fontSize: 17, lineHeight: 22, letterSpacing: -0.2, fontWeight: '600', color: '#FFFFFF' },
+  heroSub: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: 'rgba(255,255,255,0.62)' },
 
-  statusCard: {
-    marginTop: 16,
-    minHeight: 64,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: R.md,
-    backgroundColor: '#EDF8FD',
-    borderWidth: 1,
-    borderColor: '#CFEAF7',
+  status: {
+    marginTop: 14,
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: R.md,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
-  statusCardBad: { backgroundColor: '#FBEEEC', borderColor: '#F2D3CE' },
+  statusBad: { backgroundColor: 'rgba(217,72,59,0.14)', borderColor: 'rgba(255,140,128,0.3)' },
   statusMid: { flex: 1, minWidth: 0 },
-  statusTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: C.ink },
-  statusSub: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
-  checkNow: { marginTop: 6, alignSelf: 'flex-start' },
-  checkNowText: { fontSize: 12, lineHeight: 16, fontWeight: '600', color: '#1B87BE' },
+  statusText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: '#FFFFFF' },
+  statusTitleBad: { color: '#FFC9C2' },
+  statusHint: { marginTop: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: 'rgba(255,255,255,0.62)' },
 
-  steps: { marginTop: 16, gap: 12 },
-  stepRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dotWrap: { width: 11, height: 11, alignItems: 'center', justifyContent: 'center' },
+  dotRing: { position: 'absolute', width: 11, height: 11, borderRadius: 6, backgroundColor: '#7FD6FF' },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(127,214,255,0.28)' },
+  dotCore: { position: 'absolute', width: 5, height: 5, borderRadius: 3, backgroundColor: '#BDEBFF' },
+  dotBad: { backgroundColor: '#FF8C80' },
+  recheck: {
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 11,
+    backgroundColor: 'rgba(127,214,255,0.14)',
+  },
+  recheckText: { fontSize: 11.5, lineHeight: 15, fontWeight: '600', color: '#8FDCFF' },
+
+  steps: { marginTop: 16, paddingHorizontal: 2 },
+  stepRow: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
+  stepCol: { width: 24, alignItems: 'center' },
   stepN: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: C.leafTint,
+    backgroundColor: '#F4F7F1',
     borderWidth: 1,
-    borderColor: '#DDEBD6',
+    borderColor: '#E3E9DE',
   },
-  stepNText: { fontSize: 11.5, fontWeight: '600', color: C.brand },
-  stepMid: { flex: 1, minWidth: 0 },
-  stepTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: C.ink2 },
+  stepNActive: { backgroundColor: '#E8F6FE', borderColor: '#BFE4F7' },
+  stepNText: { fontSize: 11, fontWeight: '600', color: C.ink3 },
+  stepNTextActive: { color: '#1683B5' },
+  stepLine: {
+    flex: 1,
+    width: 2,
+    minHeight: 12,
+    marginVertical: 3,
+    borderRadius: 1,
+    backgroundColor: '#E9EEE4',
+  },
+  stepMid: { flex: 1, minWidth: 0, paddingBottom: 14 },
+  stepTitle: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: C.ink2 },
   stepSub: { marginTop: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: C.ink4 },
 
-  note: { marginTop: 16, fontSize: 12, lineHeight: 18, fontWeight: '500', color: C.ink3 },
+  trust: { flexDirection: 'row', alignItems: 'flex-start', gap: 7, marginTop: 2, paddingHorizontal: 2 },
+  trustText: { flex: 1, fontSize: 11.5, lineHeight: 17, fontWeight: '500', color: C.ink3 },
 
-  btns: { marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  cancel: { width: 92, height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: R.full, backgroundColor: '#F1F4F0' },
-  cancelText: { fontSize: 13, fontWeight: '600', color: C.ink3 },
-  ok: {
-    flex: 1,
-    height: 52,
+  primary: {
+    marginTop: 14,
+    height: 54,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     borderRadius: R.full,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+    shadowColor: '#1E8FD1',
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 12,
   },
-  okText: { fontSize: 13.5, fontWeight: '600', color: '#FFFFFF' },
+  primaryText: { fontSize: 14.5, fontWeight: '600', color: '#FFFFFF' },
+
+  cancel: { height: 44, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
+  cancelText: { fontSize: 12.5, fontWeight: '600', color: C.ink3 },
 })
 
 export default TelegramAuthSheet

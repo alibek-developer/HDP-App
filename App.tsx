@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AppState, View } from 'react-native'
 import { NavigationContainer, DarkTheme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { enableFreeze } from 'react-native-screens'
 import { StatusBar } from 'expo-status-bar'
 import { useFonts } from 'expo-font'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -12,7 +13,6 @@ import GoalScreen from './src/screens/GoalScreen'
 import BirthDateScreen from './src/screens/BirthDateScreen'
 import LoginScreen from './src/screens/LoginScreen'
 import SignUpScreen from './src/screens/SignUpScreen'
-import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen'
 import FormulasScreen from './src/screens/FormulasScreen'
 import SubjectScreen from './src/screens/SubjectScreen'
 import TopicScreen from './src/screens/TopicScreen'
@@ -36,9 +36,18 @@ import { configureNotifications, ensurePushToken, syncPushTokenToBackend } from 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 /**
- * O'tish animatsiyasi — native `slide_from_right`. Ilgari bu yerda `none`
- * turardi va ilova «animatsiyasiz» ko'rinardi; `fade` esa Android'da oq
- * ekranga olib kelgan. Slide — react-native-screens'ning barqaror yo'li.
+ * `freezeOnBlur`ni global yoqadi: fokusdan chiqqan ekran render qilmaydi.
+ * Chiqish (back) paytida orqa ekran qayta chizilmaydi — shu sabab o'tish
+ * bir tekis ketadi. Tab'lar ham shu bilan muzlaydi (bottom-tabs 7.18.8+).
+ */
+enableFreeze(true)
+
+/**
+ * O'tish animatsiyasi — `ios_from_right`: Android'da iOS uslubidagi siljish,
+ * iOS'da esa tizimning o'z push'i. Ilgari bu yerda `none` turardi va ilova
+ * «animatsiyasiz» ko'rinardi; `fade` esa Android'da oq ekranga olib kelgan.
+ * `slide_from_right` Android'da qo'polroq ko'rinadi — iOS egri chizig'i
+ * (egri boshlanish, yumshoq to'xtash) premium ilovalardagi effektni beradi.
  */
 const App = () => {
   /** AsyncStorage'dan holat kelguncha kutamiz — aks holda kirgan foydalanuvchi
@@ -109,10 +118,16 @@ const App = () => {
           initialRouteName={startRoute}
           screenOptions={{
             headerShown: false,
-            animation: 'slide_from_right',
-            animationDuration: 280,
+            /**
+             * `animationDuration` ataylab yo'q: u faqat iOS'da ishlaydi va
+             * `default` animatsiyaga ta'sir qilmaydi — qo'lda 280ms berish
+             * iOS push'ini sun'iy tezlashtirib, «sakrab» ko'rsatardi.
+             */
+            animation: 'ios_from_right',
             animationTypeForReplace: 'push',
             gestureEnabled: true,
+            /** Orqadagi ekran chizilishni to'xtatadi — chiqish (back) shu sabab yengil */
+            freezeOnBlur: true,
             contentStyle: { backgroundColor: C.canvas },
           }}
         >
@@ -121,7 +136,6 @@ const App = () => {
           <Stack.Screen name="BirthDate" component={BirthDateScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Forgot" component={ForgotPasswordScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="ProblemSet" component={ProblemSetScreen} />
           <Stack.Screen name="SubjectLevels" component={SubjectLevelsScreen} />

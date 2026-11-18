@@ -15,7 +15,7 @@ import type { HostInstance } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import MCI from '@expo/vector-icons/MaterialCommunityIcons'
 import { TOPICS } from '../data/curriculum'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useIsFocused } from '@react-navigation/native'
 import type { CompositeNavigationProp } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -37,7 +37,7 @@ import { TopScrim } from '../components/ui'
 import { MidnightClock } from '../components/MidnightClock'
 import { navBottomSpace } from '../components/BottomNav'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { C, NUM, R, MATH_FONT } from '../theme/tokens'
+import { C, NUM, R, MATH_FONT, ABS_FILL } from '../theme/tokens'
 
 /**
  * Home — «hozir nima qilaman?» ekrani.
@@ -116,6 +116,98 @@ const SectionHead = ({ label, meta }: { label: string; meta?: string }) => (
   </View>
 )
 
+/** Pro belgisi — iliq gradient va ustidan o'tuvchi yorug'lik. */
+const PRO_GRAD = ['#FFC24B', '#FF8A1E'] as const
+
+const ProPill = ({ onPress }: { onPress: () => void }) => {
+  const sweep = useRef(new Animated.Value(0)).current
+  const live = useRef(new Animated.Value(0)).current
+  useEffect(() => {
+    const shine = Animated.loop(
+      Animated.sequence([
+        Animated.delay(900),
+        Animated.timing(sweep, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sweep, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ]),
+    )
+    const breathe = Animated.loop(
+      Animated.sequence([
+        Animated.timing(live, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(live, {
+          toValue: 0,
+          duration: 1500,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+    )
+    shine.start()
+    breathe.start()
+    return () => {
+      shine.stop()
+      breathe.stop()
+    }
+  }, [sweep, live])
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityLabel="HDP Pro"
+      hitSlop={10}
+      style={({ pressed }) => [styles.proWrap, pressed && { opacity: 0.88 }]}
+    >
+      <Animated.View
+        style={[
+          styles.proGlow,
+          { opacity: live.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.26] }) },
+        ]}
+      />
+      <View style={styles.proPill}>
+        <LinearGradient colors={PRO_GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
+        <View pointerEvents="none" style={styles.proGloss}>
+          <LinearGradient
+            colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </View>
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.proShine,
+            {
+              transform: [
+                { translateX: sweep.interpolate({ inputRange: [0, 1], outputRange: [-40, 96] }) },
+                { rotate: '20deg' },
+              ],
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.62)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+        <MCI name="crown" size={13} color="#FFF9EE" />
+        <Text style={styles.proText}>PRO</Text>
+      </View>
+    </Pressable>
+  )
+}
+
 const HomeScreen = () => {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
@@ -127,8 +219,11 @@ const HomeScreen = () => {
   const adRef = useRef<ComponentRef<typeof ScrollView>>(null)
   const adIdxRef = useRef(0)
   const [adIdx, setAdIdx] = useState(0)
+  const focused = useIsFocused()
 
+  /* Karusel faqat ekran ko'rinib turganda aylanadi — dars ichida uxlab turadi */
   useEffect(() => {
+    if (!focused) return undefined
     const t = setInterval(() => {
       const next = (adIdxRef.current + 1) % AD_SLIDES.length
       adRef.current?.scrollTo({ x: next * adW, animated: true })
@@ -136,14 +231,12 @@ const HomeScreen = () => {
       setAdIdx(next)
     }, 4500)
     return () => clearInterval(t)
-  }, [adW])
+  }, [adW, focused])
 
   const name = useApp(s => s.name)
   const photoUrl = useApp(s => s.photoUrl)
   const coin = useApp(s => s.coin)
   const xp = useApp(s => s.xp)
-  const level = useApp(s => s.level)
-  const streak = useApp(s => s.streak)
   const streakBurst = useApp(s => s.streakBurst)
   const clearStreakBurst = useApp(s => s.clearStreakBurst)
   const enterApp = useApp(s => s.enterApp)
@@ -246,7 +339,9 @@ const HomeScreen = () => {
     },
   ]
 
-  const firstName = name.trim().split(' ')[0]
+  const nameParts = name.trim().split(/\s+/)
+  const firstName = nameParts[0]
+  const restName = nameParts.slice(1).join(' ')
   const initials = name
     .split(' ')
     .map(w => w[0])
@@ -290,22 +385,34 @@ const HomeScreen = () => {
               accessibilityLabel="Profil"
               style={({ pressed }) => [styles.who, pressed && { opacity: 0.7 }]}
             >
-              <View style={[styles.avatar, !photoUrl && styles.avatarPlain]}>
-                {photoUrl ? (
-                  <Image source={{ uri: photoUrl }} style={styles.avatarImg} />
-                ) : initials ? (
-                  <Text style={styles.avatarText}>{initials}</Text>
-                ) : (
-                  <MCI name="account" size={24} color={C.brand} />
-                )}
+              <View style={styles.avatarRing}>
+                <LinearGradient
+                  colors={['#B7EE7E', '#0B6E4F']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.avatarRingFill}
+                />
+                <View style={styles.avatar}>
+                  {photoUrl ? (
+                    <Image source={{ uri: photoUrl }} style={styles.avatarImg} />
+                  ) : (
+                    <LinearGradient
+                      colors={['#F2FAE9', '#CFEBB2']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.avatarMonogram}
+                    >
+                      {initials
+                        ? <Text style={styles.avatarText}>{initials}</Text>
+                        : <MCI name="account" size={22} color={C.brand} />}
+                    </LinearGradient>
+                  )}
+                </View>
               </View>
               <View style={styles.whoText}>
                 <Text style={styles.helloName} numberOfLines={1}>
                   {firstName || "o'quvchi"}
-                </Text>
-                <Text style={styles.helloMeta} numberOfLines={1}>
-                  {streak > 0 ? `${streak} kunlik zanjir · ` : ''}
-                  {level}-daraja
+                  {restName ? <Text style={styles.helloLast}> {restName}</Text> : null}
                 </Text>
               </View>
             </Pressable>
@@ -392,15 +499,7 @@ const HomeScreen = () => {
                 ) : null}
               </View>
 
-              <Pressable
-                onPress={tap(() => navigation.navigate('Pro'))}
-                accessibilityLabel="HDP Pro"
-                hitSlop={10}
-                style={({ pressed }) => [styles.proPill, pressed && { opacity: 0.75 }]}
-              >
-                <MCI name="crown" size={16} color="#F4671F" />
-                <Text style={styles.proText}>PRO</Text>
-              </Pressable>
+              <ProPill onPress={tap(() => navigation.navigate('Pro'))} />
             </View>
           </View>
         </Reveal>
@@ -741,43 +840,69 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16 },
 
   /* ── Sarlavha ── */
-  head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  whoText: { flex: 1 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  whoText: { flex: 1, justifyContent: 'center' },
   helloName: {
     fontSize: 20,
-    lineHeight: 24,
-    letterSpacing: -0.55,
+    lineHeight: 25,
+    letterSpacing: -0.6,
     fontWeight: '700',
     color: C.ink,
   },
-  helloMeta: {
-    marginTop: 1,
-    fontSize: 11.5,
+  helloLast: {
+    fontSize: 20,
+    lineHeight: 25,
+    letterSpacing: -0.4,
     fontWeight: '500',
-    letterSpacing: -0.1,
-    color: C.ink4,
+    color: '#55655C',
   },
-  avatar: {
+  avatarRing: {
     width: 46,
     height: 46,
-    borderRadius: 23,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    shadowColor: C.brand,
+    shadowOpacity: 0.2,
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
-  avatarPlain: { width: 'auto', height: 'auto', borderRadius: 0, overflow: 'visible' },
+  avatarRingFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 16,
+  },
+  avatar: {
+    width: 41,
+    height: 41,
+    borderRadius: 13,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F2FAE9',
+  },
+  avatarMonogram: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatarImg: { width: '100%', height: '100%' },
-  avatarText: { fontSize: 19, fontWeight: '700', color: C.brand },
+  avatarText: { fontSize: 16, fontWeight: '800', letterSpacing: 0.2, color: '#0B4A34' },
 
-  headRight: { flexDirection: 'row', alignItems: 'center', gap: 16, flexShrink: 0 },
+  headRight: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 0 },
   statPill: {
     height: 36,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
   },
-  statText: { fontSize: 15, fontWeight: '700', color: C.ink },
+  statText: { fontSize: 16, fontWeight: '800', letterSpacing: -0.3, color: C.ink },
 
   /* ── Tanga sochilishi ── */
   coinWrap: { position: 'relative' },
@@ -793,13 +918,39 @@ const styles = StyleSheet.create({
   burstPrize: { position: 'absolute', bottom: 1 },
   burstPrizeText: { fontSize: 12, fontWeight: '800', color: '#C97A16' },
 
+  proWrap: {
+    height: 30,
+    borderRadius: 11,
+    shadowColor: '#F4671F',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  proGlow: {
+    position: 'absolute',
+    top: -4,
+    bottom: -4,
+    left: -4,
+    right: -4,
+    borderRadius: 15,
+    backgroundColor: '#FF9A2E',
+  },
   proPill: {
-    height: 36,
+    height: 30,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
+    paddingHorizontal: 10,
+    borderRadius: 11,
+    overflow: 'hidden',
+    backgroundColor: '#FF8A1E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.45)',
   },
-  proText: { fontSize: 13.5, letterSpacing: 0.5, fontWeight: '800', color: '#F4671F' },
+  proGloss: { position: 'absolute', top: 0, left: 0, right: 0, height: 14 },
+  proShine: { position: 'absolute', top: -16, bottom: -16, width: 18 },
+  proText: { fontSize: 11.5, letterSpacing: 0.9, fontWeight: '800', color: '#FFFFFF' },
 
   /* ── Reklama karuseli ── */
   adWrap: { marginTop: 14, borderRadius: R['2xl'], overflow: 'hidden' },

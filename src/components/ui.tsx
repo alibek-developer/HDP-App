@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native'
-import Ionicons from '@expo/vector-icons/Ionicons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { TelegramMark } from './TelegramAuthSheet'
 import { C, R, T } from '../theme/tokens'
 
 /**
@@ -217,44 +215,6 @@ export const StepHeader = ({ step, total = 2 }: { step: number; total?: number }
   </View>
 )
 
-/** Telegram — parolsiz kirishning asosiy yo'li */
-export const TelegramButton = ({
-  label = 'Telegram bilan davom etish',
-  sub,
-  onPress,
-  disabled,
-  style,
-}: {
-  label?: string
-  sub?: string
-  onPress: () => void
-  disabled?: boolean
-  style?: StyleProp<ViewStyle>
-}) => (
-  <Pressable
-    onPress={onPress}
-    disabled={disabled}
-    accessibilityRole="button"
-    style={({ pressed }) => [
-      styles.tg,
-      style,
-      pressed && !disabled && { transform: [{ scale: 0.985 }] },
-      disabled && { opacity: 0.55 },
-    ]}
-  >
-    <View style={styles.tgIcon}>
-      <TelegramMark size={24} />
-    </View>
-    <View style={styles.tgMid}>
-      <Text style={styles.tgTitle}>{label}</Text>
-      {!!sub && <Text style={styles.tgSub}>{sub}</Text>}
-    </View>
-    <View style={styles.tgArrow}>
-      <Ionicons name="arrow-forward" size={13} color="#1B87BE" />
-    </View>
-  </Pressable>
-)
-
 export const TapText = ({
   children,
   onPress,
@@ -355,39 +315,6 @@ const styles = StyleSheet.create({
   stepSegOn: { backgroundColor: C.limeDeep },
   stepText: { ...T.label, fontSize: 12.5, fontWeight: '600', color: C.brand, fontVariant: ['tabular-nums'] },
   stepTextDim: { color: C.ink4, fontWeight: '500' },
-  tg: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    minHeight: 56,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 18,
-    backgroundColor: '#F2FAFE',
-    borderWidth: 1,
-    borderColor: '#CFE8F7',
-  },
-  tgIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#DBEFFA',
-  },
-  tgMid: { flex: 1, minWidth: 0 },
-  tgTitle: { fontSize: 14.5, fontWeight: '600', color: C.ink },
-  tgSub: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: '#4E7C93' },
-  tgArrow: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#E1F3FC',
-  },
   fieldInput: {
     flex: 1,
     alignSelf: 'stretch',

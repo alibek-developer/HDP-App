@@ -159,6 +159,23 @@ const TopicLessonScreen = () => {
   const idx = lessons.findIndex(l => l.id === route.params.lessonId)
   const nextId = idx >= 0 ? lessons[idx + 1]?.id : undefined
 
+  /**
+   * YouTube WebView'i og'ir — uni slide tugagach yuklaymiz. Aks holda
+   * o'tish paytida JS/nativ thread band bo'lib, animatsiya «sakraydi».
+   * Zaxira taymer: `transitionEnd` kelmasa (web yoki replace), 500ms keyin.
+   */
+  const [playerReady, setPlayerReady] = useState(false)
+  useEffect(() => {
+    const unsub = navigation.addListener('transitionEnd', e => {
+      if (!e.data?.closing) setPlayerReady(true)
+    })
+    const t = setTimeout(() => setPlayerReady(true), 500)
+    return () => {
+      unsub()
+      clearTimeout(t)
+    }
+  }, [navigation])
+
   useEffect(() => {
     beginSession()
   }, [beginSession])
@@ -333,14 +350,18 @@ const TopicLessonScreen = () => {
             )}
 
             <View style={styles.videoWrap}>
-              <LessonVideo
-                key={active.id}
-                videoId={active.id}
-                title={partTitle(lesson.id, active.title)}
-                watched={st.videoSeen || Boolean(seen[active.id])}
-                onWatched={() => markWatched(active.id)}
-                onUnavailable={() => markUnavailable(active.id)}
-              />
+              {playerReady ? (
+                <LessonVideo
+                  key={active.id}
+                  videoId={active.id}
+                  title={partTitle(lesson.id, active.title)}
+                  watched={st.videoSeen || Boolean(seen[active.id])}
+                  onWatched={() => markWatched(active.id)}
+                  onUnavailable={() => markUnavailable(active.id)}
+                />
+              ) : (
+                <View style={styles.videoSkeleton} />
+              )}
             </View>
           </View>
         )}
@@ -681,6 +702,7 @@ const styles = StyleSheet.create({
   partName: { marginTop: 2, fontSize: 12, fontWeight: '500', color: '#33452F' },
   partNameOn: { color: '#FFFFFF' },
   videoWrap: { marginTop: 12 },
+  videoSkeleton: { aspectRatio: 16 / 9, borderRadius: 16, backgroundColor: '#0E1A12' },
   videoOnlyNote: { marginTop: 12, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66' },
 
   blockHead: { marginTop: 24, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 4 },

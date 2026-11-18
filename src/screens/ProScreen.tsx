@@ -9,6 +9,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { useExit } from '../lib/nav'
+import { EXAM_SET, PROBLEM_SETS, PRO_TRIAL } from '../data/content'
+import { TOPICS } from '../data/curriculum'
+import { isFreeLessonId, topicHasPaidLessons } from '../data/paywall'
 import { PopIn } from '../components/Reveal'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
@@ -19,8 +22,9 @@ import {
 } from '../theme/solver'
 
 /**
- * HDP Pro sahifasi — tarif tanlash, obuna holati.
- * To'lov tizimi hali ulanmagan: tugma Pro'ni sinov rejimida yoqadi.
+ * HDP Pro sahifasi — tarif tanlash, obuna holati va Pro'ga kirgan
+ * imkoniyatlarning to'liq ro'yxati. To'lov tizimi hali ulanmagan:
+ * tugma Pro'ni sinov rejimida yoqadi.
  */
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -35,10 +39,15 @@ const PLANS: { id: PlanId; label: string; months: number; perMonth: number; badg
   { id: '1y', label: '1 Yil', months: 12, perMonth: 39_000, badge: 'Eng arzon' },
 ]
 
-const FEATURES: { icon: keyof typeof Ionicons.glyphMap; title: string; desc: string }[] = [
-  { icon: 'layers', title: "Pro masala to'plamlari", desc: 'Coin sarflamasdan ochiladi' },
-  { icon: 'infinite', title: 'Obuna davomida cheksiz kirish', desc: "Muddat tugagach to'lov avtomatik olinmaydi" },
-]
+/* Pro nimani ochadi — raqamlar kontent fayllaridan, qo'lda yozilmaydi */
+
+const CURRICULUM = TOPICS.flatMap(t => t.lessons)
+const PRO_LESSON_COUNT = CURRICULUM.filter(l => !isFreeLessonId(l.id)).length
+const FREE_LESSON_COUNT = CURRICULUM.length - PRO_LESSON_COUNT
+const PRO_TEST_COUNT = TOPICS.filter(t => topicHasPaidLessons(t.meta.num)).length
+const PRO_SETS = [...PROBLEM_SETS, EXAM_SET].filter(s => !s.free)
+const COIN_SET_COUNT = PRO_SETS.filter(s => !!s.unlockPrice).length
+const COIN_SET_PRICE = Math.min(...PRO_SETS.map(s => s.unlockPrice ?? Infinity))
 
 /** 177000 → «177 000» — O'zbekistonda bo'shaqli yozuv ishlatiladi */
 const money = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
@@ -142,14 +151,30 @@ const ProScreen = () => {
           <LinearGradient colors={GRAD_HEADER} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={ABS_FILL} />
           <HeroGrid />
           <View style={s.heroInner}>
-            <View style={s.heroBadge}>
-              <Ionicons name="diamond" size={21} color="#1C3214" />
+            <View style={s.heroTop}>
+              <View style={s.heroBadge}>
+                <Ionicons name="diamond" size={18} color="#1C3214" />
+              </View>
+              <View style={s.heroPill}>
+                <Text style={s.heroPillText}>HDP PRO</Text>
+              </View>
             </View>
-            <View style={s.heroCopy}>
-              <Text style={s.heroH1}>Matematikani{'\n'}HDP Pro bilan egallang</Text>
-              <Text style={s.heroSub}>
-                DTM va olimpiada uchun izchil kurs — konspekt, misol va test bir yo&apos;lda.
-              </Text>
+            <Text style={s.heroH1}>Barcha darslar, testlar va to&apos;plamlar bitta obunada</Text>
+            <Text style={s.heroSub}>
+              {`${FREE_LESSON_COUNT} bepul darsdan keyingi butun kurs — video, nazariya va amaliyot — to'liq ochiladi.`}
+            </Text>
+
+            <View style={s.heroStats}>
+              {[
+                [`${PRO_LESSON_COUNT}`, 'yopiq dars'],
+                [`${PRO_TEST_COUNT}`, 'mavzu testi'],
+                [`${PRO_SETS.length}`, "to'plam"],
+              ].map(([v, l], i) => (
+                <View key={l} style={[s.heroStatCell, i > 0 && s.heroStatCellB]}>
+                  <Text style={[s.heroStatValue, NUM]}>{v}</Text>
+                  <Text style={s.heroStatLabel}>{l}</Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
@@ -162,7 +187,9 @@ const ProScreen = () => {
                 <Ionicons name="ribbon" size={15} color={AMBER} />
                 <Text style={s.activeTitle}>Pro faol</Text>
               </View>
-              <Text style={s.activeSub}>Barcha mashq to&apos;plamlari coin sarflamasdan ochiq.</Text>
+              <Text style={s.activeSub}>
+                {`${PRO_LESSON_COUNT} ta dars, ${PRO_TEST_COUNT} ta test va ${PRO_SETS.length} ta to'plam ochiq.`}
+              </Text>
               {!!proExpires && (
                 <View style={s.activeDateRow}>
                   <Ionicons name="calendar" size={14} color="#0B4A34" />
@@ -226,17 +253,34 @@ const ProScreen = () => {
           </>
         )}
 
-        {/* ── Nimalar kiradi ── */}
-        <Text style={s.sectionLabel}>Nimalar kiradi</Text>
+        {/* ── Pro ichida nimalar bor ── */}
+        <Text style={s.sectionLabel}>Pro ichida nimalar bor</Text>
         <View style={s.features}>
-          {FEATURES.map((f, i) => (
+          {([
+            {
+              icon: 'book',
+              title: `${PRO_LESSON_COUNT} ta yopiq dars`,
+              desc: `${FREE_LESSON_COUNT} bepul darsdan keyingi barcha bo'limlar — video, nazariya va amaliyot`,
+            },
+            {
+              icon: 'document-text',
+              title: `${PRO_TEST_COUNT} ta mavzu testi`,
+              desc: 'Har mavzu yakunidagi test, natija va to‘liq tahlil bilan',
+            },
+            {
+              icon: 'layers',
+              title: `${COIN_SET_COUNT} ta Pro to'plam`,
+              desc: `Geometriya va Olimpiada — hozir ${COIN_SET_PRICE} coin, Pro'da coin sarflamasdan`,
+            },
+            {
+              icon: 'stopwatch',
+              title: 'Umumiy sinov',
+              desc: `${EXAM_SET.questions.length} savolli imtihon simulyatsiyasi — barcha mavzular aralash`,
+            },
+          ] as { icon: keyof typeof Ionicons.glyphMap; title: string; desc: string }[]).map((f, i) => (
             <View
               key={f.title}
-              style={[
-                s.feature,
-                i > 0 ? { borderTopWidth: 1, borderTopColor: '#EDF1E7' } : null,
-                i === FEATURES.length - 1 ? { borderBottomLeftRadius: 16, borderBottomRightRadius: 16 } : null,
-              ]}
+              style={[s.feature, i > 0 ? { borderTopWidth: 1, borderTopColor: '#EDF1E7' } : null]}
             >
               <View style={s.featureTile}>
                 <Ionicons name={f.icon} size={17} color={BRAND} />
@@ -247,6 +291,28 @@ const ProScreen = () => {
               </View>
             </View>
           ))}
+        </View>
+
+        {/* ── Coin bilan sinash — Do'kondagi haftalik Pro ── */}
+        <Pressable
+          onPress={() => { triggerHaptic('light'); navigation.navigate('Main', { screen: 'Shop' }) }}
+          style={({ pressed }) => [s.coinRow, pressed && { opacity: 0.85 }]}
+        >
+          <View style={s.coinTile}>
+            <Ionicons name="wallet" size={16} color={AMBER} />
+          </View>
+          <View style={s.coinMid}>
+            <Text style={s.coinTitle}>Coin bilan sinab ko&apos;rish</Text>
+            <Text style={s.coinDesc}>{`Do'konda ${PRO_TRIAL.coin} coin — ${PRO_TRIAL.days} kunlik Pro`}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={FAINT} />
+        </Pressable>
+
+        <View style={s.plainNote}>
+          <Ionicons name="shield-checkmark" size={14} color={BRAND} />
+          <Text style={s.plainNoteText}>
+            Yashirin to&apos;lov yo&apos;q — muddat tugagach obuna o&apos;zi yangilanmaydi.
+          </Text>
         </View>
 
         {/* ── Obunani boshqarish ── */}
@@ -365,25 +431,42 @@ const s = StyleSheet.create({
     position: 'relative', overflow: 'hidden', borderRadius: 20,
     backgroundColor: INK, marginBottom: 16,
   },
-  heroInner: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, padding: 18 },
+  heroInner: { padding: 18 },
+  heroTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroBadge: {
-    width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
+    width: 38, height: 38, alignItems: 'center', justifyContent: 'center',
     backgroundColor: '#9BE04B', borderRadius: 100,
     ...shadow('#9BE04B', 8, 4, 0.4),
   },
-  heroCopy: { flex: 1, minWidth: 0 },
-  heroH1: { fontSize: 21, lineHeight: 26, fontWeight: '600', letterSpacing: -0.4, color: '#F7FCED' },
-  heroSub: { marginTop: 8, fontSize: 12.5, lineHeight: 17.5, fontWeight: '500', color: 'rgba(205,233,174,0.75)' },
+  heroPill: {
+    backgroundColor: 'rgba(155,224,75,0.14)', borderRadius: 11,
+    paddingHorizontal: 8, paddingVertical: 4,
+  },
+  heroPillText: { fontSize: 9.5, fontWeight: '700', color: '#9BE04B', letterSpacing: 0.8 },
+  heroH1: {
+    marginTop: 12, fontSize: 20, lineHeight: 25, fontWeight: '600',
+    letterSpacing: -0.4, color: '#F7FCED',
+  },
+  heroSub: { marginTop: 7, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: 'rgba(205,233,174,0.75)' },
+
+  heroStats: {
+    marginTop: 14, flexDirection: 'row', alignItems: 'center',
+    borderTopWidth: 1, borderTopColor: 'rgba(155,224,75,0.16)', paddingTop: 12,
+  },
+  heroStatCell: { flex: 1, alignItems: 'center' },
+  heroStatCellB: { borderLeftWidth: 1, borderLeftColor: 'rgba(155,224,75,0.16)' },
+  heroStatValue: { fontSize: 18, lineHeight: 21, fontWeight: '700', color: '#9BE04B', letterSpacing: -0.3 },
+  heroStatLabel: { marginTop: 2, fontSize: 10, fontWeight: '500', color: 'rgba(205,233,174,0.72)' },
 
   sectionLabel: {
     fontSize: 13, fontWeight: '600', color: INK,
-    marginBottom: 10, paddingLeft: 4,
+    marginBottom: 8, paddingLeft: 4,
   },
-  plans: { gap: 10, marginBottom: 20 },
+  plans: { gap: 8, marginBottom: 16 },
 
   plan: {
     position: 'relative', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 12,
-    minHeight: 80, borderRadius: 18, paddingVertical: 12, paddingLeft: 16, paddingRight: 16,
+    minHeight: 74, borderRadius: 18, paddingVertical: 11, paddingLeft: 16, paddingRight: 16,
   },
   planIdle: { backgroundColor: '#FFFFFF', ...soft },
   planOn: { backgroundColor: '#F1FAE7', ...glowGreen },
@@ -406,15 +489,35 @@ const s = StyleSheet.create({
   badgeAmber: { backgroundColor: '#FCF1DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   badgeAmberText: { fontSize: 11, fontWeight: '600', color: AMBER },
 
-  features: { backgroundColor: '#FFFFFF', borderRadius: 18, overflow: 'hidden', marginBottom: 20, ...soft },
-  feature: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 16, paddingVertical: 14 },
+  features: { backgroundColor: '#FFFFFF', borderRadius: 18, overflow: 'hidden', marginBottom: 10, ...soft },
+  feature: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 16, paddingVertical: 12 },
   featureTile: {
     width: 38, height: 38, borderRadius: 12, backgroundColor: '#EDF7DE',
     alignItems: 'center', justifyContent: 'center',
   },
   featureMid: { flex: 1, minWidth: 0 },
   featureTitle: { fontSize: 13.5, fontWeight: '600', lineHeight: 18, color: INK },
-  featureDesc: { marginTop: 4, fontSize: 12, lineHeight: 17, fontWeight: '500', color: GRAY },
+  featureDesc: { marginTop: 3, fontSize: 12, lineHeight: 17, fontWeight: '500', color: GRAY },
+
+  coinRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 10,
+    paddingLeft: 12, paddingRight: 14, paddingVertical: 11,
+    ...soft,
+  },
+  coinTile: {
+    width: 34, height: 34, borderRadius: 11, backgroundColor: '#FCF1DC',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  coinMid: { flex: 1, minWidth: 0 },
+  coinTitle: { fontSize: 13, fontWeight: '600', color: INK },
+  coinDesc: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: GRAY },
+
+  plainNote: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 7,
+    paddingHorizontal: 4, marginBottom: 20,
+  },
+  plainNoteText: { flex: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: GRAY },
 
   activeCard: {
     position: 'relative', overflow: 'hidden', marginBottom: 20,

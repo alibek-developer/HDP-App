@@ -26,19 +26,9 @@ export type Stage = 'new' | 'video' | 'example' | 'test' | 'done'
 /** Hisob raqami — faqat hisob ochilganda bir marta yaratiladi */
 const makePublicId = () => `HDP-${Math.floor(100000 + Math.random() * 900000)}`
 
-/** Ism yoki email'dan Telegram uslubidagi username */
+/** Ism familiyadan Telegram uslubidagi username: «Ali Karimov» → ali_karimov */
 const handleOf = (value: string) =>
   value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
-
-/** Email'dan ko'rinadigan ism: ali.karimov@… → «Ali Karimov» */
-const nameFromEmail = (email: string) => {
-  const local = email.split('@')[0] ?? ''
-  return local
-    .split(/[._-]+/)
-    .filter(Boolean)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-}
 
 export interface LessonProgress {
   videoWatched: boolean
@@ -236,8 +226,8 @@ interface AppState {
   setOnboarded: () => void
   /** Onboarding yakuni: maqsad + tug'ilgan sana saqlanadi va `onboarded` yonadi */
   saveStudyProfile: (goal: string, birthDate: string) => void
-  /** Email + parol bilan kirish (lokal hisob — haqiqiy auth server keyin) */
-  signInWithEmail: (email: string) => void
+  /** Kirish — saqlangan qurilmadagi hisobga username bilan */
+  signInWithUsername: (username: string) => void
   /** Telegram bot tasdiqlagan haqiqiy profil bilan kirish */
   signInWithTelegram: (name: string, username: string, telegramId: number) => void
   /** Login/ro'yxatdan o'tishda profil ma'lumotlari */
@@ -469,14 +459,13 @@ export const useApp = create<AppState>()(
 
       saveStudyProfile: (goal, birthDate) => set({ studyGoal: goal, birthDate, onboarded: true }),
 
-      signInWithEmail: (email) =>
+      signInWithUsername: (username) =>
         set((s) => {
-          const clean = email.trim().toLowerCase()
-          const local = clean.split('@')[0] ?? ''
+          const handle = handleOf(username)
           return {
-            email: clean,
-            name: s.name.trim() || nameFromEmail(clean),
-            username: s.username || handleOf(local),
+            username: handle,
+            name: s.name.trim() || handle,
+            email: null,
             publicId: s.publicId || makePublicId(),
             authed: true,
           }

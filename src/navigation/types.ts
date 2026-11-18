@@ -35,7 +35,6 @@ export type RootStackParamList = {
   Onboarding: undefined
   Login: undefined
   SignUp: undefined
-  Forgot: undefined
 
   /* Onboarding savollari — javob keyingi ekranga parametr bilan o'tadi */
   Goal: undefined

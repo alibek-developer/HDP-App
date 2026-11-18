@@ -14,7 +14,7 @@ import {
   ACHIEVEMENTS, ALL_SETS, WEEK_LABELS, currentWeekKeys,
   unlockedAchievements, type AchIcon, type AchStats,
 } from '../data/content'
-import { TOPICS, shortTitle } from '../data/curriculum'
+import { TOPICS } from '../data/curriculum'
 import { triggerHaptic } from '../lib/haptics'
 import { ensurePushToken, sendTestPush, syncPushTokenToBackend } from '../lib/push'
 import { useApp } from '../store/useStore'
@@ -106,19 +106,17 @@ const fmtUz = (iso: string) => {
   return `${d.getDate()}-${MONTHS_UZ[d.getMonth()]}, ${d.getFullYear()}`
 }
 
-const num = (n: number) => n.toLocaleString('en-US')
-
 /** Rangga mos yumshoq soyali karta — Dribbble'dagi gradient karta uslubi */
 const glow = (color: string) => ({
   ...SHADOW.card,
   shadowColor: color,
-  shadowOpacity: 0.26,
-  shadowRadius: 14,
+  shadowOpacity: 0.2,
+  shadowRadius: 12,
 })
 
 const GRAD_AVATAR: readonly [string, string] = ['#1FA35F', '#0B6E4F']
 
-const CH = 100
+const CH = 90
 
 /** Haftalik daqiqalar chizig'i — barcha nuqtalar haqiqiy `studyMinutes` dan */
 const WeekChart = ({ mins, width, todayIdx }: { mins: number[]; width: number; todayIdx: number }) => {
@@ -140,16 +138,16 @@ const WeekChart = ({ mins, width, todayIdx }: { mins: number[]; width: number; t
           stroke="#EAF0E5" strokeWidth={1}
         />
       ))}
-      {!!area && <Path d={area} fill={GREEN} fillOpacity={0.09} />}
+      {!!area && <Path d={area} fill={GREEN} fillOpacity={0.12} />}
       <Polyline
-        points={line} fill="none" stroke={GREEN} strokeWidth={2.5}
+        points={line} fill="none" stroke={GREEN} strokeWidth={2.75}
         strokeLinejoin="round" strokeLinecap="round"
       />
       {mins.map((m, i) => (
         <Circle
           key={i}
-          cx={xAt(i)} cy={yAt(m)} r={i === todayIdx ? 5.5 : 4.5}
-          fill="#FFFFFF" stroke={GREEN} strokeWidth={2.5}
+          cx={xAt(i)} cy={yAt(m)} r={i === todayIdx ? 6 : 4}
+          fill="#FFFFFF" stroke={GREEN} strokeWidth={i === todayIdx ? 3 : 2.5}
         />
       ))}
     </Svg>
@@ -163,7 +161,6 @@ const ProfileScreen = () => {
 
   const [editOpen, setEditOpen] = useState(false)
   const [bellOpen, setBellOpen] = useState(false)
-  const [certOpen, setCertOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [allOpen, setAllOpen] = useState(false)
   const [outOpen, setOutOpen] = useState(false)
@@ -181,13 +178,11 @@ const ProfileScreen = () => {
   const notifOn = useApp(s => s.notifOn)
   const setNotif = useApp(s => s.setNotif)
   const topicLessons = useApp(s => s.topicLessons)
-  const topicTests = useApp(s => s.topicTests)
   const solvedQuestions = useApp(s => s.solvedQuestions)
   const answeredTotal = useApp(s => s.answeredTotal)
   const answeredCorrect = useApp(s => s.answeredCorrect)
   const xp = useApp(s => s.xp)
   const level = useApp(s => s.level)
-  const coin = useApp(s => s.coin)
   const streak = useApp(s => s.streak)
   const bestStreak = useApp(s => s.bestStreak)
   const solvedCount = useApp(s => s.solvedCount)
@@ -231,11 +226,6 @@ const ProfileScreen = () => {
     ...unlocked,
     ...ACHIEVEMENTS.filter(a => !unlockedIds.has(a.id)),
   ].slice(0, 4)
-
-  /** Marralar — mavzu yakuniy testlari (haqiqiy natijalar) */
-  const marbles = TOPICS.slice(0, 4).map(t => ({ num: t.meta.num, test: topicTests[t.meta.num] }))
-
-  const totalStudyMin = Object.values(studyMinutes).reduce((a, b) => a + b, 0)
 
   const week = currentWeekKeys()
   const mins = week.map(k => studyMinutes[k] ?? 0)
@@ -387,6 +377,13 @@ const ProfileScreen = () => {
           </View>
 
           <View style={p.xpBlock}>
+            <LinearGradient
+              colors={['#F5FAEE', '#EDF7E2']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[ABS_FILL, { borderRadius: 16 }]}
+              pointerEvents="none"
+            />
             <View style={p.xpHead}>
               <Text style={p.xpTitle}>Daraja {level}</Text>
               <Text style={[p.xpNums, NUM]}>
@@ -404,34 +401,6 @@ const ProfileScreen = () => {
               </View>
             </View>
             <Text style={p.xpHint}>{xpLeft} XP keyingi darajaga</Text>
-          </View>
-
-          <View style={p.statRow}>
-            <View style={p.statCell}>
-              <View style={[p.statIcon, { backgroundColor: C.xpSoft }]}>
-                <MCI name="lightning-bolt" size={16} color={C.xp} />
-              </View>
-              <Text numberOfLines={1} style={[p.statValue, NUM]}>{num(xp)}</Text>
-              <Text style={p.statLabel}>XP</Text>
-            </View>
-            <View style={p.statSep} />
-            <View style={p.statCell}>
-              <View style={[p.statIcon, { backgroundColor: C.coinSoft }]}>
-                <MCI name="circle-multiple-outline" size={16} color="#B87A22" />
-              </View>
-              <Text numberOfLines={1} style={[p.statValue, NUM]}>{num(coin)}</Text>
-              <Text style={p.statLabel}>Tangalar</Text>
-            </View>
-            <View style={p.statSep} />
-            <View style={p.statCell}>
-              <View style={[p.statIcon, { backgroundColor: C.leafSoft }]}>
-                <MCI name="bullseye-arrow" size={16} color={GREEN} />
-              </View>
-              <Text numberOfLines={1} style={[p.statValue, NUM]}>
-                {answeredTotal > 0 ? `${accuracy}%` : '—'}
-              </Text>
-              <Text style={p.statLabel}>Aniqlik</Text>
-            </View>
           </View>
         </View>
 
@@ -485,7 +454,6 @@ const ProfileScreen = () => {
             icon="puzzle-outline"
             tint={C.leafSoft}
             ink={GREEN}
-            glowC={GREEN}
             value={`${solvedCount}`}
             label="Yechildi masalalar"
           />
@@ -493,23 +461,12 @@ const ProfileScreen = () => {
             icon="book-open-variant"
             tint={AMBER_BG}
             ink={AMBER_INK}
-            glowC="#E8A33D"
             value={`${lessonsDone}`}
             label="Yakunlangan darslar"
           />
         </View>
 
-        {/* ── 5. Ko'rsatkichlar ── */}
-        <View style={p.metricRow}>
-          <Metric icon="clock-outline" tint={C.xpSoft} ink={C.xp} glowC={C.xp} value={`${totalStudyMin} min`} label="O'qish vaqti" />
-          <Metric icon="fire" tint={C.dangerSoft} ink={DANGER} glowC={DANGER} value={`${streak} kun`} label="Joriy seriya" />
-        </View>
-        <View style={p.metricRow}>
-          <Metric icon="fire" tint={C.violetSoft} ink={C.violet} glowC={C.violet} value={`${best} kun`} label="Eng uzun seriya" />
-          <Metric icon="head-lightbulb-outline" tint={C.mintSoft} ink={GREEN} glowC={GREEN} value={`${solvedToday}`} label="Kunlik masala" />
-        </View>
-
-        {/* ── 6. Haftalik faollik ── */}
+        {/* ── 5. Haftalik faollik ── */}
         <View style={[p.card, p.chartCard]}>
           <View style={p.secHead}>
             <View style={p.secMid}>
@@ -542,7 +499,7 @@ const ProfileScreen = () => {
           </View>
         </View>
 
-        {/* ── 7. Nishonlar ── */}
+        {/* ── 6. Nishonlar ── */}
         <View style={p.card}>
           <View style={p.secHead}>
             <Text style={p.cardTitle}>Nishonlar</Text>
@@ -552,7 +509,7 @@ const ProfileScreen = () => {
               style={({ pressed }) => [p.allBtn, pressed && { opacity: 0.6 }]}
             >
               <Text style={p.secAction}>Barchasi</Text>
-              <MCI name="chevron-right" size={13} color={GRAY} />
+              <MCI name="chevron-right" size={13} color={GREEN} />
             </Pressable>
           </View>
 
@@ -578,57 +535,10 @@ const ProfileScreen = () => {
           </View>
         </View>
 
-        {/* ── 8. Marralar ── */}
-        <View style={p.card}>
-          <View style={p.secHead}>
-            <Text style={p.cardTitle}>Marralar</Text>
-            <Pressable
-              onPress={() => { triggerHaptic('light'); setCertOpen(true) }}
-              hitSlop={12}
-              style={({ pressed }) => [p.allBtn, pressed && { opacity: 0.6 }]}
-            >
-              <Text style={p.secAction}>Barchasi</Text>
-              <MCI name="chevron-right" size={13} color={GRAY} />
-            </Pressable>
-          </View>
-
-          <View style={p.badgeRow}>
-            {marbles.map(({ num: n, test }) => {
-              const on = !!test
-              return (
-                <View key={n} style={p.badgeCol}>
-                  <View
-                    style={[
-                      p.marble,
-                      {
-                        borderColor: on ? GREEN : '#E4EAE0',
-                        backgroundColor: on ? C.leafSoft : '#F4F7F1',
-                      },
-                      on && glow(GREEN),
-                    ]}
-                  >
-                    {test ? (
-                      <Text style={[p.marbleScore, NUM]}>{test.score}/{test.total}</Text>
-                    ) : (
-                      <MCI name="lock-outline" size={15} color="#A9B7A3" />
-                    )}
-                  </View>
-                  <Text style={p.marbleLabel}>{n}-mavzu</Text>
-                </View>
-              )
-            })}
-          </View>
-        </View>
-
-        {/* ── 9. Pastki izoh ── */}
-        <View style={p.footer}>
-          <Text style={p.footerTitle}>HDP Academy 1.0.0</Text>
-          <Text style={p.footerSub}>Matematika o&apos;quv platformasi</Text>
-        </View>
       </ScrollView>
 
       {/* Status bar zonasi — kontent shu chegara ostidan o'tadi */}
-      <TopScrim height={insets.top} colors={['#FFFFFF', '#FFFFFF']} line="rgba(14,26,18,0.06)" />
+      <TopScrim height={insets.top} colors={['#F7F9F3', '#F7F9F3']} line="rgba(14,26,18,0.05)" />
 
       {/* ── Varaqa: profilni tahrirlash ── */}
       <Sheet open={editOpen} onClose={() => setEditOpen(false)} title="Profilni tahrirlash">
@@ -664,44 +574,6 @@ const ProfileScreen = () => {
         >
           <Text style={p.btnInkText}>Kunlik masalaga o&apos;tish</Text>
         </Pressable>
-      </Sheet>
-
-      {/* ── Varaqa: natijalar ── */}
-      <Sheet
-        open={certOpen}
-        onClose={() => setCertOpen(false)}
-        title="Natijalar"
-        subtitle="Har bir mavzu yakuniy testining natijasi shu yerda saqlanadi."
-      >
-        {TOPICS.every(t => !topicTests[t.meta.num]) ? (
-          <Text style={p.sheetText}>
-            Hozircha natija yo&apos;q. Har mavzu oxiridagi yakuniy testni tugating —
-            natija shu yerda paydo bo&apos;ladi.
-          </Text>
-        ) : (
-          TOPICS.filter(t => topicTests[t.meta.num]).map(t => {
-            const test = topicTests[t.meta.num]
-            return (
-              <View key={t.meta.num} style={p.certRow}>
-                <View style={p.certTile}>
-                  <MCI name="school-outline" size={16} color={GREEN} />
-                </View>
-                <View style={p.certMid}>
-                  <Text numberOfLines={1} style={p.certTitle}>
-                    Mavzu {t.meta.num} · {shortTitle(t.meta.title)}
-                  </Text>
-                  <Text style={p.certScore}>
-                    {test.score}/{test.total} to&apos;g&apos;ri
-                  </Text>
-                </View>
-                <MCI name="check-circle-outline" size={19} color={GREEN} />
-              </View>
-            )
-          })
-        )}
-        <Text style={p.sheetFoot}>
-          Natijalar shu qurilmadagi profilingizda saqlanadi.
-        </Text>
       </Sheet>
 
       {/* ── Varaqa: sozlamalar ── */}
@@ -856,43 +728,21 @@ const HeadBtn = ({
 )
 
 const BigTile = ({
-  icon, tint, ink, glowC, value, label,
+  icon, tint, ink, value, label,
 }: {
   icon: keyof typeof MCI.glyphMap
   tint: string
   ink: string
-  glowC: string
   value: string
   label: string
 }) => (
-  <View style={[st.bigTile, glow(glowC)]}>
+  <View style={st.bigTile}>
     <View style={[st.bigIcon, { backgroundColor: tint }]}>
       <MCI name={icon} size={19} color={ink} />
     </View>
     <View style={st.bigMid}>
       <Text numberOfLines={1} style={[st.bigValue, NUM]}>{value}</Text>
       <Text numberOfLines={2} style={st.bigLabel}>{label}</Text>
-    </View>
-  </View>
-)
-
-const Metric = ({
-  icon, tint, ink, glowC, value, label,
-}: {
-  icon: keyof typeof MCI.glyphMap
-  tint: string
-  ink: string
-  glowC: string
-  value: string
-  label: string
-}) => (
-  <View style={[st.metric, glow(glowC)]}>
-    <View style={[st.metricIcon, { backgroundColor: tint }]}>
-      <MCI name={icon} size={16} color={ink} />
-    </View>
-    <View style={st.metricMid}>
-      <Text numberOfLines={1} style={[st.metricValue, NUM]}>{value}</Text>
-      <Text numberOfLines={1} style={st.metricLabel}>{label}</Text>
     </View>
   </View>
 )
@@ -935,27 +785,30 @@ const Field = ({
 )
 
 const p = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  screen: { flex: 1, backgroundColor: '#F7F9F3' },
   scroll: { paddingHorizontal: 16 },
 
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  h1: { fontSize: 22, lineHeight: 28, fontWeight: '600', letterSpacing: -0.5, color: INK },
+  h1: { fontSize: 23, lineHeight: 28, fontWeight: '700', letterSpacing: -0.6, color: INK },
   headBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 
   heroCard: {
-    marginTop: 22, backgroundColor: '#FFFFFF', borderRadius: 24,
-    padding: 16, ...SHADOW.card,
+    marginTop: 14, backgroundColor: '#FFFFFF', borderRadius: 24,
+    padding: 14, borderWidth: 1, borderColor: '#F1F5EC',
+    ...shadow('#0E1A12', 18, 6, 0.07),
   },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatarWrap: {
-    width: 76, height: 76, borderRadius: 100, backgroundColor: SOFT,
+    width: 68, height: 68, borderRadius: 100, backgroundColor: '#EAF4E2',
     alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: '#DCEDCE',
+    ...shadow('#0B6E4F', 10, 3, 0.12),
   },
-  avatarInner: { width: 68, height: 68, borderRadius: 100, overflow: 'hidden' },
-  avatarImg: { width: 68, height: 68 },
-  avatarText: { fontSize: 24, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.6 },
+  avatarInner: { width: 60, height: 60, borderRadius: 100, overflow: 'hidden' },
+  avatarImg: { width: 60, height: 60 },
+  avatarText: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.6 },
   lvlDot: {
-    position: 'absolute', right: -2, bottom: -2, minWidth: 22, height: 22,
+    position: 'absolute', right: -2, bottom: -2, minWidth: 21, height: 21,
     paddingHorizontal: 5, borderRadius: 100, backgroundColor: C.lime,
     borderWidth: 2.5, borderColor: '#FFFFFF',
     alignItems: 'center', justifyContent: 'center',
@@ -964,11 +817,11 @@ const p = StyleSheet.create({
   lvlDotText: { fontSize: 10, fontWeight: '700', color: C.inkOnLime },
   heroMid: { flex: 1, minWidth: 0 },
   heroNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  heroName: { fontSize: 19, lineHeight: 24, fontWeight: '600', letterSpacing: -0.3, color: INK, flexShrink: 1 },
+  heroName: { fontSize: 19, lineHeight: 24, fontWeight: '700', letterSpacing: -0.45, color: INK, flexShrink: 1 },
   heroHandle: { marginTop: 3, fontSize: 11.5, fontWeight: '500', color: GRAY },
 
   xpBlock: {
-    marginTop: 16, backgroundColor: SOFT, borderRadius: 16, padding: 12,
+    marginTop: 12, backgroundColor: SOFT, borderRadius: 16, padding: 12,
   },
   xpHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   xpTitle: { fontSize: 12.5, fontWeight: '600', color: INK, letterSpacing: -0.2 },
@@ -981,23 +834,11 @@ const p = StyleSheet.create({
   xpFill2: { height: '100%', borderRadius: 100, overflow: 'hidden' },
   xpHint: { marginTop: 7, fontSize: 10, fontWeight: '500', color: FAINT },
 
-  statRow: {
-    marginTop: 14, flexDirection: 'row', alignItems: 'center',
-    borderTopWidth: 1, borderTopColor: HAIR, paddingTop: 14,
-  },
-  statCell: { flex: 1, alignItems: 'center', gap: 4 },
-  statIcon: {
-    width: 34, height: 34, borderRadius: 100,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  statValue: { fontSize: 15, lineHeight: 18, fontWeight: '600', color: INK, letterSpacing: -0.2 },
-  statLabel: { fontSize: 10, fontWeight: '500', color: GRAY },
-  statSep: { width: 1, height: 40, backgroundColor: HAIR },
-
-  proWrap: { marginTop: 12, borderRadius: 20, ...glow('#0B6E4F') },
+  proWrap: { marginTop: 10, borderRadius: 18, ...glow('#0B6E4F') },
   proBanner: {
-    height: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11,
-    overflow: 'hidden', borderRadius: 20,
+    height: 58, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10,
+    overflow: 'hidden', borderRadius: 18,
+    borderWidth: 1, borderColor: 'rgba(126,211,33,0.18)',
   },
   proGlow: {
     position: 'absolute', top: -45, right: 30, width: 130, height: 130,
@@ -1008,7 +849,7 @@ const p = StyleSheet.create({
     borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.05)',
   },
   proIcon: {
-    width: 38, height: 38, borderRadius: 100, backgroundColor: C.lime,
+    width: 34, height: 34, borderRadius: 100, backgroundColor: C.lime,
     alignItems: 'center', justifyContent: 'center',
     ...shadow('#7ED321', 8, 3, 0.45),
   },
@@ -1034,14 +875,14 @@ const p = StyleSheet.create({
     ...shadow('#7ED321', 6, 2, 0.4),
   },
 
-  bigRow: { marginTop: 12, flexDirection: 'row', gap: 10 },
-  metricRow: { marginTop: 10, flexDirection: 'row', gap: 10 },
+  bigRow: { marginTop: 10, flexDirection: 'row', gap: 10 },
 
   card: {
-    marginTop: 12, backgroundColor: '#FFFFFF', borderRadius: 20,
-    padding: 14, ...SHADOW.card,
+    marginTop: 10, backgroundColor: '#FFFFFF', borderRadius: 20,
+    padding: 13, borderWidth: 1, borderColor: '#F1F5EC',
+    ...shadow('#0E1A12', 14, 5, 0.05),
   },
-  chartCard: { marginTop: 12 },
+  chartCard: { marginTop: 10 },
 
   secHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   secMid: { flex: 1, minWidth: 0 },
@@ -1051,10 +892,10 @@ const p = StyleSheet.create({
     width: 32, height: 32, borderRadius: 100, backgroundColor: C.leafSoft,
     alignItems: 'center', justifyContent: 'center',
   },
-  secAction: { fontSize: 11.5, fontWeight: '600', color: GRAY },
+  secAction: { fontSize: 11.5, fontWeight: '700', color: GREEN },
   allBtn: { flexDirection: 'row', alignItems: 'center', gap: 1 },
 
-  chartRow: { marginTop: 14, flexDirection: 'row', alignItems: 'flex-start' },
+  chartRow: { marginTop: 12, flexDirection: 'row', alignItems: 'flex-start' },
   yAxis: {
     width: 26, height: CH, justifyContent: 'space-between',
     paddingVertical: 5, marginRight: 2,
@@ -1072,17 +913,10 @@ const p = StyleSheet.create({
   legendName: { flex: 1, fontSize: 11.5, fontWeight: '600', color: GRAY },
   legendValue: { fontSize: 12, fontWeight: '600', color: GREEN },
 
-  badgeRow: { marginTop: 14, flexDirection: 'row' },
+  badgeRow: { marginTop: 12, flexDirection: 'row' },
   badgeCol: { flex: 1, alignItems: 'center' },
-  badge: { width: 54, height: 54, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
-  badgeTitle: { marginTop: 8, fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: INK, textAlign: 'center' },
-  marble: { width: 54, height: 54, borderRadius: 100, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
-  marbleScore: { fontSize: 12, fontWeight: '600', color: GREEN },
-  marbleLabel: { marginTop: 8, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: GRAY, textAlign: 'center' },
-
-  footer: { marginTop: 24, alignItems: 'center', paddingBottom: 4 },
-  footerTitle: { fontSize: 11.5, fontWeight: '500', color: GRAY, textAlign: 'center' },
-  footerSub: { marginTop: 2, fontSize: 10.5, fontWeight: '500', color: FAINT, textAlign: 'center' },
+  badge: { width: 50, height: 50, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
+  badgeTitle: { marginTop: 7, fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: INK, textAlign: 'center' },
 
   btnLime: {
     marginTop: 16, height: 46, borderRadius: 14, backgroundColor: C.lime,
@@ -1106,15 +940,6 @@ const p = StyleSheet.create({
   btnSoftText: { fontSize: 13, fontWeight: '600', color: INK },
 
   sheetText: { fontSize: 13, lineHeight: 20, color: GRAY },
-  sheetFoot: { marginTop: 12, fontSize: 11.5, lineHeight: 17, color: FAINT },
-  certRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: HAIR,
-  },
-  certTile: { width: 34, height: 34, borderRadius: 100, backgroundColor: SOFT, alignItems: 'center', justifyContent: 'center' },
-  certMid: { flex: 1, minWidth: 0 },
-  certTitle: { fontSize: 13, fontWeight: '600', color: INK },
-  certScore: { marginTop: 2, fontSize: 11, fontWeight: '500', color: GRAY },
 
   themeList: { marginTop: 4 },
   themeRow: {
@@ -1153,21 +978,14 @@ const st = StyleSheet.create({
 
   bigTile: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#FFFFFF', borderRadius: 20, padding: 14,
+    backgroundColor: '#FFFFFF', borderRadius: 18, padding: 12,
+    borderWidth: 1, borderColor: '#F1F5EC',
+    ...shadow('#0E1A12', 14, 5, 0.05),
   },
-  bigIcon: { width: 42, height: 42, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
+  bigIcon: { width: 38, height: 38, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
   bigMid: { flex: 1, minWidth: 0 },
-  bigValue: { fontSize: 22, lineHeight: 26, fontWeight: '600', color: INK, letterSpacing: -0.5 },
+  bigValue: { fontSize: 21, lineHeight: 25, fontWeight: '700', color: INK, letterSpacing: -0.5 },
   bigLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: GRAY },
-
-  metric: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9,
-    backgroundColor: '#FFFFFF', borderRadius: 18, paddingHorizontal: 12, paddingVertical: 12,
-  },
-  metricIcon: { width: 36, height: 36, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
-  metricMid: { flex: 1, minWidth: 0 },
-  metricValue: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', color: INK, letterSpacing: -0.2 },
-  metricLabel: { marginTop: 1, fontSize: 10, fontWeight: '500', color: GRAY },
 
   pill: { height: 20, paddingHorizontal: 8, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
   pillText: { fontSize: 10, fontWeight: '600' },

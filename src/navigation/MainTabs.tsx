@@ -48,6 +48,8 @@ const MainTabs = () => (
     screenOptions={{
       headerShown: false,
       animation: 'shift',
+      /** Fokusdan chiqqan tab render qilmaydi — tab almashinuvi yengillashadi */
+      freezeOnBlur: true,
       sceneStyle: { backgroundColor: C.canvas },
     }}
     tabBar={props => <TabBar {...props} />}
