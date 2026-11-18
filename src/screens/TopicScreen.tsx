@@ -11,6 +11,7 @@ import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { useExitToTopics } from '../lib/nav'
 import { findTopic, shortTitle } from '../data/curriculum'
+import { topicHasPaidLessons } from '../data/paywall'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, C, NUM } from '../theme/tokens'
 import { CARD, LIME_BTN, SOLVER_BODY } from '../theme/solver'
@@ -35,6 +36,8 @@ const TopicScreen = () => {
   const entry = findTopic(topicNum)
 
   const coin = useApp(s => s.coin)
+  const isPro = useApp(s => s.isPro)
+  const canOpenTopicLesson = useApp(s => s.canOpenTopicLesson)
   const topicLessons = useApp(s => s.topicLessons)
   const topicTest = useApp(s => s.topicTests[topicNum])
   const canEnterTopicTest = useApp(s => s.canEnterTopicTest)
@@ -48,11 +51,17 @@ const TopicScreen = () => {
   const totalLessons = lessons.length
   const videoCount = lessons.reduce((n, l) => n + l.videos.length, 0)
   const minutes = lessons.reduce((n, l) => n + l.minutes, 0)
-  const firstOpen = lessons.find(l => !topicLessons[l.id]?.done)
-  const testOpen = canEnterTopicTest(topicNum)
+  const firstOpen = lessons.find(l => !topicLessons[l.id]?.done && canOpenTopicLesson(l.id))
+  const testProLocked = !isPro && topicHasPaidLessons(topicNum)
+  const testOpen = canEnterTopicTest(topicNum) && !testProLocked
   const passed = !!topicTest && topicTest.score >= pass
 
   const openLesson = (id: string) => {
+    if (!canOpenTopicLesson(id)) {
+      triggerHaptic('warning')
+      navigation.navigate('Pro')
+      return
+    }
     triggerHaptic('medium')
     setTestHint(false)
     navigation.navigate('TopicLesson', { lessonId: id })
@@ -61,6 +70,11 @@ const TopicScreen = () => {
   const [testHint, setTestHint] = useState(false)
 
   const openTest = () => {
+    if (testProLocked) {
+      triggerHaptic('warning')
+      navigation.navigate('Pro')
+      return
+    }
     if (!testOpen) {
       triggerHaptic('warning')
       setTestHint(true)
@@ -124,7 +138,11 @@ const TopicScreen = () => {
 
         {/* ── Keyingi qadam ── */}
         <Pressable
-          onPress={() => (testOpen ? openTest() : firstOpen && openLesson(firstOpen.id))}
+          onPress={() => {
+            if (testOpen) openTest()
+            else if (firstOpen) openLesson(firstOpen.id)
+            else navigation.navigate('Pro')
+          }}
           style={({ pressed }) => [styles.cta, LIME_BTN, pressed && { transform: [{ scale: 0.985 }] }]}
         >
           <Text style={styles.ctaText}>
@@ -134,7 +152,9 @@ const TopicScreen = () => {
                 ? doneCount === 0
                   ? `Boshlash: ${firstOpen.id}-bo'lim`
                   : `${firstOpen.id}-bo'limdan davom etish`
-                : 'Barcha bo\'limlar tugagan'}
+                : testProLocked || lessons.some(l => !topicLessons[l.id]?.done)
+                  ? 'Pro bilan davom etish'
+                  : 'Barcha bo\'limlar tugagan'}
           </Text>
           <Ionicons name="chevron-forward" size={16} color="#1C3214" />
         </Pressable>
@@ -196,12 +216,15 @@ const TopicScreen = () => {
               const st = topicLessons[l.id]
               const done = !!st?.done
               const started = !done && !!st?.videoSeen
+              const locked = !done && !canOpenTopicLesson(l.id)
 
               const tile = done
                 ? styles.tileDone
                 : started
                   ? styles.tileStarted
-                  : styles.tileIdle
+                  : locked
+                    ? styles.tileLocked
+                    : styles.tileIdle
 
               const ticks = [l.videos.length === 0 || !!st?.videoSeen, done]
               const mashq = l.practice.length + (l.exercises?.length ?? 0)
@@ -219,6 +242,8 @@ const TopicScreen = () => {
                   <View style={[styles.tile, tile]}>
                     {done ? (
                       <Ionicons name="checkmark" size={17} color="#0B6E4F" />
+                    ) : locked ? (
+                      <Ionicons name="lock-closed" size={15} color="#9AA995" />
                     ) : started ? (
                       <Ionicons name="play" size={14} color="#9BE04B" />
                     ) : (
@@ -247,9 +272,13 @@ const TopicScreen = () => {
                   </View>
 
                   <View style={styles.rowRight}>
-                    <Text style={[styles.rowStage, { color: done ? '#0B6E4F' : started ? '#B87A22' : '#6B7C66' }]}>
-                      {done ? 'Yakunlangan' : started ? 'Davom etish' : 'Boshlash'}
-                    </Text>
+                    {locked ? (
+                      <Text style={[styles.rowStage, { color: '#B87A22' }]}>Pro</Text>
+                    ) : (
+                      <Text style={[styles.rowStage, { color: done ? '#0B6E4F' : started ? '#B87A22' : '#6B7C66' }]}>
+                        {done ? 'Yakunlangan' : started ? 'Davom etish' : 'Boshlash'}
+                      </Text>
+                    )}
                     <Ionicons name="chevron-forward" size={15} color="#9AA995" style={styles.rowChevron} />
                   </View>
                 </Pressable>
@@ -274,17 +303,19 @@ const TopicScreen = () => {
                   {test.title} · {test.total} savol
                 </Text>
                 <Text style={styles.rowSub}>
-                  {testOpen
-                    ? topicTest
-                      ? `Eng yaxshi natija: ${topicTest.score}/${topicTest.total} · o'tish ${pass} ta`
-                      : `Barcha bo'limlar tugadi — testga kirish ochiq (${pass} ta — o'tish)`
-                    : `${totalLessons} bo'limning ${doneCount} tasi tugadi — test qulflangan`}
+                  {testProLocked
+                    ? 'Bu mavzuda pullik bo‘limlar bor — test Pro uchun'
+                    : testOpen
+                      ? topicTest
+                        ? `Eng yaxshi natija: ${topicTest.score}/${topicTest.total} · o'tish ${pass} ta`
+                        : `Barcha bo'limlar tugadi — testga kirish ochiq (${pass} ta — o'tish)`
+                      : `${totalLessons} bo'limning ${doneCount} tasi tugadi — test qulflangan`}
                 </Text>
               </View>
 
               <View style={styles.rowRight}>
                 <Text style={[styles.testLabel, { color: testOpen ? '#B87A22' : '#9AA995' }]}>
-                  {testOpen ? (topicTest ? 'Yana ishlash' : 'Boshlash') : `${doneCount}/${totalLessons}`}
+                  {testProLocked ? 'Pro' : testOpen ? (topicTest ? 'Yana ishlash' : 'Boshlash') : `${doneCount}/${totalLessons}`}
                 </Text>
                 <Text style={[styles.testCoins, NUM, { color: testOpen ? '#0B6E4F' : '#CBD5C5' }]}>
                   +{test.total * test.coinPerSolve} coin
@@ -359,6 +390,7 @@ const styles = StyleSheet.create({
   tileDone: { backgroundColor: '#DDF3DC' },
   tileStarted: { backgroundColor: '#0E1A12' },
   tileIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
+  tileLocked: { backgroundColor: '#F1F4EE' },
   tileText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
   rowBody: { flex: 1, minWidth: 0 },
   rowTitle: { fontSize: 14, lineHeight: 19, fontWeight: '600', color: C.ink },

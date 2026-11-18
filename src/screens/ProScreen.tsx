@@ -14,8 +14,8 @@ import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM, shadow } from '../theme/tokens'
 import {
-  CARD, GRAD_HEADER, GRAD_LIME, GRAD_RAIL,
-  INK_BTN, LIME_BTN, OUT_BTN,
+  GRAD_HEADER, GRAD_LIME, GRAD_RAIL,
+  INK_BTN, LIME_BTN,
 } from '../theme/solver'
 
 /**
@@ -55,6 +55,11 @@ const GRAY = '#6B7C66'
 const FAINT = '#9AA995'
 const BRAND = '#0B6E4F'
 const AMBER = '#B87A22'
+
+/** Chegarasiz oq karta soyasi */
+const soft = shadow('#0E1A12', 12, 8, 0.07)
+/** Tanlangan reja uchun yashil yorug'lik soyasi */
+const glowGreen = shadow('#5FAF22', 14, 8, 0.2)
 
 /** Hero ustidagi katak — web'dagi repeating-linear-gradient ekvivalenti */
 const HeroGrid = () => {
@@ -138,7 +143,7 @@ const ProScreen = () => {
           <HeroGrid />
           <View style={s.heroInner}>
             <View style={s.heroBadge}>
-              <Ionicons name="diamond" size={21} color="#9BE04B" />
+              <Ionicons name="diamond" size={21} color="#1C3214" />
             </View>
             <View style={s.heroCopy}>
               <Text style={s.heroH1}>Matematikani{'\n'}HDP Pro bilan egallang</Text>
@@ -152,7 +157,6 @@ const ProScreen = () => {
         {/* ── Faol obuna holati ── */}
         {isPro && (
           <View style={s.activeCard}>
-            <View style={s.activeRail} />
             <View style={s.activeInner}>
               <View style={s.activeHead}>
                 <Ionicons name="ribbon" size={15} color={AMBER} />
@@ -188,14 +192,6 @@ const ProScreen = () => {
                       pressed && { transform: [{ scale: 0.995 }] },
                     ]}
                   >
-                    {on && (
-                      <LinearGradient
-                        colors={GRAD_RAIL}
-                        start={{ x: 0.5, y: 0 }}
-                        end={{ x: 0.5, y: 1 }}
-                        style={s.planRail}
-                      />
-                    )}
                     <View style={[s.radio, on ? s.radioOn : s.radioIdle]}>
                       {on && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
                     </View>
@@ -268,7 +264,7 @@ const ProScreen = () => {
 
       {/* ── Xarid paneli — bosh barmaq zonasi, doim ko'z oldida ── */}
       {!isPro && (
-        <View style={[s.dock, { bottom: 0, paddingBottom: insets.bottom + 12 }]}>
+        <View style={[s.dock, { paddingBottom: insets.bottom + 12 }]}>
           <View style={s.dockHead}>
             <View style={s.dockLeft}>
               <Text style={s.dockLabel}>{`Jami to'lov · ${plan.label}`}</Text>
@@ -288,7 +284,7 @@ const ProScreen = () => {
             onPress={handleSubscribe}
             style={({ pressed }) => [s.buyBtn, pressed && { transform: [{ scale: 0.985 }] }]}
           >
-            <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[ABS_FILL, { borderRadius: 12 }]} />
+            <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[ABS_FILL, { borderRadius: 14 }]} />
             <Ionicons name="ribbon" size={17} color="#1C3214" style={s.buyIcon} />
             <Text style={s.buyText}>To&apos;lovsiz faollashtirish</Text>
           </Pressable>
@@ -358,7 +354,7 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 },
   backBtn: {
     width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 13, ...soft,
   },
   headCenter: { alignItems: 'center' },
   headKicker: { fontSize: 12, fontWeight: '500', color: GRAY },
@@ -372,8 +368,8 @@ const s = StyleSheet.create({
   heroInner: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, padding: 18 },
   heroBadge: {
     width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(155,224,75,0.16)', borderColor: 'rgba(155,224,75,0.36)',
-    borderWidth: 1, borderRadius: 13,
+    backgroundColor: '#9BE04B', borderRadius: 100,
+    ...shadow('#9BE04B', 8, 4, 0.4),
   },
   heroCopy: { flex: 1, minWidth: 0 },
   heroH1: { fontSize: 21, lineHeight: 26, fontWeight: '600', letterSpacing: -0.4, color: '#F7FCED' },
@@ -387,11 +383,10 @@ const s = StyleSheet.create({
 
   plan: {
     position: 'relative', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 12,
-    minHeight: 80, borderRadius: 16, paddingVertical: 12, paddingLeft: 16, paddingRight: 16,
+    minHeight: 80, borderRadius: 18, paddingVertical: 12, paddingLeft: 16, paddingRight: 16,
   },
-  planIdle: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1 },
-  planOn: { backgroundColor: '#F1FAE7', borderColor: '#5FAF22', borderWidth: 1 },
-  planRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
+  planIdle: { backgroundColor: '#FFFFFF', ...soft },
+  planOn: { backgroundColor: '#F1FAE7', ...glowGreen },
   radio: {
     width: 22, height: 22, borderRadius: 999, alignItems: 'center', justifyContent: 'center',
   },
@@ -411,7 +406,7 @@ const s = StyleSheet.create({
   badgeAmber: { backgroundColor: '#FCF1DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   badgeAmberText: { fontSize: 11, fontWeight: '600', color: AMBER },
 
-  features: { ...CARD, borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
+  features: { backgroundColor: '#FFFFFF', borderRadius: 18, overflow: 'hidden', marginBottom: 20, ...soft },
   feature: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 16, paddingVertical: 14 },
   featureTile: {
     width: 38, height: 38, borderRadius: 12, backgroundColor: '#EDF7DE',
@@ -423,26 +418,25 @@ const s = StyleSheet.create({
 
   activeCard: {
     position: 'relative', overflow: 'hidden', marginBottom: 20,
-    backgroundColor: '#DDF3DC', borderColor: '#A7D8A0', borderWidth: 1, borderRadius: 16,
+    backgroundColor: '#E9F7DF', borderRadius: 18, ...glowGreen,
   },
-  activeRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, backgroundColor: '#5FAF22' },
-  activeInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
+  activeInner: { paddingLeft: 18, paddingRight: 16, paddingVertical: 16 },
   activeHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   activeTitle: { fontSize: 14, fontWeight: '600', color: '#0B4A34' },
   activeSub: { marginTop: 6, fontSize: 12, fontWeight: '500', color: BRAND },
   activeDateRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
   activeDate: { fontSize: 12, fontWeight: '600', color: '#0B4A34' },
   cancelPro: {
-    ...OUT_BTN, height: 48,
+    backgroundColor: '#FFFFFF', borderRadius: 14, height: 48,
+    alignItems: 'center', justifyContent: 'center', ...soft,
   },
   cancelProText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
 
   dock: {
-    position: 'absolute', left: 0, right: 0, backgroundColor: '#FFFFFF',
-    borderTopWidth: 1, borderTopColor: '#E1E7DA',
-    borderTopLeftRadius: 18, borderTopRightRadius: 18,
-    paddingHorizontal: 16, paddingTop: 12,
-    ...shadow('#0E1A12', 18, 2, 0.07),
+    position: 'absolute', left: 12, right: 12, bottom: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 20,
+    paddingHorizontal: 16, paddingTop: 14,
+    ...shadow('#0E1A12', 20, 6, 0.12),
   },
   dockHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dockLeft: { flex: 1, minWidth: 0 },
@@ -454,7 +448,7 @@ const s = StyleSheet.create({
   dockSave: { backgroundColor: '#DDF3DC', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
   dockSaveText: { fontSize: 12, fontWeight: '600', color: BRAND },
   buyBtn: {
-    ...LIME_BTN, height: 52,
+    ...LIME_BTN, height: 52, borderRadius: 14,
   },
   buyIcon: { color: '#1C3214', marginRight: 8 },
   buyText: { fontSize: 15, fontWeight: '600', color: '#1C3214' },

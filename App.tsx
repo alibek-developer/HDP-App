@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View } from 'react-native'
+import { AppState, View } from 'react-native'
 import { NavigationContainer, DarkTheme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { StatusBar } from 'expo-status-bar'
@@ -27,8 +27,11 @@ import SubjectLevelsScreen from './src/screens/SubjectLevelsScreen'
 import DailyScreen from './src/screens/DailyScreen'
 import ResultScreen from './src/screens/ResultScreen'
 import MainTabs from './src/navigation/MainTabs'
+import StreakBonusSheet from './src/components/StreakBonusSheet'
 import type { RootStackParamList } from './src/navigation/types'
 import { C } from './src/theme/tokens'
+import { navigationRef } from './src/lib/navRef'
+import { configureNotifications, ensurePushToken, syncPushTokenToBackend } from './src/lib/push'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
@@ -53,6 +56,35 @@ const App = () => {
     return useApp.persist.onFinishHydration(() => setHydrated(true))
   }, [])
 
+  // Zanjir: ilova ochilganda (va fondan qaytganda) kun avtomatik qayd bo'ladi
+  useEffect(() => {
+    if (!hydrated) return undefined
+    useApp.getState().enterApp()
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') useApp.getState().enterApp()
+    })
+    return () => sub.remove()
+  }, [hydrated])
+
+  // Push bildirishnomalar: ruxsat + token olish, backend'ga sync
+  useEffect(() => {
+    if (!hydrated) return undefined
+    configureNotifications()
+    const boot = async () => {
+      if (!useApp.getState().notifOn) return
+      const { token } = await ensurePushToken()
+      if (token && useApp.getState().authed) void syncPushTokenToBackend()
+    }
+    void boot()
+    const unsub = useApp.subscribe((s, prev) => {
+      if (s.notifOn && !prev.notifOn) {
+        void ensurePushToken().then(() => syncPushTokenToBackend())
+      }
+      if (s.authed && !prev.authed) void syncPushTokenToBackend()
+    })
+    return unsub
+  }, [hydrated])
+
   if (!hydrated || (!fontsLoaded && !fontError))
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.mintSoft }}>
@@ -69,7 +101,10 @@ const App = () => {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <NavigationContainer theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: C.canvas } }}>
+      <NavigationContainer
+        ref={navigationRef}
+        theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: C.canvas } }}
+      >
         <Stack.Navigator
           initialRouteName={startRoute}
           screenOptions={{
@@ -103,6 +138,7 @@ const App = () => {
           <Stack.Screen name="Balance" component={BalanceScreen} />
         </Stack.Navigator>
       </NavigationContainer>
+      <StreakBonusSheet />
     </SafeAreaProvider>
   )
 }

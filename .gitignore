@@ -37,6 +37,9 @@ yarn-error.*
 # xom video manbalar (~1.4 GB) — build'ga kirmaydi, faqat lokal arxiv
 1-mavzu/
 
+# generatsiya qilingan xom rasmlar — faqat tanlangan asset src/assets'ga tushadi
+vibe_images/
+
 # typescript
 *.tsbuildinfo
 
