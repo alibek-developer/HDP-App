@@ -616,6 +616,9 @@ export const TEST_REWARD = { coin: 5, xp: 20 }
 /** Kunlik missiyalar mukofoti ( ProblemsScreen kalitlari ) */
 export const MISSION_REWARDS = { solve5: 20, streak: 10, olymp: 50 }
 
+/** Kunlik zanjir bonusi: har kun +5 coin, 10 kundan keyin 50 coin */
+export const streakReward = (streak: number) => Math.min(streak, 10) * 5
+
 /** To'plamlardagi eng arzon / eng qimmat bitta to'g'ri javob */
 export const SET_COIN_RANGE = {
   min: Math.min(...ALL_SETS.map(s => s.coinPerSolve)),

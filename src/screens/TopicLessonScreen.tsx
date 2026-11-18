@@ -143,6 +143,7 @@ const TopicLessonScreen = () => {
   const exit = useExitToTopics(topicNum)
 
   const stateOf = useApp(s => s.topicLessonState)
+  const canOpenTopicLesson = useApp(s => s.canOpenTopicLesson)
   const markVideoSeen = useApp(s => s.markTopicVideoSeen)
   const complete = useApp(s => s.completeTopicLesson)
   const beginSession = useApp(s => s.beginSession)
@@ -172,7 +173,14 @@ const TopicLessonScreen = () => {
     setOpenEx([])
   }, [route.params.lessonId])
 
-  if (!lesson) {
+  /** Pullik bo'lim — to'g'ridan-to'g'ri ochilsa ham Pro ekraniga yo'naltiramiz */
+  useEffect(() => {
+    if (lesson && !canOpenTopicLesson(route.params.lessonId)) {
+      navigation.replace('Pro')
+    }
+  }, [lesson, canOpenTopicLesson, route.params.lessonId, navigation])
+
+  if (!lesson || !canOpenTopicLesson(lesson.id)) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.missing}>

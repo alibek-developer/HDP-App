@@ -3,13 +3,14 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
   LESSONS, PROBLEM_SETS, findLesson, findProblemSet,
-  CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_BONUS, findProduct,
+  CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_BONUS, findProduct, streakReward,
   type ConsumableKind,
 } from '../data/content'
 import {
   findTopic, findTopicLesson, topicLessonIds as lessonIdsOf, topicTestOf,
 } from '../data/curriculum'
 import { PROBLEM_LEVELS, starsForLevel, weekStartKey } from '../data/problems'
+import { isFreeLessonId } from '../data/paywall'
 
 /**
  * Ilovaning yagona holat manbai.
@@ -191,6 +192,12 @@ interface AppState {
   claimedMissions: string[]
   /** kunlik mega masala bonusi olingan sana */
   dailyBonusOn: string | null
+  /** kunlik streak bonusi olingan sana */
+  streakBonusClaimed: string | null
+  /** ochilishda taklif qilingan zanjir bonusi (modal olinguncha) — saqlanmaydi */
+  streakGift: number
+  /** endigina olingan bonus — sarlavha animatsiyasi uchun, saqlanmaydi */
+  streakBurst: number
   /** bugungi AI masala (kun yarim tunda almashadi) */
   dailyQuestion: DailyQuestion | null
   /** oxirgi natija ekrani ma'lumoti */
@@ -265,7 +272,15 @@ interface AppState {
   unlockSet: (id: string, price: number) => boolean
   /** sana o'zgarganda kunlik hisoblagichlarni nollash */
   rollDay: () => void
+  /** ilova ochildi: kunni aylantiradi, zanjirni belgilaydi va bonusni taklif qiladi */
+  enterApp: () => void
   claimMission: (key: string, reward: number) => void
+  /** zanjir bonusini olish — tanga shu yerda qo'shiladi */
+  claimStreakGift: () => void
+  /** modal olinmasdan yopildi — bonus berilmaydi */
+  dismissStreakGift: () => void
+  /** sarlavha animatsiyasi ko'rsatildi */
+  clearStreakBurst: () => void
   resetAll: () => void
 
   /* ── Do'kon actions ── */
@@ -304,6 +319,8 @@ interface AppState {
   xpForNext: () => number
   /** mavzu bo'limi holati */
   topicLessonState: (id: string) => TopicLessonState
+  /** bo'lim ochiladimi — yakunlangan, bepul yoki Pro */
+  canOpenTopicLesson: (id: string) => boolean
   /** necha bo'lim yakunlangan */
   topicLessonsDone: (topicNum: number) => number
   /** yakuniy test ochilganmi — barcha bo'limlar tugasa */
@@ -353,6 +370,11 @@ function bumpStreak(
   const yesterday = dayKey(new Date(Date.now() - 86_400_000))
   const streak = s.lastActiveDay === yesterday ? s.streak + 1 : 1
   return { streak, lastActiveDay: day, bestStreak: Math.max(s.bestStreak, streak) }
+}
+
+/** Kun o'zgarganda nollanadigan kunlik hisoblagichlar */
+function dayReset(day: string): Partial<AppState> {
+  return { day, solvedToday: 0, olympToday: 0, claimedMissions: [], streakBonusClaimed: null }
 }
 
 /** Seans davomiyligini kunlik o'qilgan daqiqalarga qo'shish */
@@ -422,6 +444,9 @@ export const useApp = create<AppState>()(
       olympToday: 0,
       claimedMissions: [],
       dailyBonusOn: null,
+      streakBonusClaimed: null,
+      streakGift: 0,
+      streakBurst: 0,
       dailyQuestion: null,
       lastResult: null,
       activeLessonId: null,
@@ -772,13 +797,53 @@ export const useApp = create<AppState>()(
       rollDay: () => {
         const day = todayKey()
         if (get().day === day) return
-        set({ day, solvedToday: 0, olympToday: 0, claimedMissions: [] })
+        set(dayReset(day))
+      },
+
+      /**
+       * Ilova ochildi: kun aylanadi, zanjir bugun uchun qayd bo'ladi va
+       * kunlik bonus taklif qilinadi. Tanga modalda «olish» bosilganda qo'shiladi.
+       * Hozircha har kirishda taklif etiladi — vaqtga bog'lash keyingi bosqichda.
+       */
+      enterApp: () => {
+        const s = get()
+        if (!s.onboarded) return
+        const day = todayKey()
+        const patch: Partial<AppState> = {
+          ...(s.day !== day ? dayReset(day) : {}),
+          ...bumpStreak(s, day),
+        }
+        const streak = patch.streak ?? s.streak
+        if (streak > 0) patch.streakGift = streakReward(streak)
+        if (Object.keys(patch).length === 0) return
+        set(patch)
       },
 
       claimMission: (key, reward) => {
         const s = get()
         if (s.claimedMissions.includes(key)) return
         set({ coin: s.coin + reward, claimedMissions: [...s.claimedMissions, key] })
+      },
+
+      claimStreakGift: () => {
+        const s = get()
+        if (s.streakGift <= 0) return
+        set({
+          coin: s.coin + s.streakGift,
+          streakBonusClaimed: todayKey(),
+          streakBurst: s.streakGift,
+          streakGift: 0,
+        })
+      },
+
+      dismissStreakGift: () => {
+        if (get().streakGift === 0) return
+        set({ streakGift: 0 })
+      },
+
+      clearStreakBurst: () => {
+        if (get().streakBurst === 0) return
+        set({ streakBurst: 0 })
       },
 
       /* ── Do'kon ── */
@@ -955,6 +1020,9 @@ export const useApp = create<AppState>()(
           olympToday: 0,
           claimedMissions: [],
           dailyBonusOn: null,
+          streakBonusClaimed: null,
+          streakGift: 0,
+          streakBurst: 0,
           dailyQuestion: null,
           lastResult: null,
           activeLessonId: null,
@@ -1007,6 +1075,13 @@ export const useApp = create<AppState>()(
       },
 
       topicLessonState: (id) => get().topicLessons[id] ?? { videoSeen: false, done: false },
+
+      /** To'lov qoidasi: har fandagi boshidagi 10 dars bepul, qolgani Pro.
+       *  Allaqachon yakunlangan bo'limni qayta ochishga ruxsat beriladi. */
+      canOpenTopicLesson: (id) => {
+        if (get().topicLessons[id]?.done) return true
+        return get().isPro || isFreeLessonId(id)
+      },
 
       topicLessonsDone: (topicNum) =>
         lessonIdsOf(topicNum).filter(id => get().topicLessons[id]?.done).length,
@@ -1117,6 +1192,7 @@ export const useApp = create<AppState>()(
         olympToday: s.olympToday,
         claimedMissions: s.claimedMissions,
         dailyBonusOn: s.dailyBonusOn,
+        streakBonusClaimed: s.streakBonusClaimed,
         dailyQuestion: s.dailyQuestion,
         authed: s.authed,
         onboarded: s.onboarded,
