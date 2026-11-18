@@ -11,22 +11,25 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native'
+import type { HostInstance } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import MCI from '@expo/vector-icons/MaterialCommunityIcons'
-import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg'
+import { TOPICS } from '../data/curriculum'
 import { useNavigation } from '@react-navigation/native'
 import type { CompositeNavigationProp } from '@react-navigation/native'
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
+import { CoinIcon } from '../components/CoinIcon'
 import { DAILY_BONUS, WEEK_LABELS, currentWeekKeys, leagueRank } from '../data/content'
-import { TOPICS, findTopicByLesson } from '../data/curriculum'
+import { todayKey } from '../lib/daily'
 import { SUBJECTS } from '../data/subjects'
 import { BALANCE_LEVELS } from '../data/games'
 import { PROBLEM_SUBJECTS, levelsOf } from '../data/problems'
-import { difficultyLabel, sourceLabel, todayKey } from '../lib/daily'
+import { difficultyLabel, sourceLabel } from '../lib/daily'
 import { useDailyQuestion } from '../lib/useDailyQuestion'
+import { setCoinTarget } from '../lib/coinTarget'
 import { triggerHaptic } from '../lib/haptics'
 import { BrandMark } from '../components/Brand'
 import { Reveal } from '../components/Reveal'
@@ -34,7 +37,7 @@ import { TopScrim } from '../components/ui'
 import { MidnightClock } from '../components/MidnightClock'
 import { navBottomSpace } from '../components/BottomNav'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { C, NUM, R, shadow, MATH_FONT } from '../theme/tokens'
+import { C, NUM, R, MATH_FONT } from '../theme/tokens'
 
 /**
  * Home — «hozir nima qilaman?» ekrani.
@@ -74,13 +77,11 @@ const AD_SLIDES = [
   },
 ] as const
 
-const RING = 40
-const RING_STROKE = 4.5
-const RING_R = (RING - RING_STROKE) / 2
-const RING_C = 2 * Math.PI * RING_R
-
 const num = (n: number) => n.toLocaleString('en-US')
 const todayIdx = () => (new Date().getDay() + 6) % 7
+
+/** Zanjir bonusi: tangalar qanchalik yon tomonga sochiladi (px) */
+const BURST_DRIFT = [-18, -9, 0, 9, 18]
 
 /** Sekin "nafas" — 0→1→0; yangi masala belgisi shu ritmda jonlanadi. */
 const useBreath = (period: number) => {
@@ -141,7 +142,11 @@ const HomeScreen = () => {
   const photoUrl = useApp(s => s.photoUrl)
   const coin = useApp(s => s.coin)
   const xp = useApp(s => s.xp)
+  const level = useApp(s => s.level)
   const streak = useApp(s => s.streak)
+  const streakBurst = useApp(s => s.streakBurst)
+  const clearStreakBurst = useApp(s => s.clearStreakBurst)
+  const enterApp = useApp(s => s.enterApp)
   const topicLessons = useApp(s => s.topicLessons)
   const studyMinutes = useApp(s => s.studyMinutes)
   const gameStars = useApp(s => s.gameStars)
@@ -154,14 +159,43 @@ const HomeScreen = () => {
   const dailyDone = daily ? daily.picked !== null : false
   const dailyClaimed = dailyBonusOn === todayKey()
 
+  /* ── Zanjir bonusi ── */
+  const burst = useRef(new Animated.Value(0)).current
+  const [burstOn, setBurstOn] = useState(false)
+  const [burstAmount, setBurstAmount] = useState(0)
+
+  /** Tanga hisoblagich markazi — modal shu nuqtaga tangani uchirib boradi */
+  const coinRef = useRef<HostInstance>(null)
+  const measureCoin = () => {
+    coinRef.current?.measureInWindow((x, y, w, h) => setCoinTarget(x + w / 2, y + h / 2))
+  }
+
+  /** Onboarding'dan keyin ochilganda ham zanjir darhol qayd bo'ladi */
+  useEffect(() => {
+    enterApp()
+  }, [enterApp])
+
+  /** Modalda olingan bonus tanga hisoblagichidan sochilish bilan ko'rsatiladi */
+  useEffect(() => {
+    if (streakBurst <= 0) return
+    setBurstAmount(streakBurst)
+    burst.setValue(0)
+    setBurstOn(true)
+    clearStreakBurst()
+    Animated.timing(burst, {
+      toValue: 1,
+      duration: 1100,
+      delay: 700,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) setBurstOn(false)
+    })
+  }, [streakBurst, burst, clearStreakBurst])
+
   /* ── Kurs ── */
   const doneLessons = LESSONS.filter(l => topicLessons[l.id]?.done).length
-  const allDone = doneLessons >= LESSONS.length
-  const nextLesson = LESSONS.find(l => !topicLessons[l.id]?.done) ?? LESSONS[LESSONS.length - 1]
-  const nextTopic = findTopicByLesson(nextLesson.id) ?? TOPICS[0]
   const pct = Math.round((doneLessons / LESSONS.length) * 100)
-  const ctaLabel = doneLessons === 0 ? 'Boshlash' : allDone ? 'Takrorlash' : 'Davom etish'
-  const kicker = allDone ? 'KURS TUGADI' : doneLessons === 0 ? 'BIRINCHI QADAM' : 'KEYINGI QADAM'
 
   /* ── Hafta ── */
   const weekKeys = currentWeekKeys()
@@ -224,7 +258,6 @@ const HomeScreen = () => {
     triggerHaptic('light')
     fn()
   }
-  const openLesson = (lessonId: string) => tap(() => navigation.navigate('TopicLesson', { lessonId }))
   const openCourse = tap(() => navigation.navigate('Subject', { subjectId: COURSE.id }))
   const openDaily = tap(() => navigation.navigate('Daily'))
   const openAd = (id: (typeof AD_SLIDES)[number]['id']) =>
@@ -246,7 +279,7 @@ const HomeScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 10, paddingBottom: navBottomSpace(insets.bottom) },
+          { paddingTop: insets.top + 22, paddingBottom: navBottomSpace(insets.bottom) },
         ]}
       >
         {/* ── Sarlavha: profil + hisob + Pro ── */}
@@ -257,54 +290,115 @@ const HomeScreen = () => {
               accessibilityLabel="Profil"
               style={({ pressed }) => [styles.who, pressed && { opacity: 0.7 }]}
             >
-              <View style={styles.avatar}>
+              <View style={[styles.avatar, !photoUrl && styles.avatarPlain]}>
                 {photoUrl ? (
                   <Image source={{ uri: photoUrl }} style={styles.avatarImg} />
                 ) : initials ? (
                   <Text style={styles.avatarText}>{initials}</Text>
                 ) : (
-                  <MCI name="account" size={20} color={C.brand} />
+                  <MCI name="account" size={24} color={C.brand} />
                 )}
               </View>
               <View style={styles.whoText}>
-                <Text style={styles.hello}>Salom,</Text>
                 <Text style={styles.helloName} numberOfLines={1}>
                   {firstName || "o'quvchi"}
+                </Text>
+                <Text style={styles.helloMeta} numberOfLines={1}>
+                  {streak > 0 ? `${streak} kunlik zanjir · ` : ''}
+                  {level}-daraja
                 </Text>
               </View>
             </Pressable>
 
             <View style={styles.headRight}>
-              <Pressable
-                onPress={tap(() => navigation.navigate('Shop'))}
-                accessibilityLabel="Tangalar, do'kon"
-                style={({ pressed }) => [styles.statPill, pressed && { opacity: 0.7 }]}
-              >
-                <MCI name="wallet" size={14} color={C.coin} />
-                <Text style={[styles.statText, NUM]}>{num(coin)}</Text>
-              </Pressable>
-
               <View
-                style={styles.statPill}
-                accessible
-                accessibilityLabel={`${streak} kunlik zanjir`}
+                ref={coinRef}
+                style={styles.coinWrap}
+                onLayout={measureCoin}
               >
-                <MCI name="fire" size={14} color="#E2652B" />
-                <Text style={[styles.statText, NUM]}>{streak}</Text>
+                <Pressable
+                  onPress={tap(() => navigation.navigate('Shop'))}
+                  accessibilityLabel="Tangalar, do'kon"
+                  hitSlop={10}
+                  style={({ pressed }) => [styles.statPill, pressed && { opacity: 0.7 }]}
+                >
+                  <CoinIcon size={22} />
+                  <Text style={[styles.statText, NUM]}>{num(coin)}</Text>
+                </Pressable>
+
+                {burstOn ? (
+                  <View pointerEvents="none" style={styles.burst}>
+                    {BURST_DRIFT.map((dx, i) => {
+                      const start = i * 0.06
+                      const t = burst.interpolate({
+                        inputRange: [start, Math.min(start + 0.55, 1)],
+                        outputRange: [0, 1],
+                        extrapolate: 'clamp',
+                      })
+                      return (
+                        <Animated.View
+                          key={dx}
+                          style={[
+                            styles.burstCoin,
+                            {
+                              opacity: t.interpolate({
+                                inputRange: [0, 0.15, 0.7, 1],
+                                outputRange: [0, 1, 1, 0],
+                              }),
+                              transform: [
+                                { translateX: t.interpolate({ inputRange: [0, 1], outputRange: [0, dx] }) },
+                                {
+                                  translateY: t.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0, -22 - Math.abs(dx)],
+                                  }),
+                                },
+                                {
+                                  scale: t.interpolate({
+                                    inputRange: [0, 0.2, 1],
+                                    outputRange: [0.5, 1, 0.85],
+                                  }),
+                                },
+                              ],
+                            },
+                          ]}
+                        >
+                          <CoinIcon size={13} />
+                        </Animated.View>
+                      )
+                    })}
+                    <Animated.View
+                      style={[
+                        styles.burstPrize,
+                        {
+                          opacity: burst.interpolate({
+                            inputRange: [0, 0.2, 0.75, 1],
+                            outputRange: [0, 1, 1, 0],
+                          }),
+                          transform: [
+                            {
+                              translateY: burst.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, -30],
+                              }),
+                            },
+                          ],
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.burstPrizeText, NUM]}>+{burstAmount}</Text>
+                    </Animated.View>
+                  </View>
+                ) : null}
               </View>
 
               <Pressable
                 onPress={tap(() => navigation.navigate('Pro'))}
                 accessibilityLabel="HDP Pro"
-                style={({ pressed }) => [styles.proPill, pressed && { opacity: 0.85 }]}
+                hitSlop={10}
+                style={({ pressed }) => [styles.proPill, pressed && { opacity: 0.75 }]}
               >
-                <LinearGradient
-                  colors={['#FFA23A', '#F4671F']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={StyleSheet.absoluteFill}
-                />
-                <MCI name="crown" size={11} color="#FFF6E8" />
+                <MCI name="crown" size={16} color="#F4671F" />
                 <Text style={styles.proText}>PRO</Text>
               </Pressable>
             </View>
@@ -367,60 +461,6 @@ const HomeScreen = () => {
               ))}
             </View>
           </View>
-        </Reveal>
-
-        {/* ── Davom etish — ixcham qator ── */}
-        <Reveal delay={70} y={12} duration={360}>
-          <Pressable
-            onPress={openLesson(nextLesson.id)}
-            accessibilityLabel={`${ctaLabel}: ${nextLesson.title}`}
-            style={({ pressed }) => [styles.next, pressed && { opacity: 0.9 }]}
-          >
-            <View style={styles.nextRing}>
-              <Svg width={RING} height={RING} style={styles.nextRingSvg}>
-                <Defs>
-                  <SvgGradient id="nextRing" x1="0" y1="0" x2="1" y2="1">
-                    <Stop offset="0" stopColor="#9BE04B" />
-                    <Stop offset="1" stopColor="#4CC16F" />
-                  </SvgGradient>
-                </Defs>
-                <Circle
-                  cx={RING / 2}
-                  cy={RING / 2}
-                  r={RING_R}
-                  stroke={C.lineSoft}
-                  strokeWidth={RING_STROKE}
-                  fill="none"
-                />
-                <Circle
-                  cx={RING / 2}
-                  cy={RING / 2}
-                  r={RING_R}
-                  stroke="url(#nextRing)"
-                  strokeWidth={RING_STROKE}
-                  strokeLinecap="round"
-                  strokeDasharray={`${RING_C} ${RING_C}`}
-                  strokeDashoffset={RING_C * (1 - pct / 100)}
-                  fill="none"
-                />
-              </Svg>
-              <Text style={[styles.nextPct, NUM]}>{pct}%</Text>
-            </View>
-
-            <View style={styles.nextText}>
-              <Text style={styles.nextKicker} numberOfLines={1}>
-                {kicker} · MAVZU {nextTopic.meta.num}
-              </Text>
-              <Text style={styles.nextTitle} numberOfLines={1}>
-                {nextLesson.title}
-              </Text>
-            </View>
-
-            <View style={styles.nextBtn}>
-              <Text style={styles.nextBtnText}>{ctaLabel}</Text>
-              <MCI name="arrow-right" size={13} color="#FFFFFF" />
-            </View>
-          </Pressable>
         </Reveal>
 
         {/* ── Bugungi masala — faqat mavzu ochilgandan keyin ── */}
@@ -492,7 +532,7 @@ const HomeScreen = () => {
               <View style={styles.dailyFoot}>
                 <View style={styles.rewards}>
                   <View style={styles.rewardChip}>
-                    <MCI name="cash" size={12} color={C.coin} />
+                    <CoinIcon size={14} />
                     <Text style={[styles.rewardText, NUM]}>+{DAILY_BONUS.coin}</Text>
                   </View>
                   <View style={[styles.rewardChip, styles.rewardChipXp]}>
@@ -701,55 +741,65 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16 },
 
   /* ── Sarlavha ── */
-  head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   whoText: { flex: 1 },
-  hello: { fontSize: 11.5, lineHeight: 14, fontWeight: '500', color: C.ink3 },
   helloName: {
-    fontSize: 18,
-    lineHeight: 22,
-    letterSpacing: -0.45,
-    fontWeight: '600',
+    fontSize: 20,
+    lineHeight: 24,
+    letterSpacing: -0.55,
+    fontWeight: '700',
     color: C.ink,
   },
+  helloMeta: {
+    marginTop: 1,
+    fontSize: 11.5,
+    fontWeight: '500',
+    letterSpacing: -0.1,
+    color: C.ink4,
+  },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: C.leafTint,
-    borderWidth: 1,
-    borderColor: 'rgba(11,110,79,0.16)',
     overflow: 'hidden',
   },
+  avatarPlain: { width: 'auto', height: 'auto', borderRadius: 0, overflow: 'visible' },
   avatarImg: { width: '100%', height: '100%' },
-  avatarText: { fontSize: 13.5, fontWeight: '700', color: C.brand },
+  avatarText: { fontSize: 19, fontWeight: '700', color: C.brand },
 
-  headRight: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
+  headRight: { flexDirection: 'row', alignItems: 'center', gap: 16, flexShrink: 0 },
   statPill: {
-    height: 30,
-    paddingHorizontal: 9,
-    borderRadius: R.full,
+    height: 36,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: C.surface2,
-    borderWidth: 1,
-    borderColor: C.lineSoft,
+    gap: 5,
   },
-  statText: { fontSize: 12.5, fontWeight: '700', color: C.ink2 },
+  statText: { fontSize: 15, fontWeight: '700', color: C.ink },
+
+  /* ── Tanga sochilishi ── */
+  coinWrap: { position: 'relative' },
+  burst: {
+    position: 'absolute',
+    left: -20,
+    right: -20,
+    top: -34,
+    height: 34,
+    alignItems: 'center',
+  },
+  burstCoin: { position: 'absolute', bottom: 0 },
+  burstPrize: { position: 'absolute', bottom: 1 },
+  burstPrizeText: { fontSize: 12, fontWeight: '800', color: '#C97A16' },
+
   proPill: {
-    height: 30,
-    paddingHorizontal: 10,
-    borderRadius: R.full,
+    height: 36,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    overflow: 'hidden',
-    ...shadow('#E2652B', 8, 3, 0.28),
+    gap: 5,
   },
-  proText: { fontSize: 11.5, letterSpacing: 0.6, fontWeight: '800', color: '#FFFFFF' },
+  proText: { fontSize: 13.5, letterSpacing: 0.5, fontWeight: '800', color: '#F4671F' },
 
   /* ── Reklama karuseli ── */
   adWrap: { marginTop: 14, borderRadius: R['2xl'], overflow: 'hidden' },
@@ -780,36 +830,6 @@ const styles = StyleSheet.create({
   },
   adDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: 'rgba(230,245,220,0.34)' },
   adDotOn: { width: 14, backgroundColor: C.limeBright },
-
-  /* ── Davom etish qatori ── */
-  next: {
-    marginTop: 12,
-    borderRadius: R.lg,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.line,
-  },
-  nextRing: { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
-  nextRingSvg: { position: 'absolute', left: 0, top: 0, transform: [{ rotate: '-90deg' }] },
-  nextPct: { fontSize: 10, fontWeight: '800', color: C.brand },
-  nextText: { flex: 1 },
-  nextKicker: { fontSize: 9, letterSpacing: 0.9, fontWeight: '700', color: C.ink4 },
-  nextTitle: { marginTop: 2, fontSize: 14, letterSpacing: -0.2, fontWeight: '600', color: C.ink },
-  nextBtn: {
-    height: 32,
-    paddingHorizontal: 11,
-    borderRadius: R.full,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#0B6E4F',
-  },
-  nextBtnText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
 
   /* ── Bugungi masala: yechilmagan ── */
   dailyCard: {
