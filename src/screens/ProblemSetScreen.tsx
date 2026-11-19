@@ -13,8 +13,10 @@ import { useExitToTab } from '../lib/nav'
 import { findProblemSet } from '../data/content'
 import { findLevel, drawLevelQuestions, STAR_THRESHOLDS } from '../data/problems'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C } from '../theme/tokens'
-import { CARD, GRAD_LIME, LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
+import { ABS_FILL } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
+import { CARD, GRAD_LIME, LIME_BTN, LIME_TEXT } from '../theme/solver'
 import {
   AnswerOption,
   QuestionStage,
@@ -34,6 +36,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>
 const LETTER = (i: number) => String.fromCharCode(65 + i)
 
 const ProblemSetScreen = () => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const route = useRoute<RouteProp<RootStackParamList, 'ProblemSet'>>()
   const insets = useSafeAreaInsets()
@@ -175,7 +179,7 @@ const ProblemSetScreen = () => {
                   key={i}
                   name={i < earnedStars ? 'star' : 'star-outline'}
                   size={11}
-                  color={i < earnedStars ? '#E8A33D' : '#CFD9C6'}
+                  color={i < earnedStars ? C.coin : C.line}
                 />
               ))}
             </View>
@@ -232,8 +236,8 @@ const ProblemSetScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   scroll: { flex: 1 },
   content: { paddingBottom: 24 },
   center: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
@@ -246,13 +250,13 @@ const styles = StyleSheet.create({
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FCF1DC',
+    backgroundColor: C.coinSoft,
     borderColor: 'rgba(232,163,61,0.4)',
     borderWidth: 1,
     borderRadius: 16,
   },
   lockTitle: { fontSize: 16, fontWeight: '600', color: C.ink, textAlign: 'center' },
-  lockMeta: { fontSize: 12.5, fontWeight: '500', color: '#6B7C66', textAlign: 'center' },
+  lockMeta: { fontSize: 12.5, fontWeight: '500', color: C.ink3, textAlign: 'center' },
   lockCta: { marginTop: 8, height: 46, paddingHorizontal: 24, overflow: 'hidden' },
   lockCtaText: { fontSize: 13.5 },
 
@@ -262,7 +266,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 16,
   },
-  goalBarText: { flex: 1, minWidth: 0, fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
+  goalBarText: { flex: 1, minWidth: 0, fontSize: 11.5, fontWeight: '500', color: C.ink3 },
   goalStars: { flexDirection: 'row', alignItems: 'center', gap: 1 },
 
   progressUnderGoal: { marginTop: 8 },

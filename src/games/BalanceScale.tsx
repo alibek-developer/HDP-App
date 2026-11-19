@@ -3,7 +3,8 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-nativ
 import type { ImageSourcePropType } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import MCI from '@expo/vector-icons/MaterialCommunityIcons'
-import { MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { MATH_FONT, NUM, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import { sum } from '../data/games'
 
 /**
@@ -20,7 +21,6 @@ const TILT_DEG = 7
 const TILT_PX = 18
 const RIDER = 56
 
-const INK = '#0E1A12'
 const RAIL = ['#35543E', '#15281C'] as const
 const RAIL_LIT = ['#8FCB62', '#5A9B34'] as const
 const TRAY = ['#2E4B38', '#132318'] as const
@@ -88,11 +88,15 @@ export const Rider = ({ source, cheer, delay }: { source: ImageSourcePropType; c
   )
 }
 
-const Plate = ({ value, onPress }: { value: number; onPress?: () => void }) => (
+const Plate = ({ value, onPress }: { value: number; onPress?: () => void }) => {
+  const C = useColors()
+  const s = makeS(C)
+  return (
   <Pressable onPress={onPress} disabled={!onPress} style={s.plate}>
     <Text style={[s.plateText, NUM]}>{value}</Text>
   </Pressable>
-)
+  )
+}
 
 export const BalanceScale = ({
   width,
@@ -113,6 +117,8 @@ export const BalanceScale = ({
   /** qo'yilgan og'irlikni olish */
   onRemovePlaced?: (index: number) => void
 }) => {
+  const C = useColors()
+  const s = makeS(C)
   const tilt = useRef(new Animated.Value(0)).current
   const spark = useRef(new Animated.Value(0)).current
   const leftTotal = sum(left) + sum(placed)
@@ -280,7 +286,7 @@ export const BalanceScale = ({
   )
 }
 
-const s = StyleSheet.create({
+const makeS = (C: ThemeColors) => StyleSheet.create({
   ground: {
     position: 'absolute', width: 124, height: 18, borderRadius: 100,
     backgroundColor: 'rgba(14,26,18,0.08)',
@@ -288,13 +294,13 @@ const s = StyleSheet.create({
   column: { position: 'absolute', width: 12, borderRadius: 6, overflow: 'hidden' },
   base: {
     position: 'absolute', width: 108, height: 16, borderRadius: 8, overflow: 'hidden',
-    ...shadow(INK, 8, 4, 0.18),
+    ...shadow(C.ink, 8, 4, 0.18),
   },
 
   beamWrap: { position: 'absolute', height: BEAM_H },
   railBar: {
     height: BEAM_H, borderRadius: 6, overflow: 'hidden',
-    ...shadow(INK, 6, 3, 0.2),
+    ...shadow(C.ink, 6, 3, 0.2),
   },
   railShine: {
     position: 'absolute', left: 8, right: 8, top: 2, height: 2,
@@ -302,19 +308,19 @@ const s = StyleSheet.create({
   },
   knob: {
     position: 'absolute', top: BEAM_H / 2 - 5, width: 10, height: 10,
-    borderRadius: 5, backgroundColor: '#E8A33D',
+    borderRadius: 5, backgroundColor: C.coin,
   },
   pivot: {
     position: 'absolute', left: '50%', marginLeft: -13, top: BEAM_H / 2 - 13,
     width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#E8A33D', borderWidth: 2, borderColor: '#123B24',
-    ...shadow('#E8A33D', 8, 3, 0.35),
+    backgroundColor: C.coin, borderWidth: 2, borderColor: '#123B24',
+    ...shadow(C.coin, 8, 3, 0.35),
   },
   rider: { position: 'absolute' },
   sparkle: { position: 'absolute' },
 
   panWrap: { position: 'absolute', width: PAN_W, alignItems: 'center' },
-  hook: { width: 3, height: 16, borderRadius: 2, backgroundColor: '#1C3214' },
+  hook: { width: 3, height: 16, borderRadius: 2, backgroundColor: C.inkOnLime },
   weights: {
     minHeight: 30,
     flexDirection: 'row',
@@ -327,7 +333,7 @@ const s = StyleSheet.create({
   },
   tray: {
     width: PAN_W, height: 12, borderRadius: 6, overflow: 'hidden',
-    borderWidth: 1, borderColor: '#1C3214',
+    borderWidth: 1, borderColor: C.inkOnLime,
   },
   trayShine: {
     position: 'absolute', left: 10, right: 10, top: 2, height: 2,
@@ -335,22 +341,22 @@ const s = StyleSheet.create({
   },
   panTotal: {
     marginTop: 6, fontSize: 11.5, fontWeight: '600',
-    color: '#6B7C66', letterSpacing: 0.2,
+    color: C.ink3, letterSpacing: 0.2,
   },
   panTotalLit: { color: '#3F7D1C' },
 
   plate: {
     minWidth: 27, height: 27, paddingHorizontal: 5, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DDE4D6',
-    ...shadow(INK, 4, 2, 0.08),
+    backgroundColor: C.surface, borderWidth: 1, borderColor: '#DDE4D6',
+    ...shadow(C.ink, 4, 2, 0.08),
   },
-  plateText: { fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: '#1C3214' },
+  plateText: { fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: C.inkOnLime },
 
   xTile: {
     minWidth: 27, height: 27, paddingHorizontal: 5, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#F5FBEC', borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#5FAF22',
+    backgroundColor: '#F5FBEC', borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.limeDeep,
   },
-  xText: { fontFamily: MATH_FONT, fontSize: 15, lineHeight: 20, color: '#2F6B14' },
+  xText: { fontFamily: MATH_FONT, fontSize: 15, lineHeight: 20, color: C.limeDeep },
 })

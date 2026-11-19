@@ -11,8 +11,10 @@ import { findTopic } from '../data/curriculum'
 import { findLevel, STAR_THRESHOLDS, WEEKLY_STAR_GOAL, weekStartKey } from '../data/problems'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
-import { CARD, GRAD_RAIL, LIME_BTN, LIME_TEXT, OUT_BTN, OUT_TEXT, SOLVER_BODY } from '../theme/solver'
+import { ABS_FILL, NUM } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
+import { CARD, GRAD_RAIL, LIME_BTN, LIME_TEXT, OUT_BTN, OUT_TEXT } from '../theme/solver'
 
 /**
  * 7-qadam: Natija — umumiy hisob: nechta to'g'ri, qancha coin.
@@ -21,10 +23,12 @@ import { CARD, GRAD_RAIL, LIME_BTN, LIME_TEXT, OUT_BTN, OUT_TEXT, SOLVER_BODY } 
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
-const TICK = { ok: '#5FAF22', bad: '#D9534F', todo: '#E1E7DA' }
+const TICK = { ok: '#5FAF22', bad: '#D9483B', todo: '#E1E7DA' }
 const SKIP_TONE = '#E8A33D'
 
 const ResultScreen = () => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const exitToProblems = useExitToTab('problems')
@@ -83,7 +87,7 @@ const ResultScreen = () => {
   const skipped = result.answers.filter(a => a.skipped)
   const wrong = result.answers.filter(a => !a.ok && !a.skipped)
   const percent = total === 0 ? 0 : Math.round((correct / total) * 100)
-  const tone = percent >= 80 ? TICK.ok : percent >= 50 ? SKIP_TONE : TICK.bad
+  const tone = percent >= 80 ? TICK.ok : percent >= 50 ? SKIP_TONE : C.danger
   const stars = result.stars ?? 0
   /** Daraja yulduzi eng yaxshi natijadan pastga tushmaydi — takroriy urinishda ham shu ko'rinadi */
   const bestStars = level ? levelStars[level.id] ?? 0 : 0
@@ -122,7 +126,7 @@ const ResultScreen = () => {
                 {result.answers.map((a, i) => (
                   <View
                     key={i}
-                    style={[styles.tick, { backgroundColor: a.ok ? TICK.ok : a.skipped ? SKIP_TONE : TICK.bad }]}
+                    style={[styles.tick, { backgroundColor: a.ok ? TICK.ok : a.skipped ? SKIP_TONE : C.danger }]}
                   />
                 ))}
               </View>
@@ -144,7 +148,7 @@ const ResultScreen = () => {
                         key={i}
                         name={i < shownStars ? 'star' : 'star-outline'}
                         size={24}
-                        color={i < shownStars ? '#E8A33D' : '#DCE3D4'}
+                        color={i < shownStars ? C.coin : '#DCE3D4'}
                       />
                     ))}
                     <Text style={[styles.starsValue, NUM]}>{shownStars}/3</Text>
@@ -166,11 +170,11 @@ const ResultScreen = () => {
               )}
 
               {result.kind === 'topic-test' && (
-                <View style={[styles.passNote, { backgroundColor: correct >= pass ? '#EDF8E6' : '#FBE9E7' }]}>
+                <View style={[styles.passNote, { backgroundColor: correct >= pass ? '#EDF8E6' : C.dangerSoft }]}>
                   <Ionicons
                     name={correct >= pass ? 'checkmark-circle' : 'alert-circle'}
                     size={14}
-                    color={correct >= pass ? TICK.ok : TICK.bad}
+                    color={correct >= pass ? TICK.ok : C.danger}
                   />
                   <Text style={[styles.passNoteText, { color: correct >= pass ? '#3F7A18' : '#A33B31' }]}>
                     {correct >= pass ? "Mavzudan o'tdingiz" : "Mavzudan o'tmadingiz"} · chegara{' '}
@@ -184,7 +188,7 @@ const ResultScreen = () => {
                 {[
                   { v: `+${result.coinsEarned}`, u: 'coin', c: '#B87A22' },
                   { v: `+${result.xpEarned}`, u: 'XP', c: '#3560C4' },
-                  { v: `${coin.toLocaleString('en-US')}`, u: 'hamyonda', c: '#0E1A12' },
+                  { v: `${coin.toLocaleString('en-US')}`, u: 'hamyonda', c: C.ink },
                 ].map((cell, i) => (
                   <View key={cell.u} style={styles.ledgerCell}>
                     {i > 0 && <View style={styles.ledgerDivider} />}
@@ -224,7 +228,7 @@ const ResultScreen = () => {
         )}
       </ScrollView>
 
-      <TopScrim height={insets.top} line="#E6EBE0" />
+      <TopScrim height={insets.top} line={C.line} />
 
       {/* ── Pastki harakat paneli ── */}
       <View style={[styles.dock, { paddingBottom: insets.bottom + 20 }]} pointerEvents="box-none">
@@ -279,8 +283,8 @@ const ResultScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   content: {},
   center: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
 
@@ -290,13 +294,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#EDF7DE',
-    borderColor: '#CFD9C6',
+    borderColor: C.line,
     borderWidth: 1,
     borderRadius: 16,
     marginBottom: 4,
   },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: C.ink },
-  emptyText: { fontSize: 12.5, fontWeight: '500', color: '#6B7C66', textAlign: 'center' },
+  emptyText: { fontSize: 12.5, fontWeight: '500', color: C.ink3, textAlign: 'center' },
   emptyCta: { marginTop: 8, height: 46, paddingHorizontal: 24, overflow: 'hidden' },
   emptyCtaText: { fontSize: 13.5 },
 
@@ -309,11 +313,11 @@ const styles = StyleSheet.create({
 
   cardHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   cardHeadText: { flex: 1 },
-  kicker: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
+  kicker: { fontSize: 11.5, fontWeight: '500', color: C.ink3 },
   cardTitle: { marginTop: 8, fontSize: 14, fontWeight: '600', color: C.ink },
   scoreWrap: { flexDirection: 'row', alignItems: 'baseline' },
   score: { fontSize: 34, lineHeight: 34, fontWeight: '600', color: C.ink },
-  scoreTotal: { fontSize: 18, fontWeight: '600', color: '#9AA995' },
+  scoreTotal: { fontSize: 18, fontWeight: '600', color: C.ink4 },
 
   tickRow: { marginTop: 16, flexDirection: 'row', gap: 6 },
   tick: { flex: 1, height: 6, borderRadius: 3 },
@@ -329,29 +333,29 @@ const styles = StyleSheet.create({
   },
   passNoteText: { fontSize: 12, fontWeight: '600' },
   percent: { fontSize: 11.5, fontWeight: '600' },
-  wrongCount: { fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
+  wrongCount: { fontSize: 11.5, fontWeight: '500', color: C.ink4 },
 
   starsBlock: {
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#EDF1E7',
+    borderTopColor: C.line,
   },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   starsValue: { marginLeft: 4, fontSize: 15, fontWeight: '600', color: '#B87A22' },
-  starsHint: { marginTop: 8, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
-  starsWeek: { marginTop: 6, fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
+  starsHint: { marginTop: 8, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
+  starsWeek: { marginTop: 6, fontSize: 11.5, fontWeight: '500', color: C.ink4 },
 
-  ledger: { marginTop: 16, flexDirection: 'row', alignItems: 'stretch', borderTopWidth: 1, borderTopColor: '#EDF1E7', paddingTop: 14 },
+  ledger: { marginTop: 16, flexDirection: 'row', alignItems: 'stretch', borderTopWidth: 1, borderTopColor: C.line, paddingTop: 14 },
   ledgerCell: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
-  ledgerDivider: { width: 1, backgroundColor: '#EDF1E7' },
+  ledgerDivider: { width: 1, backgroundColor: C.line },
   ledgerInner: { flex: 1, alignItems: 'center' },
   ledgerValue: { fontSize: 17, lineHeight: 17, fontWeight: '600' },
-  ledgerUnit: { marginTop: 6, fontSize: 11, fontWeight: '500', color: '#9AA995' },
+  ledgerUnit: { marginTop: 6, fontSize: 11, fontWeight: '500', color: C.ink4 },
 
-  perfect: { backgroundColor: '#0E1A12', borderRadius: 14, overflow: 'hidden', flexDirection: 'row' },
+  perfect: { backgroundColor: C.ink, borderRadius: 14, overflow: 'hidden', flexDirection: 'row' },
   perfectBody: { flex: 1, paddingLeft: 15, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },
-  perfectTitle: { fontSize: 15, fontWeight: '600', color: '#9BE04B' },
+  perfectTitle: { fontSize: 15, fontWeight: '600', color: C.limeBright },
   perfectText: { marginTop: 4, fontSize: 12.5, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },
 
   dock: { position: 'absolute', left: 0, right: 0, bottom: 0 },
@@ -360,7 +364,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     backgroundColor: 'rgba(243,247,238,0.94)',
     borderTopWidth: 1,
-    borderTopColor: '#E1E7DA',
+    borderTopColor: C.line,
   },
   dockRow: { flexDirection: 'row', gap: 10 },
   dockBtn: { flex: 1, height: 50, gap: 6 },

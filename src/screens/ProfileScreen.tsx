@@ -22,7 +22,8 @@ import { navBottomSpace } from '../components/BottomNav'
 import { TopScrim } from '../components/ui'
 import Sheet from '../components/Sheet'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { ABS_FILL, C, LIME_BTN_GRAD, NUM, SHADOW, shadow } from '../theme/tokens'
+import { ABS_FILL, LIME_BTN_GRAD, NUM, SHADOW, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Profil — shaxsiy kabinet. Barcha raqamlar store'dan keladi:
@@ -34,15 +35,6 @@ type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<RootStackParamList>
 >
 
-const INK = C.ink
-const GRAY = C.ink3
-const FAINT = C.ink4
-const SOFT = C.surface2
-const GREEN = C.brand
-const DANGER = C.danger
-const HAIR = '#F1F4EF'
-const AMBER_BG = '#FFE9D6'
-const AMBER_INK = '#B4530A'
 
 /** Qahramon panel — to'q marjon gradient */
 const PRO_DARK: readonly [string, string, string] = ['#16382A', '#0E241B', '#0A1B14']
@@ -78,30 +70,30 @@ const ICONS: Record<AchIcon, keyof typeof MCI.glyphMap> = {
   crown: 'crown-outline',
 }
 
-const MEDAL_TINT: Record<AchIcon, { bg: string; ink: string }> = {
-  bolt: { bg: C.mintSoft, ink: GREEN },
-  trophy: { bg: C.coinSoft, ink: '#B87A22' },
+const medalTints = (C: ThemeColors): Record<AchIcon, { bg: string; ink: string }> => ({
+  bolt: { bg: C.mintSoft, ink: C.brand },
+  trophy: { bg: C.coinSoft, ink: C.coin },
   grid: { bg: C.xpSoft, ink: C.xp },
-  cap: { bg: C.leafSoft, ink: GREEN },
+  cap: { bg: C.leafSoft, ink: C.brand },
   books: { bg: C.xpSoft, ink: C.xp },
-  check: { bg: C.leafSoft, ink: GREEN },
-  medal: { bg: C.coinSoft, ink: '#B87A22' },
-  star: { bg: C.coinSoft, ink: '#B87A22' },
+  check: { bg: C.leafSoft, ink: C.brand },
+  medal: { bg: C.coinSoft, ink: C.coin },
+  star: { bg: C.coinSoft, ink: C.coin },
   gem: { bg: C.violetSoft, ink: C.violet },
-  target: { bg: C.dangerSoft, ink: DANGER },
-  flame: { bg: AMBER_BG, ink: AMBER_INK },
+  target: { bg: C.dangerSoft, ink: C.danger },
+  flame: { bg: C.coinSoft, ink: C.coin },
   brain: { bg: C.xpSoft, ink: C.xp },
-  bag: { bg: C.leafSoft, ink: GREEN },
-  heart: { bg: C.dangerSoft, ink: DANGER },
+  bag: { bg: C.leafSoft, ink: C.brand },
+  heart: { bg: C.dangerSoft, ink: C.danger },
   pen: { bg: C.xpSoft, ink: C.xp },
-  rocket: { bg: C.coinSoft, ink: '#B87A22' },
-  moon: { bg: '#EDEFF5', ink: '#4B5570' },
-  compass: { bg: C.leafSoft, ink: GREEN },
-  sigma: { bg: C.mintSoft, ink: GREEN },
-  crown: { bg: C.coinSoft, ink: '#B87A22' },
-}
+  rocket: { bg: C.coinSoft, ink: C.coin },
+  moon: { bg: C.surface2, ink: C.ink3 },
+  compass: { bg: C.leafSoft, ink: C.brand },
+  sigma: { bg: C.mintSoft, ink: C.brand },
+  crown: { bg: C.coinSoft, ink: C.coin },
+})
 
-const LOCKED_TINT = { bg: '#EFF3EC', ink: '#A9B7A3' }
+const lockedTint = (C: ThemeColors) => ({ bg: C.surface2, ink: C.ink4 })
 
 const fmtUz = (iso: string) => {
   const d = new Date(iso)
@@ -122,6 +114,7 @@ const CH = 90
 
 /** Haftalik daqiqalar chizig'i — barcha nuqtalar haqiqiy `studyMinutes` dan */
 const WeekChart = ({ mins, width, todayIdx }: { mins: number[]; width: number; todayIdx: number }) => {
+  const C = useColors()
   const max = Math.max(...mins)
   const top = max > 0 ? max : 1
   const xAt = (i: number) => 8 + (i * (width - 16)) / 6
@@ -137,19 +130,19 @@ const WeekChart = ({ mins, width, todayIdx }: { mins: number[]; width: number; t
         <Line
           key={k}
           x1={0} y1={12 + (CH - 26) * k} x2={width} y2={12 + (CH - 26) * k}
-          stroke="#EAF0E5" strokeWidth={1}
+          stroke={C.line} strokeWidth={1}
         />
       ))}
-      {!!area && <Path d={area} fill={GREEN} fillOpacity={0.12} />}
+      {!!area && <Path d={area} fill={C.brand} fillOpacity={0.12} />}
       <Polyline
-        points={line} fill="none" stroke={GREEN} strokeWidth={2.75}
+        points={line} fill="none" stroke={C.brand} strokeWidth={2.75}
         strokeLinejoin="round" strokeLinecap="round"
       />
       {mins.map((m, i) => (
         <Circle
           key={i}
           cx={xAt(i)} cy={yAt(m)} r={i === todayIdx ? 6 : 4}
-          fill="#FFFFFF" stroke={GREEN} strokeWidth={i === todayIdx ? 3 : 2.5}
+          fill={C.surface} stroke={C.brand} strokeWidth={i === todayIdx ? 3 : 2.5}
         />
       ))}
     </Svg>
@@ -198,6 +191,9 @@ const ProfileScreen = () => {
   const setProfile = useApp(s => s.setProfile)
   const setTheme = useApp(s => s.setTheme)
   const signOut = useApp(s => s.signOut)
+
+  const C = useColors()
+  const p = makeP(C)
 
   /* ── Haqiqiy ko'rsatkichlar ── */
 
@@ -350,14 +346,14 @@ const ProfileScreen = () => {
               icon="bell-outline"
               label="Faollik hisoboti"
               tint="#FFFFFF"
-              ink={INK}
+              ink={C.ink}
               onPress={() => { triggerHaptic('light'); setBellOpen(true) }}
             />
             <HeadBtn
               icon="cog-outline"
               label="Sozlamalar"
               tint="#FFFFFF"
-              ink={INK}
+              ink={C.ink}
               onPress={() => { triggerHaptic('light'); setSettingsOpen(true) }}
             />
           </View>
@@ -399,7 +395,7 @@ const ProfileScreen = () => {
                 style={({ pressed }) => [p.heroNameRow, pressed && { opacity: 0.6 }]}
               >
                 <Text numberOfLines={1} style={p.heroName}>{name || 'Ismingizni kiriting'}</Text>
-                <MCI name="pencil-outline" size={12} color={GRAY} />
+                <MCI name="pencil-outline" size={12} color={C.ink3} />
               </Pressable>
               <Text numberOfLines={1} style={p.heroHandle}>
                 {identity || "Profil to'ldirilmagan"}
@@ -409,7 +405,7 @@ const ProfileScreen = () => {
 
           <View style={p.xpBlock}>
             <LinearGradient
-              colors={['#F5FAEE', '#EDF7E2']}
+              colors={[C.leafTint, C.mintSoft]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[ABS_FILL, { borderRadius: 16 }]}
@@ -524,14 +520,14 @@ const ProfileScreen = () => {
           <BigTile
             icon="puzzle-outline"
             tint={C.leafSoft}
-            ink={GREEN}
+            ink={C.brand}
             value={`${solvedCount}`}
             label="Yechildi masalalar"
           />
           <BigTile
             icon="book-open-variant"
-            tint={AMBER_BG}
-            ink={AMBER_INK}
+            tint={C.coinSoft}
+            ink={C.coin}
             value={`${lessonsDone}`}
             label="Yakunlangan darslar"
           />
@@ -545,7 +541,7 @@ const ProfileScreen = () => {
               <Text style={p.cardSub}>Hafta davomidagi o&apos;qish vaqti</Text>
             </View>
             <View style={p.chartIcon}>
-              <MCI name="chart-line" size={16} color={GREEN} />
+              <MCI name="chart-line" size={16} color={C.brand} />
             </View>
           </View>
 
@@ -580,14 +576,14 @@ const ProfileScreen = () => {
               style={({ pressed }) => [p.allBtn, pressed && { opacity: 0.6 }]}
             >
               <Text style={p.secAction}>Barchasi</Text>
-              <MCI name="chevron-right" size={13} color={GREEN} />
+              <MCI name="chevron-right" size={13} color={C.brand} />
             </Pressable>
           </View>
 
           <View style={p.badgeRow}>
             {badges.map(m => {
               const on = unlockedIds.has(m.id)
-              const tint = on ? MEDAL_TINT[m.icon] : LOCKED_TINT
+              const tint = on ? medalTints(C)[m.icon] : lockedTint(C)
               return (
                 <View key={m.id} style={p.badgeCol}>
                   <View
@@ -609,7 +605,7 @@ const ProfileScreen = () => {
       </ScrollView>
 
       {/* Status bar zonasi — kontent shu chegara ostidan o'tadi */}
-      <TopScrim height={insets.top} colors={['#F7F9F3', '#F7F9F3']} line="rgba(14,26,18,0.05)" />
+      <TopScrim height={insets.top} colors={[C.surface2, C.surface2]} line="rgba(14,26,18,0.05)" />
 
       {/* ── Varaqa: profilni tahrirlash ── */}
       <Sheet open={editOpen} onClose={() => setEditOpen(false)} title="Profilni tahrirlash">
@@ -664,17 +660,17 @@ const ProfileScreen = () => {
                 style={({ pressed }) => [
                   p.themeRow,
                   !o.ready && { opacity: 0.45 },
-                  pressed && o.ready && { backgroundColor: '#FAFCF8' },
+                  pressed && o.ready && { backgroundColor: C.surface2 },
                 ]}
               >
-                <MCI name={o.icon} size={17} color={active ? GREEN : GRAY} />
+                <MCI name={o.icon} size={17} color={active ? C.brand : C.ink3} />
                 <Text style={p.themeLabel}>{o.label}</Text>
-                {!o.ready && <Pill label="Tez orada" bg="#EDEFF5" ink={GRAY} />}
+                {!o.ready && <Pill label="Tez orada" bg={C.surface2} ink={C.ink3} />}
                 {o.ready && (
                   <MCI
                     name={active ? 'radiobox-marked' : 'radiobox-blank'}
                     size={18}
-                    color={active ? GREEN : '#C9D3C4'}
+                    color={active ? C.brand : C.ink4}
                   />
                 )}
               </Pressable>
@@ -684,13 +680,13 @@ const ProfileScreen = () => {
 
         {/* ── Bildirishnomalar ── */}
         <View style={p.themeList}>
-          <Pressable onPress={() => void toggleNotif()} style={({ pressed }) => [p.themeRow, pressed && { backgroundColor: '#FAFCF8' }]}>
-            <MCI name={notifOn ? 'bell-ring-outline' : 'bell-off-outline'} size={17} color={notifOn ? GREEN : GRAY} />
+          <Pressable onPress={() => void toggleNotif()} style={({ pressed }) => [p.themeRow, pressed && { backgroundColor: C.surface2 }]}>
+            <MCI name={notifOn ? 'bell-ring-outline' : 'bell-off-outline'} size={17} color={notifOn ? C.brand : C.ink3} />
             <Text style={p.themeLabel}>Push bildirishnomalar</Text>
             <MCI
               name={notifOn ? 'radiobox-marked' : 'radiobox-blank'}
               size={18}
-              color={notifOn ? GREEN : '#C9D3C4'}
+              color={notifOn ? C.brand : C.ink4}
             />
           </Pressable>
           <Pressable
@@ -698,7 +694,7 @@ const ProfileScreen = () => {
             disabled={pushBusy}
             style={({ pressed }) => [p.themeRow, (pressed || pushBusy) && { opacity: 0.6 }]}
           >
-            <MCI name="send-outline" size={17} color={GREEN} />
+            <MCI name="send-outline" size={17} color={C.brand} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={p.themeLabel}>{pushBusy ? 'Yuborilmoqda…' : 'Test bildirishnomasi'}</Text>
               {!!pushMsg && <Text style={p.pushMsg}>{pushMsg}</Text>}
@@ -738,7 +734,7 @@ const ProfileScreen = () => {
         <View style={p.medalGrid}>
           {ACHIEVEMENTS.map(a => {
             const on = unlockedIds.has(a.id)
-            const tint = on ? MEDAL_TINT[a.icon] : LOCKED_TINT
+            const tint = on ? medalTints(C)[a.icon] : lockedTint(C)
             return (
               <View key={a.id} style={[p.medalCell, { opacity: on ? 1 : 0.5 }]}>
                 <View style={[p.medalCellIcon, { backgroundColor: tint.bg }]}>
@@ -787,16 +783,20 @@ const HeadBtn = ({
   tint: string
   ink: string
   onPress: () => void
-}) => (
-  <Pressable
-    onPress={onPress}
-    hitSlop={8}
-    accessibilityLabel={label}
-    style={({ pressed }) => [st.headBtn, { backgroundColor: tint }, pressed && { opacity: 0.6 }]}
-  >
-    <MCI name={icon} size={17} color={ink} />
-  </Pressable>
-)
+}) => {
+  const C = useColors()
+  const st = makeSt(C)
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
+      accessibilityLabel={label}
+      style={({ pressed }) => [st.headBtn, { backgroundColor: tint }, pressed && { opacity: 0.6 }]}
+    >
+      <MCI name={icon} size={17} color={ink} />
+    </Pressable>
+  )
+}
 
 const BigTile = ({
   icon, tint, ink, value, label,
@@ -806,7 +806,10 @@ const BigTile = ({
   ink: string
   value: string
   label: string
-}) => (
+}) => {
+  const C = useColors()
+  const st = makeSt(C)
+  return (
   <View style={st.bigTile}>
     <View style={[st.bigIcon, { backgroundColor: tint }]}>
       <MCI name={icon} size={19} color={ink} />
@@ -816,20 +819,29 @@ const BigTile = ({
       <Text numberOfLines={2} style={st.bigLabel}>{label}</Text>
     </View>
   </View>
-)
+  )
+}
 
-const Pill = ({ label, bg, ink }: { label: string; bg: string; ink: string }) => (
-  <View style={[st.pill, { backgroundColor: bg }]}>
-    <Text style={[st.pillText, { color: ink }]}>{label}</Text>
-  </View>
-)
+const Pill = ({ label, bg, ink }: { label: string; bg: string; ink: string }) => {
+  const C = useColors()
+  const st = makeSt(C)
+  return (
+    <View style={[st.pill, { backgroundColor: bg }]}>
+      <Text style={[st.pillText, { color: ink }]}>{label}</Text>
+    </View>
+  )
+}
 
-const Note = ({ label, value }: { label: string; value: string }) => (
-  <View style={st.noteRow}>
-    <Text style={st.noteLabel}>{label}</Text>
-    <Text style={st.noteValue}>{value}</Text>
-  </View>
-)
+const Note = ({ label, value }: { label: string; value: string }) => {
+  const C = useColors()
+  const st = makeSt(C)
+  return (
+    <View style={st.noteRow}>
+      <Text style={st.noteLabel}>{label}</Text>
+      <Text style={st.noteValue}>{value}</Text>
+    </View>
+  )
+}
 
 const Field = ({
   label, value, onChange, placeholder, prefix,
@@ -839,7 +851,10 @@ const Field = ({
   onChange: (v: string) => void
   placeholder: string
   prefix?: string
-}) => (
+}) => {
+  const C = useColors()
+  const st = makeSt(C)
+  return (
   <View style={st.fieldWrap}>
     <Text style={st.fieldLabel}>{label}</Text>
     <View style={st.fieldBox}>
@@ -848,64 +863,65 @@ const Field = ({
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={FAINT}
+        placeholderTextColor={C.ink4}
         style={st.fieldInput}
       />
     </View>
   </View>
-)
+  )
+}
 
-const p = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F7F9F3' },
+const makeP = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.canvas },
   scroll: { paddingHorizontal: 16 },
 
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  h1: { fontSize: 23, lineHeight: 28, fontWeight: '700', letterSpacing: -0.6, color: INK },
+  h1: { fontSize: 23, lineHeight: 28, fontWeight: '700', letterSpacing: -0.6, color: C.ink },
   headBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 
   heroCard: {
-    marginTop: 14, backgroundColor: '#FFFFFF', borderRadius: 24,
-    padding: 14, borderWidth: 1, borderColor: '#F1F5EC',
-    ...shadow('#0E1A12', 18, 6, 0.07),
+    marginTop: 14, backgroundColor: C.surface, borderRadius: 24,
+    padding: 14, borderWidth: 1, borderColor: C.surface2,
+    ...shadow(C.ink, 18, 6, 0.07),
   },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatarWrap: {
     width: 68, height: 68, borderRadius: 100, backgroundColor: '#EAF4E2',
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: '#DCEDCE',
-    ...shadow('#0B6E4F', 10, 3, 0.12),
+    ...shadow(C.brand, 10, 3, 0.12),
   },
   avatarInner: { width: 60, height: 60, borderRadius: 100, overflow: 'hidden' },
   avatarImg: { width: 60, height: 60 },
-  avatarText: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.6 },
+  avatarText: { fontSize: 22, fontWeight: '600', color: C.surface, letterSpacing: -0.6 },
   lvlDot: {
     position: 'absolute', right: -2, bottom: -2, minWidth: 21, height: 21,
     paddingHorizontal: 5, borderRadius: 100, backgroundColor: C.lime,
-    borderWidth: 2.5, borderColor: '#FFFFFF',
+    borderWidth: 2.5, borderColor: C.surface,
     alignItems: 'center', justifyContent: 'center',
-    ...shadow('#5FAF22', 4, 2, 0.35),
+    ...shadow(C.limeDeep, 4, 2, 0.35),
   },
   lvlDotText: { fontSize: 10, fontWeight: '700', color: C.inkOnLime },
   heroMid: { flex: 1, minWidth: 0 },
   heroNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  heroName: { fontSize: 19, lineHeight: 24, fontWeight: '700', letterSpacing: -0.45, color: INK, flexShrink: 1 },
-  heroHandle: { marginTop: 3, fontSize: 11.5, fontWeight: '500', color: GRAY },
+  heroName: { fontSize: 19, lineHeight: 24, fontWeight: '700', letterSpacing: -0.45, color: C.ink, flexShrink: 1 },
+  heroHandle: { marginTop: 3, fontSize: 11.5, fontWeight: '500', color: C.ink3 },
 
   xpBlock: {
-    marginTop: 12, backgroundColor: SOFT, borderRadius: 16, padding: 12,
+    marginTop: 12, backgroundColor: C.surface2, borderRadius: 16, padding: 12,
   },
   xpHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  xpTitle: { fontSize: 12.5, fontWeight: '600', color: INK, letterSpacing: -0.2 },
-  xpNums: { fontSize: 11, fontWeight: '500', color: GRAY },
-  xpNow: { fontWeight: '700', color: GREEN },
+  xpTitle: { fontSize: 12.5, fontWeight: '600', color: C.ink, letterSpacing: -0.2 },
+  xpNums: { fontSize: 11, fontWeight: '500', color: C.ink3 },
+  xpNow: { fontWeight: '700', color: C.brand },
   xpTrack2: {
     marginTop: 8, height: 8, borderRadius: 100,
     backgroundColor: 'rgba(11,110,79,0.12)', overflow: 'hidden',
   },
   xpFill2: { height: '100%', borderRadius: 100, overflow: 'hidden' },
-  xpHint: { marginTop: 7, fontSize: 10, fontWeight: '500', color: FAINT },
+  xpHint: { marginTop: 7, fontSize: 10, fontWeight: '500', color: C.ink4 },
 
-  proWrap: { marginTop: 10, borderRadius: 18, ...glow('#0B6E4F') },
+  proWrap: { marginTop: 10, borderRadius: 18, ...glow(C.brand) },
   proBanner: {
     height: 74, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 11,
     overflow: 'hidden', borderRadius: 18,
@@ -927,13 +943,13 @@ const p = StyleSheet.create({
   proBadge: {
     width: 44, height: 44, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
-    ...shadow('#E8A33D', 10, 4, 0.4),
+    ...shadow(C.coin, 10, 4, 0.4),
   },
   proSparkA: { position: 'absolute', top: -5, right: -7 },
   proSparkB: { position: 'absolute', bottom: -4, left: -6 },
   proMid: { flex: 1, minWidth: 0 },
   proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  proTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.25 },
+  proTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '700', color: C.surface, letterSpacing: -0.25 },
   proPill: {
     backgroundColor: 'rgba(232,163,61,0.18)', borderRadius: 7,
     paddingHorizontal: 6, paddingVertical: 2,
@@ -950,7 +966,7 @@ const p = StyleSheet.create({
   proCta: {
     flexDirection: 'row', alignItems: 'center', gap: 3, height: 30, flexShrink: 0,
     paddingHorizontal: 10, borderRadius: 11, overflow: 'hidden',
-    ...shadow('#7ED321', 6, 2, 0.35),
+    ...shadow(C.lime, 6, 2, 0.35),
   },
   proCtaText: {
     fontSize: 10.5, lineHeight: 13, fontWeight: '800',
@@ -960,21 +976,21 @@ const p = StyleSheet.create({
   bigRow: { marginTop: 10, flexDirection: 'row', gap: 10 },
 
   card: {
-    marginTop: 10, backgroundColor: '#FFFFFF', borderRadius: 20,
-    padding: 13, borderWidth: 1, borderColor: '#F1F5EC',
-    ...shadow('#0E1A12', 14, 5, 0.05),
+    marginTop: 10, backgroundColor: C.surface, borderRadius: 20,
+    padding: 13, borderWidth: 1, borderColor: C.surface2,
+    ...shadow(C.ink, 14, 5, 0.05),
   },
   chartCard: { marginTop: 10 },
 
   secHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   secMid: { flex: 1, minWidth: 0 },
-  cardTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600', color: INK, letterSpacing: -0.2 },
-  cardSub: { marginTop: 2, fontSize: 11, fontWeight: '500', color: GRAY },
+  cardTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600', color: C.ink, letterSpacing: -0.2 },
+  cardSub: { marginTop: 2, fontSize: 11, fontWeight: '500', color: C.ink3 },
   chartIcon: {
     width: 32, height: 32, borderRadius: 100, backgroundColor: C.leafSoft,
     alignItems: 'center', justifyContent: 'center',
   },
-  secAction: { fontSize: 11.5, fontWeight: '700', color: GREEN },
+  secAction: { fontSize: 11.5, fontWeight: '700', color: C.brand },
   allBtn: { flexDirection: 'row', alignItems: 'center', gap: 1 },
 
   chartRow: { marginTop: 12, flexDirection: 'row', alignItems: 'flex-start' },
@@ -982,23 +998,23 @@ const p = StyleSheet.create({
     width: 26, height: CH, justifyContent: 'space-between',
     paddingVertical: 5, marginRight: 2,
   },
-  yLabel: { fontSize: 9.5, lineHeight: 12, fontWeight: '500', color: FAINT, textAlign: 'right' },
+  yLabel: { fontSize: 9.5, lineHeight: 12, fontWeight: '500', color: C.ink4, textAlign: 'right' },
   xAxis: { marginTop: 6, flexDirection: 'row' },
-  xLabel: { flex: 1, fontSize: 10.5, fontWeight: '500', color: GRAY, textAlign: 'center' },
-  xLabelToday: { color: INK, fontWeight: '600' },
+  xLabel: { flex: 1, fontSize: 10.5, fontWeight: '500', color: C.ink3, textAlign: 'center' },
+  xLabelToday: { color: C.ink, fontWeight: '600' },
 
   legend: {
     marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#EEF2EA',
     flexDirection: 'row', alignItems: 'center', gap: 6,
   },
-  legendDot: { width: 8, height: 8, borderRadius: 100, backgroundColor: GREEN },
-  legendName: { flex: 1, fontSize: 11.5, fontWeight: '600', color: GRAY },
-  legendValue: { fontSize: 12, fontWeight: '600', color: GREEN },
+  legendDot: { width: 8, height: 8, borderRadius: 100, backgroundColor: C.brand },
+  legendName: { flex: 1, fontSize: 11.5, fontWeight: '600', color: C.ink3 },
+  legendValue: { fontSize: 12, fontWeight: '600', color: C.brand },
 
   badgeRow: { marginTop: 12, flexDirection: 'row' },
   badgeCol: { flex: 1, alignItems: 'center' },
   badge: { width: 50, height: 50, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
-  badgeTitle: { marginTop: 7, fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: INK, textAlign: 'center' },
+  badgeTitle: { marginTop: 7, fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: C.ink, textAlign: 'center' },
 
   btnLime: {
     marginTop: 16, height: 46, borderRadius: 14, backgroundColor: C.lime,
@@ -1006,53 +1022,53 @@ const p = StyleSheet.create({
   },
   btnLimeText: { fontSize: 13, fontWeight: '600', color: C.inkOnLime },
   btnInk: {
-    marginTop: 16, height: 46, borderRadius: 14, backgroundColor: INK,
+    marginTop: 16, height: 46, borderRadius: 14, backgroundColor: C.ink,
     alignItems: 'center', justifyContent: 'center',
   },
   btnInkText: { fontSize: 13, fontWeight: '600', color: C.mint },
   btnDanger: {
-    marginTop: 16, height: 46, borderRadius: 14, backgroundColor: DANGER,
+    marginTop: 16, height: 46, borderRadius: 14, backgroundColor: C.danger,
     alignItems: 'center', justifyContent: 'center',
   },
-  btnDangerText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
+  btnDangerText: { fontSize: 13, fontWeight: '600', color: C.surface },
   btnSoft: {
-    marginTop: 8, height: 44, borderRadius: 14, backgroundColor: SOFT,
+    marginTop: 8, height: 44, borderRadius: 14, backgroundColor: C.surface2,
     alignItems: 'center', justifyContent: 'center',
   },
-  btnSoftText: { fontSize: 13, fontWeight: '600', color: INK },
+  btnSoftText: { fontSize: 13, fontWeight: '600', color: C.ink },
 
-  sheetText: { fontSize: 13, lineHeight: 20, color: GRAY },
+  sheetText: { fontSize: 13, lineHeight: 20, color: C.ink3 },
 
   themeList: { marginTop: 4 },
   themeRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingVertical: 14, paddingHorizontal: 2,
-    borderBottomWidth: 1, borderBottomColor: HAIR,
+    borderBottomWidth: 1, borderBottomColor: C.line,
   },
-  themeLabel: { flex: 1, fontSize: 13.5, fontWeight: '600', color: INK },
-  pushMsg: { marginTop: 2, fontSize: 11, fontWeight: '500', color: GRAY },
+  themeLabel: { flex: 1, fontSize: 13.5, fontWeight: '600', color: C.ink },
+  pushMsg: { marginTop: 2, fontSize: 11, fontWeight: '500', color: C.ink3 },
 
   helpList: { marginTop: 4 },
   helpRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
     paddingVertical: 10, paddingHorizontal: 2,
-    borderBottomWidth: 1, borderBottomColor: HAIR,
+    borderBottomWidth: 1, borderBottomColor: C.line,
   },
-  helpKey: { fontSize: 12.5, fontWeight: '600', color: INK },
-  helpValue: { flex: 1, fontSize: 11.5, fontWeight: '500', color: GRAY, textAlign: 'right' },
+  helpKey: { fontSize: 12.5, fontWeight: '600', color: C.ink },
+  helpValue: { flex: 1, fontSize: 11.5, fontWeight: '500', color: C.ink3, textAlign: 'right' },
 
   medalGrid: { marginTop: 4, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   medalCell: {
     width: '48%', flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: SOFT, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: C.surface2, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10,
   },
   medalCellIcon: { width: 30, height: 30, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
   medalCellMid: { flex: 1, minWidth: 0 },
-  medalCellTitle: { fontSize: 12, fontWeight: '600', color: INK },
-  medalCellHint: { marginTop: 1, fontSize: 11, fontWeight: '500', color: GRAY },
+  medalCellTitle: { fontSize: 12, fontWeight: '600', color: C.ink },
+  medalCellHint: { marginTop: 1, fontSize: 11, fontWeight: '500', color: C.ink3 },
 })
 
-const st = StyleSheet.create({
+const makeSt = (C: ThemeColors) => StyleSheet.create({
   headBtn: {
     width: 36, height: 36, borderRadius: 100, alignItems: 'center', justifyContent: 'center',
     ...SHADOW.card,
@@ -1060,14 +1076,14 @@ const st = StyleSheet.create({
 
   bigTile: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#FFFFFF', borderRadius: 18, padding: 12,
-    borderWidth: 1, borderColor: '#F1F5EC',
-    ...shadow('#0E1A12', 14, 5, 0.05),
+    backgroundColor: C.surface, borderRadius: 18, padding: 12,
+    borderWidth: 1, borderColor: C.surface2,
+    ...shadow(C.ink, 14, 5, 0.05),
   },
   bigIcon: { width: 38, height: 38, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
   bigMid: { flex: 1, minWidth: 0 },
-  bigValue: { fontSize: 21, lineHeight: 25, fontWeight: '700', color: INK, letterSpacing: -0.5 },
-  bigLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: GRAY },
+  bigValue: { fontSize: 21, lineHeight: 25, fontWeight: '700', color: C.ink, letterSpacing: -0.5 },
+  bigLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: C.ink3 },
 
   pill: { height: 20, paddingHorizontal: 8, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
   pillText: { fontSize: 10, fontWeight: '600' },
@@ -1075,19 +1091,19 @@ const st = StyleSheet.create({
   noteRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
     paddingVertical: 11, paddingHorizontal: 2,
-    borderBottomWidth: 1, borderBottomColor: HAIR,
+    borderBottomWidth: 1, borderBottomColor: C.line,
   },
-  noteLabel: { fontSize: 12.5, fontWeight: '500', color: GRAY },
-  noteValue: { flex: 1, fontSize: 12.5, fontWeight: '600', color: INK, textAlign: 'right' },
+  noteLabel: { fontSize: 12.5, fontWeight: '500', color: C.ink3 },
+  noteValue: { flex: 1, fontSize: 12.5, fontWeight: '600', color: C.ink, textAlign: 'right' },
 
   fieldWrap: { marginTop: 10 },
-  fieldLabel: { fontSize: 11.5, fontWeight: '600', color: GRAY },
+  fieldLabel: { fontSize: 11.5, fontWeight: '600', color: C.ink3 },
   fieldBox: {
     marginTop: 6, height: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: SOFT, borderRadius: 12,
+    backgroundColor: C.surface2, borderRadius: 12,
   },
-  fieldPrefix: { fontSize: 14, fontWeight: '600', color: GRAY, marginRight: 2 },
-  fieldInput: { flex: 1, fontSize: 14, fontWeight: '600', color: INK, padding: 0 },
+  fieldPrefix: { fontSize: 14, fontWeight: '600', color: C.ink3, marginRight: 2 },
+  fieldInput: { flex: 1, fontSize: 14, fontWeight: '600', color: C.ink, padding: 0 },
 })
 
 export default ProfileScreen

@@ -5,7 +5,8 @@ import MCI from '@expo/vector-icons/MaterialCommunityIcons'
 import Svg, { Circle, Path } from 'react-native-svg'
 import type { ProblemLevel, ProblemSubject } from '../data/problems'
 import { CARD_LIFT } from '../theme/solver'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
+import { ABS_FILL, NUM, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Fan kartasi — bilet ostidagi yagona navigatsiya birligi.
@@ -68,6 +69,8 @@ interface Props {
 const ProblemSubjectCard = ({
   subject, levels, starsByLevel, solved, total, index, onOpen, onLevel,
 }: Props) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const art = ART[subject.id] ?? ART.algebra
   const lift = useRef(new Animated.Value(0)).current
 
@@ -162,7 +165,7 @@ const ProblemSubjectCard = ({
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   card: { paddingHorizontal: 12, paddingVertical: 12, borderRadius: 20 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   tile: {

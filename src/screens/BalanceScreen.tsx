@@ -13,7 +13,8 @@ import { BalanceScale, Rider } from '../games/BalanceScale'
 import { SolveTopBar } from '../components/SolveKit'
 import { GameLobby } from '../components/GameLobby'
 import { ScaleMark } from '../components/ScaleMark'
-import { C, MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { MATH_FONT, NUM, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import { GRAD_LIME } from '../theme/solver'
 import {
   BALANCE_LEVELS, balanceOutcome, pickBalanceRounds, sum,
@@ -27,14 +28,13 @@ import {
 
 type Phase = 'lobby' | 'play' | 'result'
 
-const INK = '#0E1A12'
-const GRAY = '#6B7C66'
-const LINE = '#E1E7DA'
 
 const LIMA_ART = require('../assets/games/muvozanat-lima.png')
 const AMBAR_ART = require('../assets/games/muvozanat-ambar.png')
 
 const BalanceScreen = () => {
+  const C = useColors()
+  const s = makeS(C)
   const insets = useSafeAreaInsets()
   const exit = useExit('Main')
   const { width: winW } = useWindowDimensions()
@@ -280,7 +280,7 @@ const BalanceScreen = () => {
       <View style={s.screen}>
         <View style={[s.lobbyHead, { paddingTop: insets.top + 10 }]}>
           <Pressable onPress={exit} accessibilityLabel="Chiqish" hitSlop={10} style={s.back}>
-            <Ionicons name="close" size={18} color="#33452F" />
+            <Ionicons name="close" size={18} color={C.ink2} />
           </Pressable>
           <Text style={s.lobbyKicker}>Natija</Text>
           <View style={{ width: 36 }} />
@@ -298,7 +298,7 @@ const BalanceScreen = () => {
                 key={i}
                 name={i < outcome.stars ? 'star' : 'star-outline'}
                 size={i === 1 ? 46 : 36}
-                color={i < outcome.stars ? '#E8A33D' : '#C9D2C1'}
+                color={i < outcome.stars ? C.coin : C.ink4}
                 style={i === 1 && { marginTop: -12 }}
               />
             ))}
@@ -321,7 +321,7 @@ const BalanceScreen = () => {
                 <Ionicons name="flash" size={14} color={C.xp} />
                 <Text style={[s.resultPillText, NUM]}>+{outcome.xp}</Text>
               </View>
-              <View style={[s.resultPill, { backgroundColor: '#F1F5EC' }]}>
+              <View style={[s.resultPill, { backgroundColor: C.surface2 }]}>
                 <Ionicons name="star" size={13} color="#E8A33D" />
                 <Text style={[s.resultPillText, NUM]}>rekord {Math.max(outcome.stars, best)}/3</Text>
               </View>
@@ -362,7 +362,7 @@ const BalanceScreen = () => {
       <SolveTopBar style={{ paddingTop: insets.top + 8 }}>
         <View style={s.headRow}>
           <Pressable onPress={exit} accessibilityLabel="Chiqish" hitSlop={10} style={s.back}>
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color={C.ink2} />
           </Pressable>
           <View style={s.headMid}>
             <Text style={s.kicker}>Muvozanat · {level.title}</Text>
@@ -372,7 +372,7 @@ const BalanceScreen = () => {
           </View>
           <View style={s.hearts}>
             {Array.from({ length: level.hearts }, (_, i) => (
-              <Ionicons key={i} name={i < hearts ? 'heart' : 'heart-outline'} size={15} color={i < hearts ? '#D9483B' : '#C9D2C1'} />
+              <Ionicons key={i} name={i < hearts ? 'heart' : 'heart-outline'} size={15} color={i < hearts ? C.danger : C.ink4} />
             ))}
           </View>
         </View>
@@ -437,7 +437,7 @@ const BalanceScreen = () => {
             accessibilityLabel="Tozalash"
             style={({ pressed }) => [s.trayReset, placed.length === 0 && { opacity: 0.4 }, pressed && { opacity: 0.7 }]}
           >
-            <Ionicons name="refresh" size={12} color={GRAY} />
+            <Ionicons name="refresh" size={12} color={C.ink3} />
             <Text style={s.trayResetText}>Tozalash</Text>
           </Pressable>
         </View>
@@ -475,6 +475,8 @@ const TrayChip = ({
   gone: boolean
   onDrag: (event: 'start' | 'move' | 'end' | 'cancel', x: number, y: number) => void
 }) => {
+  const C = useColors()
+  const s = makeS(C)
   const state = useRef({ moved: false, x: 0, y: 0 })
   const responder = useMemo(
     () => PanResponder.create({
@@ -497,13 +499,13 @@ const TrayChip = ({
 
   return (
     <View {...responder.panHandlers} style={[s.chip, gone && s.chipGone]}>
-      <Text style={[s.chipText, NUM, gone && { color: '#C9D2C1' }]}>{gone ? '·' : value}</Text>
+      <Text style={[s.chipText, NUM, gone && { color: C.ink4 }]}>{gone ? '·' : value}</Text>
     </View>
   )
 }
 
-const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F7EE' },
+const makeS = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
 
   lobbyHead: {
     flexDirection: 'row',
@@ -512,8 +514,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6EBE0',
-    backgroundColor: '#F3F7EE',
+    borderBottomColor: C.line,
+    backgroundColor: C.solverBody,
   },
   back: {
     width: 36,
@@ -521,13 +523,13 @@ const s = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  lobbyKicker: { fontSize: 13, fontWeight: '600', color: INK, letterSpacing: 0.2 },
+  lobbyKicker: { fontSize: 13, fontWeight: '600', color: C.ink, letterSpacing: 0.2 },
 
-  lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: '#F3F7EE' },
+  lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: C.solverBody },
   ctaWrap: { borderRadius: 16 },
   cta: {
     height: 56,
@@ -536,7 +538,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    ...shadow('#5FAF22', 8, 5, 0.3),
+    ...shadow(C.limeDeep, 8, 5, 0.3),
   },
   ctaText: { fontSize: 15.5, fontWeight: '600', color: C.inkOnLime },
   ghostBtn: {
@@ -544,16 +546,16 @@ const s = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  ghostText: { fontSize: 14, fontWeight: '600', color: '#33452F' },
+  ghostText: { fontSize: 14, fontWeight: '600', color: C.ink2 },
 
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 },
   headMid: { flex: 1 },
-  kicker: { fontSize: 13, fontWeight: '600', color: INK },
-  step: { marginTop: 1, fontSize: 11, color: GRAY },
+  kicker: { fontSize: 13, fontWeight: '600', color: C.ink },
+  step: { marginTop: 1, fontSize: 11, color: C.ink3 },
   hearts: { flexDirection: 'row', gap: 3 },
 
   timerTrack: {
@@ -561,20 +563,20 @@ const s = StyleSheet.create({
     marginHorizontal: 16,
     height: 6,
     borderRadius: 9999,
-    backgroundColor: '#E4E9DD',
+    backgroundColor: C.line,
     overflow: 'hidden',
   },
   timerFill: { height: 6, borderRadius: 9999, backgroundColor: C.limeDeep },
 
   body: { flex: 1, paddingHorizontal: 16, justifyContent: 'center' },
   equationWrap: { alignItems: 'center', marginBottom: 8 },
-  equation: { fontFamily: MATH_FONT, fontSize: 22, color: INK },
+  equation: { fontFamily: MATH_FONT, fontSize: 22, color: C.ink },
 
   scaleWrap: { borderRadius: 18 },
   scaleWrapHot: { backgroundColor: 'rgba(126,211,33,0.12)' },
 
   tipRow: { marginTop: 14, alignItems: 'center', minHeight: 30, justifyContent: 'center' },
-  tip: { fontSize: 12, color: GRAY, textAlign: 'center' },
+  tip: { fontSize: 12, color: C.ink3, textAlign: 'center' },
   tipPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -582,29 +584,29 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 9999,
-    backgroundColor: '#EAF7DC',
+    backgroundColor: C.surface2,
     borderWidth: 1,
-    borderColor: '#CBE8AC',
+    borderColor: C.line,
   },
-  tipOn: { fontSize: 12.5, fontWeight: '600', color: '#2F6B14' },
+  tipOn: { fontSize: 12.5, fontWeight: '600', color: C.limeDeep },
   comboPill: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 11, paddingVertical: 5, borderRadius: 11,
-    backgroundColor: C.coinSoft, borderWidth: 1, borderColor: '#F0D3A1',
+    backgroundColor: C.coinSoft, borderWidth: 1, borderColor: C.line,
   },
-  comboText: { fontSize: 12, fontWeight: '700', color: '#B4530A', letterSpacing: 0.1 },
+  comboText: { fontSize: 12, fontWeight: '700', color: C.coin, letterSpacing: 0.1 },
 
   tray: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    backgroundColor: '#F3F7EE',
+    backgroundColor: C.solverBody,
     borderTopWidth: 1,
-    borderTopColor: '#E6EBE0',
+    borderTopColor: C.line,
   },
   trayHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  trayLabel: { fontSize: 11.5, fontWeight: '600', color: GRAY, letterSpacing: 0.2 },
+  trayLabel: { fontSize: 11.5, fontWeight: '600', color: C.ink3, letterSpacing: 0.2 },
   trayReset: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  trayResetText: { fontSize: 11.5, color: GRAY },
+  trayResetText: { fontSize: 11.5, color: C.ink3 },
   trayRow: { flexDirection: 'row', gap: 8, paddingBottom: 2 },
 
   chip: {
@@ -614,13 +616,13 @@ const s = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: '#DDE4D6',
-    ...shadow(INK, 5, 2, 0.08),
+    ...shadow(C.ink, 5, 2, 0.08),
   },
-  chipGone: { backgroundColor: '#F1F4EC', borderStyle: 'dashed', shadowOpacity: 0, elevation: 0 },
-  chipText: { fontSize: 16, fontWeight: '600', color: '#1C3214' },
+  chipGone: { backgroundColor: C.surface2, borderStyle: 'dashed', shadowOpacity: 0, elevation: 0 },
+  chipText: { fontSize: 16, fontWeight: '600', color: C.inkOnLime },
 
   ghostChip: {
     position: 'absolute',
@@ -631,24 +633,24 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.lime,
     borderWidth: 1.5,
-    borderColor: '#4E9420',
+    borderColor: C.brand,
     zIndex: 60,
   },
-  ghostText2: { fontSize: 12, fontWeight: '700', color: '#1C3214' },
+  ghostText2: { fontSize: 12, fontWeight: '700', color: C.inkOnLime },
 
   resultBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   resultArt: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginBottom: 2 },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 56 },
-  resultTitle: { marginTop: 6, fontSize: 21, fontWeight: '600', color: INK },
-  resultSub: { marginTop: 5, fontSize: 12.5, color: GRAY },
+  resultTitle: { marginTop: 6, fontSize: 21, fontWeight: '600', color: C.ink },
+  resultSub: { marginTop: 5, fontSize: 12.5, color: C.ink3 },
   resultSheet: {
     marginTop: 20,
     alignSelf: 'stretch',
     padding: 14,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
   resultRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
   resultPill: {
@@ -659,8 +661,8 @@ const s = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 9999,
   },
-  resultPillText: { fontSize: 12.5, fontWeight: '600', color: INK },
-  resultNote: { marginTop: 10, textAlign: 'center', fontSize: 11.5, lineHeight: 16, color: GRAY },
+  resultPillText: { fontSize: 12.5, fontWeight: '600', color: C.ink },
+  resultNote: { marginTop: 10, textAlign: 'center', fontSize: 11.5, lineHeight: 16, color: C.ink3 },
 })
 
 export default BalanceScreen

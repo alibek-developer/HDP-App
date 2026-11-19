@@ -22,7 +22,7 @@ import {
 } from '../data/problems'
 import { difficultyLabel, sourceLabel } from '../lib/daily'
 import { useDailyQuestion } from '../lib/useDailyQuestion'
-import { CARD_LIFT, GRAD_HEADER, GRAD_LIME, GRAD_RAIL, LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
+import { CARD_LIFT, GRAD_HEADER, GRAD_LIME, GRAD_RAIL, LIME_BTN, LIME_TEXT } from '../theme/solver'
 
 /**
  * Masalalar — fan → daraja → 10 masalalik sessiya xaritasi.
@@ -141,8 +141,8 @@ const ProblemsScreen = () => {
           <View style={styles.ledger}>
             {[
               { v: `${streak}`, u: 'kun ketma-ket', icon: 'fire' as const, c: '#F3C88A' },
-              { v: `${solvedCount}`, u: 'ta yechilgan', icon: 'check' as const, c: '#9BE04B' },
-              { v: `${solvedToday}`, u: 'bugun', icon: 'flash' as const, c: '#CDE9AE' },
+              { v: `${solvedCount}`, u: 'ta yechilgan', icon: 'check' as const, c: C.limeBright },
+              { v: `${solvedToday}`, u: 'bugun', icon: 'flash' as const, c: C.mint },
             ].map((cell, i) => (
               <View key={cell.u} style={styles.ledgerCell}>
                 {i > 0 && <View style={styles.ledgerDivider} />}
@@ -200,7 +200,7 @@ const ProblemsScreen = () => {
                   {daily ? daily.topic : 'Kunlik savol'}
                 </Text>
                 <View style={styles.clockChip}>
-                  <MCI name="timer-outline" size={11} color="#9AA995" />
+                  <MCI name="timer-outline" size={11} color={C.ink4} />
                   <MidnightClock style={[styles.clockText, NUM]} />
                 </View>
               </View>
@@ -336,7 +336,7 @@ const ProblemsScreen = () => {
 }
 
 const makeStyles = (C: ThemeColors) => StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+  screen: { flex: 1, backgroundColor: C.solverBody },
   content: { paddingBottom: 120 },
   body: { paddingHorizontal: 16 },
 
@@ -392,7 +392,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 7,
   },
-  tierName: { fontSize: 11.5, fontWeight: '600', letterSpacing: 0.1, color: '#CDE9AE' },
+  tierName: { fontSize: 11.5, fontWeight: '600', letterSpacing: 0.1, color: C.mint },
   tierNext: { fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.86)' },
   tierTrack: {
     height: 6,
@@ -400,7 +400,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     backgroundColor: 'rgba(205,233,174,0.16)',
     overflow: 'hidden',
   },
-  tierTrackFill: { height: '100%', borderRadius: 3, backgroundColor: '#9BE04B' },
+  tierTrackFill: { height: '100%', borderRadius: 3, backgroundColor: C.limeBright },
   headerTail: { height: 16 },
 
   ticket: {
@@ -440,7 +440,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: SOLVER_BODY,
+    backgroundColor: C.solverBody,
   },
   notchTop: { top: -7 },
   notchBottom: { bottom: -7 },
@@ -453,18 +453,18 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     height: 22,
     paddingHorizontal: 7,
     borderRadius: 7,
-    backgroundColor: '#F6F8F3',
+    backgroundColor: C.surface2,
     borderWidth: 1,
     borderColor: '#E7ECE0',
   },
-  clockText: { fontSize: 11, fontWeight: '600', color: '#33452F' },
+  clockText: { fontSize: 11, fontWeight: '600', color: C.ink2 },
   ticketTitle: { flex: 1, fontSize: 15, lineHeight: 19, fontWeight: '600', color: C.ink },
-  ticketMeta: { marginTop: 3, fontSize: 11.5, fontWeight: '500', color: '#9AA995' },
+  ticketMeta: { marginTop: 3, fontSize: 11.5, fontWeight: '500', color: C.ink4 },
   promptBox: {
     marginTop: 8,
     paddingHorizontal: 10,
     paddingVertical: 9,
-    backgroundColor: '#F7F9F3',
+    backgroundColor: C.surface2,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: '#D5DECC',
@@ -476,8 +476,8 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   rewardDivider: { width: 3, height: 3, borderRadius: 2, marginHorizontal: 3, backgroundColor: '#C9D4C0' },
   rewardCoin: { fontSize: 13.5, fontWeight: '600', color: '#B87A22' },
   rewardXp: { fontSize: 13.5, fontWeight: '600', color: '#3560C4' },
-  rewardUnit: { fontSize: 11, fontWeight: '500', color: '#9AA995' },
-  claimedNote: { marginLeft: 4, fontSize: 11, fontWeight: '500', color: '#9AA995' },
+  rewardUnit: { fontSize: 11, fontWeight: '500', color: C.ink4 },
+  claimedNote: { marginLeft: 4, fontSize: 11, fontWeight: '500', color: C.ink4 },
   ticketCta: { height: 38, paddingHorizontal: 14, gap: 5, overflow: 'hidden' },
   ticketCtaText: { fontSize: 12.5 },
 
@@ -508,7 +508,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
 
   subjectList: { gap: 10 },
   subjectHint: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 },
-  subjectHintText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
+  subjectHintText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
   subjectHintStrong: { fontWeight: '600', color: C.ink2 },
 
   formulasCta: {
@@ -540,7 +540,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#9BE04B',
+    backgroundColor: C.limeBright,
   },
 })
 

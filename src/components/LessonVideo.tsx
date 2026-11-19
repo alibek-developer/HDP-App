@@ -4,7 +4,8 @@ import { WebView } from 'react-native-webview'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { triggerHaptic } from '../lib/haptics'
-import { ABS_FILL, type Grad } from '../theme/tokens'
+import { ABS_FILL, type Grad, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * YouTube dars pleyeri — xuddi web'dagi kabi: video YouTube'da yashaydi,
@@ -116,6 +117,8 @@ const failText = (code: number | null) => {
 }
 
 export const LessonVideo = ({ videoId, title, watched, onWatched, onUnavailable }: Props) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const doneRef = useRef(false)
   const loadingRef = useRef(true)
   const bailRef = useRef<(code?: number) => void>(() => {})
@@ -229,7 +232,7 @@ export const LessonVideo = ({ videoId, title, watched, onWatched, onUnavailable 
             accessibilityLabel="Videoni qayta yuklash"
             style={({ pressed }) => [styles.failPrimary, pressed && { opacity: 0.85 }]}
           >
-            <Ionicons name="refresh" size={15} color="#0E1A12" />
+            <Ionicons name="refresh" size={15} color={C.ink} />
             <Text style={styles.failPrimaryText}>Qayta urinish</Text>
           </Pressable>
           <Pressable
@@ -299,7 +302,7 @@ export const LessonVideo = ({ videoId, title, watched, onWatched, onUnavailable 
             {watched ? (
               <>
                 <Ionicons name="checkmark" size={11} color="#9BE04B" />
-                <Text style={[styles.metaStateText, { color: '#9BE04B' }]}>Ko&apos;rildi</Text>
+                <Text style={[styles.metaStateText, { color: C.limeBright }]}>Ko&apos;rildi</Text>
               </>
             ) : (
               <>
@@ -321,10 +324,10 @@ export const LessonVideo = ({ videoId, title, watched, onWatched, onUnavailable 
   )
 }
 
-const styles = StyleSheet.create({
-  card: { backgroundColor: '#0E1A12', borderRadius: 16, overflow: 'hidden' },
-  frame: { aspectRatio: 16 / 9, backgroundColor: '#0E1A12' },
-  webview: { flex: 1, backgroundColor: '#0E1A12' },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  card: { backgroundColor: C.ink, borderRadius: 16, overflow: 'hidden' },
+  frame: { aspectRatio: 16 / 9, backgroundColor: C.ink },
+  webview: { flex: 1, backgroundColor: C.ink },
   loading: {
     position: 'absolute',
     left: 0,
@@ -334,7 +337,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#0E1A12',
+    backgroundColor: C.ink,
   },
   loadingText: { fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },
 
@@ -367,7 +370,7 @@ const styles = StyleSheet.create({
     color: 'rgba(205,233,174,0.55)',
   },
 
-  failCard: { backgroundColor: '#0E1A12', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14 },
+  failCard: { backgroundColor: C.ink, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14 },
   failTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   failTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '500', color: 'rgba(255,255,255,0.85)' },
   failNote: { marginTop: 8, fontSize: 12, lineHeight: 18, fontWeight: '500', color: 'rgba(205,233,174,0.7)' },
@@ -380,9 +383,9 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#9BE04B',
+    backgroundColor: C.limeBright,
   },
-  failPrimaryText: { fontSize: 12.5, fontWeight: '600', color: '#0E1A12' },
+  failPrimaryText: { fontSize: 12.5, fontWeight: '600', color: C.ink },
   failGhost: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -394,5 +397,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(205,233,174,0.24)',
   },
-  failGhostText: { fontSize: 12.5, fontWeight: '500', color: '#CDE9AE' },
+  failGhostText: { fontSize: 12.5, fontWeight: '500', color: C.mint },
 })

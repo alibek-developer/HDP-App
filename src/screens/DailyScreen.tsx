@@ -20,7 +20,7 @@ import { useExit } from '../lib/nav'
 import { MidnightClock } from '../components/MidnightClock'
 import { NUM, TICK, type ThemeColors } from '../theme/tokens'
 import { useColors } from '../theme/useTheme'
-import { CARD, GRAD_RAIL, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
+import { CARD, GRAD_RAIL, LIME_TEXT } from '../theme/solver'
 import { AnswerOption, QuestionStage, SolveAction, SolveActionBar } from '../components/SolveKit'
 
 /**
@@ -40,11 +40,11 @@ const SOURCE: Record<
   bank: { icon: 'library-outline', pill: 'Mavzu testidan', sheet: 'Mavzu testidan olingan savol' },
 }
 
-const DIFF_COLOR: Record<string, { fg: string; bg: string }> = {
-  oson: { fg: '#3F7A16', bg: '#EAF7DC' },
-  "o'rta": { fg: '#9A640F', bg: '#FCF1DC' },
-  qiyin: { fg: '#A93A31', bg: '#FBE9E7' },
-}
+const diffTones = (C: ThemeColors): Record<string, { fg: string; bg: string }> => ({
+  oson: { fg: C.limeDeep, bg: C.leafTint },
+  "o'rta": { fg: C.coin, bg: C.coinSoft },
+  qiyin: { fg: C.danger, bg: C.dangerSoft },
+})
 
 const DailyScreen = () => {
   const insets = useSafeAreaInsets()
@@ -71,7 +71,7 @@ const DailyScreen = () => {
   const answered = question?.picked !== null && question?.picked !== undefined
   const chosen = answered ? question?.picked ?? null : picked
   const ok = answered && question ? chosen === question.correct : false
-  const diff = question ? DIFF_COLOR[question.difficulty] ?? DIFF_COLOR["o'rta"] : null
+  const diff = question ? diffTones(C)[question.difficulty] ?? diffTones(C)["o'rta"] : null
 
   const submit = () => {
     if (picked === null || !question) return
@@ -183,7 +183,7 @@ const DailyScreen = () => {
 
             {answered && question && (
               <View style={[CARD, s.resultCard]}>
-                <View style={[s.resultRail, { backgroundColor: ok ? TICK.ok : '#E8A33D' }]} />
+                <View style={[s.resultRail, { backgroundColor: ok ? TICK.ok : C.coin }]} />
                 <View style={s.resultBody}>
                   <View style={s.resultHead}>
                     <View style={s.resultHeadText}>
@@ -197,7 +197,7 @@ const DailyScreen = () => {
                   </View>
 
                   <View style={s.tickRow}>
-                    <View style={[s.tick, { backgroundColor: ok ? TICK.ok : '#E8A33D' }]} />
+                    <View style={[s.tick, { backgroundColor: ok ? TICK.ok : C.coin }]} />
                   </View>
 
                   <View style={s.tickFoot}>
@@ -383,22 +383,22 @@ const DailyScreen = () => {
 }
 
 const makeStyles = (C: ThemeColors) => StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+  screen: { flex: 1, backgroundColor: C.solverBody },
   scroll: { flex: 1 },
 
   head: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingBottom: 10,
-    borderBottomWidth: 1, borderBottomColor: '#E6EBE0',
+    borderBottomWidth: 1, borderBottomColor: C.line,
   },
   backBtn: {
     width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 12,
+    backgroundColor: C.surface, borderColor: C.line, borderWidth: 1, borderRadius: 12,
   },
   headKicker: { fontSize: 12.5, fontWeight: '600', color: C.ink2 },
   clockChip: {
     height: 30, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 10,
+    backgroundColor: C.surface, borderColor: C.line, borderWidth: 1, borderRadius: 10,
   },
   clockText: { fontSize: 12, fontWeight: '600', color: C.ink2 },
 
@@ -449,25 +449,25 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   percent: { fontSize: 11.5, fontWeight: '600' },
   claimedNote: { fontSize: 11, fontWeight: '500', color: C.ink4 },
 
-  ledger: { marginTop: 14, flexDirection: 'row', alignItems: 'stretch', borderTopWidth: 1, borderTopColor: '#EDF1E7', paddingTop: 12 },
+  ledger: { marginTop: 14, flexDirection: 'row', alignItems: 'stretch', borderTopWidth: 1, borderTopColor: C.line, paddingTop: 12 },
   ledgerCell: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
-  ledgerDivider: { width: 1, backgroundColor: '#EDF1E7' },
+  ledgerDivider: { width: 1, backgroundColor: C.line },
   ledgerInner: { flex: 1, alignItems: 'center' },
   ledgerValue: { fontSize: 16, lineHeight: 16, fontWeight: '600' },
   ledgerUnit: { marginTop: 5, fontSize: 10.5, fontWeight: '500', color: C.ink4 },
 
-  overallRow: { marginTop: 12, flexDirection: 'row', alignItems: 'stretch', backgroundColor: '#F7F9F3', borderRadius: 10, paddingVertical: 9 },
+  overallRow: { marginTop: 12, flexDirection: 'row', alignItems: 'stretch', backgroundColor: C.surface2, borderRadius: 10, paddingVertical: 9 },
   overallCell: { flex: 1, alignItems: 'center' },
   overallValue: { fontSize: 14, lineHeight: 15, fontWeight: '600', color: C.ink2 },
   overallUnit: { marginTop: 4, fontSize: 10, fontWeight: '500', color: C.ink4 },
-  overallDivider: { width: 1, backgroundColor: '#E3E9DB', marginVertical: 4 },
+  overallDivider: { width: 1, backgroundColor: C.line, marginVertical: 4 },
 
   backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(14,24,18,0.36)' },
   sheet: {
-    backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22,
+    backgroundColor: C.surface, borderTopLeftRadius: 22, borderTopRightRadius: 22,
     paddingHorizontal: 18, paddingTop: 9,
   },
-  grabber: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: '#DCE4D4', marginBottom: 13 },
+  grabber: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: C.line, marginBottom: 13 },
   sheetTitle: { fontSize: 15, fontWeight: '700', color: C.ink },
   sheetSourceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
   sheetSourceText: { fontSize: 12.5, fontWeight: '600', color: C.brand },
@@ -481,7 +481,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     flex: 1, height: 46, borderRadius: 13, flexDirection: 'row',
     alignItems: 'center', justifyContent: 'center', gap: 7,
   },
-  sheetBtnGhost: { backgroundColor: '#F1F4EE', borderWidth: 1, borderColor: '#E1E7DA' },
+  sheetBtnGhost: { backgroundColor: C.canvas, borderWidth: 1, borderColor: C.line },
   sheetBtnMain: { backgroundColor: C.lime },
   sheetBtnText: { fontSize: 13.5, fontWeight: '600', color: C.ink2 },
 })

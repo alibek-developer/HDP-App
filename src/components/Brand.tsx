@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, View } from 'react-native'
 import type { ViewStyle } from 'react-native'
-import { C, MATH_FONT } from '../theme/tokens'
+import { MATH_FONT, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 const MARK = require('../assets/hdp-mark-192.png')
 
@@ -9,7 +10,10 @@ const MARK = require('../assets/hdp-mark-192.png')
  * Web'dagi kabi rasm sifatida: line-art 28-38 px'da deyarli ko'rinmaydi,
  * shuning uchun og'irligi botirilgan disk saqlanadi.
  */
-export const BrandMark = ({ size = 38, hero = false }: { size?: number; hero?: boolean }) => (
+export const BrandMark = ({ size = 38, hero = false }: { size?: number; hero?: boolean }) => {
+  const C = useColors()
+  const styles = makeStyles(C)
+  return (
   <View
     style={[
       styles.markWrap,
@@ -30,10 +34,13 @@ export const BrandMark = ({ size = 38, hero = false }: { size?: number; hero?: b
       accessibilityLabel="HDP"
     />
   </View>
-)
+  )
+}
 
 /** Logotip yozuvi — monoline belgi bilan bir tilda: yupqa, keng harflar */
-export const Wordmark = ({ size = 26, style }: { size?: number; style?: ViewStyle }) => (
+export const Wordmark = ({ size = 26, style }: { size?: number; style?: ViewStyle }) => {
+  const C = useColors()
+  return (
   <View style={style}>
     <Text
       style={{
@@ -46,9 +53,10 @@ export const Wordmark = ({ size = 26, style }: { size?: number; style?: ViewStyl
       HDP Matematika
     </Text>
   </View>
-)
+  )
+}
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   markWrap: { overflow: 'hidden', backgroundColor: C.brandDeep },
   markShadow: {
     shadowColor: '#0D5638',

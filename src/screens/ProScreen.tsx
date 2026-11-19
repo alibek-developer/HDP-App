@@ -17,6 +17,8 @@ import Sheet from '../components/Sheet'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM, shadow } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
 import {
   GRAD_HEADER, GRAD_LIME, GRAD_RAIL,
   INK_BTN, LIME_BTN,
@@ -60,11 +62,7 @@ const ruDate = (iso: string | null) => {
   return `${d}.${m}.${y}`
 }
 
-const INK = '#0E1A12'
-const GRAY = '#6B7C66'
-const FAINT = '#9AA995'
 const BRAND = '#0B6E4F'
-const AMBER = '#B87A22'
 
 /** Chegarasiz oq karta soyasi */
 const soft = shadow('#0E1A12', 12, 8, 0.07)
@@ -99,6 +97,8 @@ const HeroGrid = () => {
 }
 
 const ProScreen = () => {
+  const C = useColors()
+  const s = makeS(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const exit = useExit('Main')
@@ -158,7 +158,7 @@ const ProScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [s.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color={C.ink2} />
           </Pressable>
           <View style={s.headCenter}>
             <Text style={s.headKicker}>Obuna</Text>
@@ -205,7 +205,7 @@ const ProScreen = () => {
           <View style={s.activeCard}>
             <View style={s.activeInner}>
               <View style={s.activeHead}>
-                <Ionicons name="ribbon" size={15} color={AMBER} />
+                <Ionicons name="ribbon" size={15} color={C.coin} />
                 <Text style={s.activeTitle}>Pro faol</Text>
               </View>
               <Text style={s.activeSub}>
@@ -257,7 +257,7 @@ const ProScreen = () => {
                       </Text>
                     </View>
                     <View style={s.planRight}>
-                      <Text style={[s.planPrice, NUM, { color: on ? '#0B4A34' : INK }]}>{money(p.perMonth)}</Text>
+                      <Text style={[s.planPrice, NUM, { color: on ? '#0B4A34' : C.ink }]}>{money(p.perMonth)}</Text>
                       <Text style={[s.planUnit, NUM]}>so'm /oy</Text>
                       {pSaved > 0 && (
                         <View style={s.saveChip}>
@@ -301,7 +301,7 @@ const ProScreen = () => {
           ] as { icon: keyof typeof Ionicons.glyphMap; title: string; desc: string }[]).map((f, i) => (
             <View
               key={f.title}
-              style={[s.feature, i > 0 ? { borderTopWidth: 1, borderTopColor: '#EDF1E7' } : null]}
+              style={[s.feature, i > 0 ? { borderTopWidth: 1, borderTopColor: C.line } : null]}
             >
               <View style={s.featureTile}>
                 <Ionicons name={f.icon} size={17} color={BRAND} />
@@ -320,13 +320,13 @@ const ProScreen = () => {
           style={({ pressed }) => [s.coinRow, pressed && { opacity: 0.85 }]}
         >
           <View style={s.coinTile}>
-            <Ionicons name="wallet" size={16} color={AMBER} />
+            <Ionicons name="wallet" size={16} color={C.coin} />
           </View>
           <View style={s.coinMid}>
             <Text style={s.coinTitle}>Coin bilan sinab ko&apos;rish</Text>
             <Text style={s.coinDesc}>{`Do'konda ${PRO_TRIAL.coin} coin — ${PRO_TRIAL.days} kunlik Pro`}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={FAINT} />
+          <Ionicons name="chevron-forward" size={16} color={C.ink4} />
         </Pressable>
 
         <View style={s.plainNote}>
@@ -347,7 +347,7 @@ const ProScreen = () => {
         )}
       </ScrollView>
 
-      <TopScrim height={insets.top} line="#E6EBE0" />
+      <TopScrim height={insets.top} line={C.line} />
 
       {/* ── Xarid paneli — bosh barmaq zonasi, doim ko'z oldida ── */}
       {!isPro && (
@@ -377,7 +377,7 @@ const ProScreen = () => {
           </Pressable>
 
           <View style={s.dockFoot}>
-            <Ionicons name="information-circle-outline" size={12} color={FAINT} />
+            <Ionicons name="information-circle-outline" size={12} color={C.ink4} />
             <Text style={s.dockFootText}>
               Onlayn to&apos;lov tez orada — hozircha coin bilan sinov
             </Text>
@@ -418,7 +418,7 @@ const ProScreen = () => {
         ] as { name: string; icon: keyof typeof Ionicons.glyphMap }[]).map(m => (
           <View key={m.name} style={s.methodRow}>
             <View style={s.methodTile}>
-              <Ionicons name={m.icon} size={16} color={FAINT} />
+              <Ionicons name={m.icon} size={16} color={C.ink4} />
             </View>
             <Text style={s.methodName}>{m.name}</Text>
             <View style={s.soonPill}>
@@ -504,36 +504,36 @@ const ProScreen = () => {
   )
 }
 
-const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F7EE' },
+const makeS = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   scroll: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 24 },
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 },
   backBtn: {
     width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderRadius: 13, ...soft,
+    backgroundColor: C.surface, borderRadius: 13, ...soft,
   },
   headCenter: { alignItems: 'center' },
-  headKicker: { fontSize: 12, fontWeight: '500', color: GRAY },
-  headTitle: { marginTop: 2, fontSize: 15, fontWeight: '600', color: INK },
+  headKicker: { fontSize: 12, fontWeight: '500', color: C.ink3 },
+  headTitle: { marginTop: 2, fontSize: 15, fontWeight: '600', color: C.ink },
   headSpacer: { width: 40 },
 
   hero: {
     position: 'relative', overflow: 'hidden', borderRadius: 20,
-    backgroundColor: INK, marginBottom: 16,
+    backgroundColor: C.ink, marginBottom: 16,
   },
   heroInner: { padding: 18 },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroBadge: {
     width: 38, height: 38, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#9BE04B', borderRadius: 100,
-    ...shadow('#9BE04B', 8, 4, 0.4),
+    backgroundColor: C.limeBright, borderRadius: 100,
+    ...shadow(C.limeBright, 8, 4, 0.4),
   },
   heroPill: {
     backgroundColor: 'rgba(155,224,75,0.14)', borderRadius: 11,
     paddingHorizontal: 8, paddingVertical: 4,
   },
-  heroPillText: { fontSize: 9.5, fontWeight: '700', color: '#9BE04B', letterSpacing: 0.8 },
+  heroPillText: { fontSize: 9.5, fontWeight: '700', color: C.limeBright, letterSpacing: 0.8 },
   heroH1: {
     marginTop: 12, fontSize: 20, lineHeight: 25, fontWeight: '600',
     letterSpacing: -0.4, color: '#F7FCED',
@@ -546,11 +546,11 @@ const s = StyleSheet.create({
   },
   heroStatCell: { flex: 1, alignItems: 'center' },
   heroStatCellB: { borderLeftWidth: 1, borderLeftColor: 'rgba(155,224,75,0.16)' },
-  heroStatValue: { fontSize: 18, lineHeight: 21, fontWeight: '700', color: '#9BE04B', letterSpacing: -0.3 },
+  heroStatValue: { fontSize: 18, lineHeight: 21, fontWeight: '700', color: C.limeBright, letterSpacing: -0.3 },
   heroStatLabel: { marginTop: 2, fontSize: 10, fontWeight: '500', color: 'rgba(205,233,174,0.72)' },
 
   sectionLabel: {
-    fontSize: 13, fontWeight: '600', color: INK,
+    fontSize: 13, fontWeight: '600', color: C.ink,
     marginBottom: 8, paddingLeft: 4,
   },
   plans: { gap: 8, marginBottom: 16 },
@@ -559,56 +559,56 @@ const s = StyleSheet.create({
     position: 'relative', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 12,
     minHeight: 74, borderRadius: 18, paddingVertical: 11, paddingLeft: 16, paddingRight: 16,
   },
-  planIdle: { backgroundColor: '#FFFFFF', ...soft },
+  planIdle: { backgroundColor: C.surface, ...soft },
   planOn: { backgroundColor: '#F1FAE7', ...glowGreen },
   radio: {
     width: 22, height: 22, borderRadius: 999, alignItems: 'center', justifyContent: 'center',
   },
-  radioIdle: { backgroundColor: '#FFFFFF', borderColor: '#CFD9C6', borderWidth: 1.5 },
+  radioIdle: { backgroundColor: C.surface, borderColor: C.line, borderWidth: 1.5 },
   radioOn: { backgroundColor: BRAND, borderColor: BRAND, borderWidth: 1.5 },
   planMid: { flex: 1, minWidth: 0 },
   planTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planLabel: { fontSize: 14.5, fontWeight: '600', color: INK },
-  planTotal: { marginTop: 6, fontSize: 12, fontWeight: '500', color: GRAY },
+  planLabel: { fontSize: 14.5, fontWeight: '600', color: C.ink },
+  planTotal: { marginTop: 6, fontSize: 12, fontWeight: '500', color: C.ink3 },
   planRight: { alignItems: 'flex-end' },
   planPrice: { fontSize: 19, fontWeight: '600', lineHeight: 21 },
-  planUnit: { marginTop: 2, fontSize: 12, fontWeight: '500', color: FAINT },
-  saveChip: { marginTop: 6, backgroundColor: '#DDF3DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  planUnit: { marginTop: 2, fontSize: 12, fontWeight: '500', color: C.ink4 },
+  saveChip: { marginTop: 6, backgroundColor: C.leafSoft, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   saveChipText: { fontSize: 12, fontWeight: '600', color: BRAND },
   badgeLime: { backgroundColor: '#EDF7DE', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   badgeLimeText: { fontSize: 11, fontWeight: '600', color: BRAND },
-  badgeAmber: { backgroundColor: '#FCF1DC', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  badgeAmberText: { fontSize: 11, fontWeight: '600', color: AMBER },
+  badgeAmber: { backgroundColor: C.coinSoft, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+  badgeAmberText: { fontSize: 11, fontWeight: '600', color: C.coin },
 
-  features: { backgroundColor: '#FFFFFF', borderRadius: 18, overflow: 'hidden', marginBottom: 10, ...soft },
+  features: { backgroundColor: C.surface, borderRadius: 18, overflow: 'hidden', marginBottom: 10, ...soft },
   feature: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 16, paddingVertical: 12 },
   featureTile: {
     width: 38, height: 38, borderRadius: 12, backgroundColor: '#EDF7DE',
     alignItems: 'center', justifyContent: 'center',
   },
   featureMid: { flex: 1, minWidth: 0 },
-  featureTitle: { fontSize: 13.5, fontWeight: '600', lineHeight: 18, color: INK },
-  featureDesc: { marginTop: 3, fontSize: 12, lineHeight: 17, fontWeight: '500', color: GRAY },
+  featureTitle: { fontSize: 13.5, fontWeight: '600', lineHeight: 18, color: C.ink },
+  featureDesc: { marginTop: 3, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
 
   coinRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 10,
+    backgroundColor: C.surface, borderRadius: 16, marginBottom: 10,
     paddingLeft: 12, paddingRight: 14, paddingVertical: 11,
     ...soft,
   },
   coinTile: {
-    width: 34, height: 34, borderRadius: 11, backgroundColor: '#FCF1DC',
+    width: 34, height: 34, borderRadius: 11, backgroundColor: C.coinSoft,
     alignItems: 'center', justifyContent: 'center',
   },
   coinMid: { flex: 1, minWidth: 0 },
-  coinTitle: { fontSize: 13, fontWeight: '600', color: INK },
-  coinDesc: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: GRAY },
+  coinTitle: { fontSize: 13, fontWeight: '600', color: C.ink },
+  coinDesc: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: C.ink3 },
 
   plainNote: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 7,
     paddingHorizontal: 4, marginBottom: 20,
   },
-  plainNoteText: { flex: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: GRAY },
+  plainNoteText: { flex: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: C.ink3 },
 
   activeCard: {
     position: 'relative', overflow: 'hidden', marginBottom: 20,
@@ -621,65 +621,65 @@ const s = StyleSheet.create({
   activeDateRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
   activeDate: { fontSize: 12, fontWeight: '600', color: '#0B4A34' },
   cancelPro: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, height: 48,
+    backgroundColor: C.surface, borderRadius: 14, height: 48,
     alignItems: 'center', justifyContent: 'center', ...soft,
   },
-  cancelProText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
+  cancelProText: { fontSize: 13.5, fontWeight: '600', color: C.ink2 },
 
   dock: {
     position: 'absolute', left: 12, right: 12, bottom: 12,
-    backgroundColor: '#FFFFFF', borderRadius: 20,
+    backgroundColor: C.surface, borderRadius: 20,
     paddingHorizontal: 16, paddingTop: 14,
-    ...shadow('#0E1A12', 20, 6, 0.12),
+    ...shadow(C.ink, 20, 6, 0.12),
   },
   dockHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dockLeft: { flex: 1, minWidth: 0 },
-  dockLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
+  dockLabel: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   dockTotalRow: { marginTop: 4, flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  dockTotal: { fontSize: 21, fontWeight: '600', lineHeight: 22, color: INK },
-  dockCur: { color: GRAY, fontSize: 21 },
-  dockOld: { color: FAINT, fontSize: 12, fontWeight: '500', textDecorationLine: 'line-through' },
-  dockSave: { backgroundColor: '#DDF3DC', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
+  dockTotal: { fontSize: 21, fontWeight: '600', lineHeight: 22, color: C.ink },
+  dockCur: { color: C.ink3, fontSize: 21 },
+  dockOld: { color: C.ink4, fontSize: 12, fontWeight: '500', textDecorationLine: 'line-through' },
+  dockSave: { backgroundColor: C.leafSoft, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
   dockSaveText: { fontSize: 12, fontWeight: '600', color: BRAND },
   buyBtn: {
     ...LIME_BTN, height: 52, borderRadius: 14,
   },
-  buyIcon: { color: '#1C3214', marginRight: 8 },
-  buyText: { fontSize: 15, fontWeight: '600', color: '#1C3214' },
+  buyIcon: { color: C.inkOnLime, marginRight: 8 },
+  buyText: { fontSize: 15, fontWeight: '600', color: C.inkOnLime },
   dockFoot: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  dockFootText: { fontSize: 11.5, fontWeight: '500', color: GRAY },
+  dockFootText: { fontSize: 11.5, fontWeight: '500', color: C.ink3 },
 
   payBox: {
-    marginTop: 4, backgroundColor: '#F6F8F3', borderColor: '#E1E7DA', borderWidth: 1,
+    marginTop: 4, backgroundColor: C.surface2, borderColor: C.line, borderWidth: 1,
     borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, gap: 10,
   },
   payRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  payLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
-  payValue: { fontSize: 12.5, fontWeight: '600', color: INK },
-  paySection: { marginTop: 16, marginBottom: 4, fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: GRAY },
+  payLabel: { fontSize: 12, fontWeight: '500', color: C.ink3 },
+  payValue: { fontSize: 12.5, fontWeight: '600', color: C.ink },
+  paySection: { marginTop: 16, marginBottom: 4, fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: C.ink3 },
   methodRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
   methodTile: {
     width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3F5EF',
     alignItems: 'center', justifyContent: 'center',
   },
-  methodName: { flex: 1, fontSize: 13.5, fontWeight: '600', color: INK },
+  methodName: { flex: 1, fontSize: 13.5, fontWeight: '600', color: C.ink },
   soonPill: { backgroundColor: '#EDEFF5', borderRadius: 11, paddingHorizontal: 8, paddingVertical: 3 },
-  soonText: { fontSize: 10.5, fontWeight: '600', color: GRAY },
-  payNote: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: FAINT },
-  payDivider: { height: 1, backgroundColor: '#EDF1E7', marginTop: 16 },
+  soonText: { fontSize: 10.5, fontWeight: '600', color: C.ink3 },
+  payNote: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: C.ink4 },
+  payDivider: { height: 1, backgroundColor: C.line, marginTop: 16 },
   trialHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 },
-  trialCoin: { fontSize: 11.5, fontWeight: '600', color: AMBER, marginTop: 16 },
+  trialCoin: { fontSize: 11.5, fontWeight: '600', color: C.coin, marginTop: 16 },
   trialBtn: {
     ...INK_BTN, height: 50, marginTop: 10, gap: 8,
   },
-  trialBtnText: { fontSize: 13.5, fontWeight: '600', color: '#CDE9AE' },
+  trialBtnText: { fontSize: 13.5, fontWeight: '600', color: C.mint },
   payMsg: { marginTop: 10, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#B4442F' },
-  payFine: { marginTop: 10, fontSize: 11, lineHeight: 15, color: FAINT },
+  payFine: { marginTop: 10, fontSize: 11, lineHeight: 15, color: C.ink4 },
 
   modalRoot: { flex: 1, justifyContent: 'center', paddingHorizontal: 20 },
   modalScrim: { backgroundColor: 'rgba(14,26,18,0.6)' },
   modalWrap: { width: '100%' },
-  successCard: { position: 'relative', overflow: 'hidden', backgroundColor: '#FFFFFF', borderRadius: 22 },
+  successCard: { position: 'relative', overflow: 'hidden', backgroundColor: C.surface, borderRadius: 22 },
   successBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 6 },
   successInner: { paddingHorizontal: 20, paddingTop: 28, paddingBottom: 24 },
   successHead: { flexDirection: 'row', alignItems: 'center', gap: 14 },
@@ -687,22 +687,22 @@ const s = StyleSheet.create({
     position: 'relative', width: 52, height: 52, borderRadius: 16, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
   },
-  successTickIcon: { color: '#1C3214' },
+  successTickIcon: { color: C.inkOnLime },
   successTitles: { flex: 1, minWidth: 0 },
-  successH3: { fontSize: 20, fontWeight: '600', lineHeight: 24, color: INK },
-  successSub: { marginTop: 4, fontSize: 12.5, fontWeight: '500', color: GRAY },
+  successH3: { fontSize: 20, fontWeight: '600', lineHeight: 24, color: C.ink },
+  successSub: { marginTop: 4, fontSize: 12.5, fontWeight: '500', color: C.ink3 },
   receipt: {
-    marginTop: 20, backgroundColor: '#F6F8F3', borderColor: '#E1E7DA', borderWidth: 1,
+    marginTop: 20, backgroundColor: C.surface2, borderColor: C.line, borderWidth: 1,
     borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, gap: 10,
   },
   receiptRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  receiptLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
-  receiptValue: { fontSize: 12.5, fontWeight: '600', color: INK },
-  receiptNote: { marginTop: 10, fontSize: 12, lineHeight: 16, fontWeight: '500', color: FAINT },
+  receiptLabel: { fontSize: 12, fontWeight: '500', color: C.ink3 },
+  receiptValue: { fontSize: 12.5, fontWeight: '600', color: C.ink },
+  receiptNote: { marginTop: 10, fontSize: 12, lineHeight: 16, fontWeight: '500', color: C.ink4 },
   goBtn: {
     ...INK_BTN, height: 52, marginTop: 20, gap: 6,
   },
-  goText: { fontSize: 14.5, fontWeight: '600', color: '#CDE9AE' },
+  goText: { fontSize: 14.5, fontWeight: '600', color: C.mint },
 })
 
 export default ProScreen

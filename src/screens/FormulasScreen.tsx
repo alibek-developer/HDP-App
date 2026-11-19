@@ -12,9 +12,11 @@ import { Reveal } from '../components/Reveal'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { PROBLEM_SETS } from '../data/content'
-import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { ABS_FILL, MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
 import {
-  CARD, GRAD_HEADER, GRAD_LIME, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT, SOLVER_BODY,
+  CARD, GRAD_HEADER, GRAD_LIME, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT,
 } from '../theme/solver'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -65,7 +67,7 @@ const FORMULAS: Group[] = [
   },
   {
     cat: 'Geometriya',
-    rail: '#D9534F', tint: '#FBE9E7', ink: '#8C2F2C',
+    rail: '#D9483B', tint: '#FBE9E7', ink: '#8C2F2C',
     items: [
       { title: 'Kosinuslar teoremasi', formula: 'a² = b² + c² − 2bc · cos(α)', desc: 'Ixtiyoriy uchburchak uchun' },
       { title: 'Aylana uzunligi / yuza', formula: 'C = 2πr  ·  S = πr²', desc: 'Radius orqali' },
@@ -84,6 +86,8 @@ interface DetailState {
 }
 
 const FormulasScreen = () => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const scrollRef = useRef<ScrollViewInstance>(null)
@@ -143,7 +147,7 @@ const FormulasScreen = () => {
             onPress={() => { triggerHaptic('light'); navigation.goBack() }}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color={C.ink2} />
           </Pressable>
 
           <View style={styles.titleBlock}>
@@ -163,17 +167,17 @@ const FormulasScreen = () => {
         {/* ── Qidiruv ── */}
         <View style={styles.searchWrap}>
           <View style={[CARD, styles.searchCard]}>
-            <Ionicons name="search" size={16} color="#9AA995" />
+            <Ionicons name="search" size={16} color={C.ink4} />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Formula yoki mavzu qidirish..."
-              placeholderTextColor="#9AA995"
+              placeholderTextColor={C.ink4}
               style={styles.searchInput}
             />
             {search.length > 0 && (
               <Pressable onPress={() => setSearch('')} hitSlop={8} style={({ pressed }) => [pressed && { opacity: 0.6 }]}>
-                <Ionicons name="close" size={16} color="#9AA995" />
+                <Ionicons name="close" size={16} color={C.ink4} />
               </Pressable>
             )}
           </View>
@@ -190,7 +194,7 @@ const FormulasScreen = () => {
               pressed && { transform: [{ scale: 0.97 }] },
             ]}
           >
-            <Text style={[styles.chipAllText, NUM, activeCat ? { color: '#6B7C66' } : INK_TEXT]}>
+            <Text style={[styles.chipAllText, NUM, activeCat ? { color: C.ink3 } : INK_TEXT]}>
               Barchasi · {total}
             </Text>
           </Pressable>
@@ -200,7 +204,7 @@ const FormulasScreen = () => {
             const chipStyle: ViewStyle = on
               ? { backgroundColor: g.tint, borderColor: g.rail }
               : styles.chipIdle
-            const labelStyle: TextStyle = { color: on ? g.ink : '#6B7C66' }
+            const labelStyle: TextStyle = { color: on ? g.ink : C.ink3 }
             return (
               <Pressable
                 key={g.cat}
@@ -257,14 +261,14 @@ const FormulasScreen = () => {
                           hitSlop={6}
                           style={({ pressed }) => [
                             styles.copyBtn,
-                            { backgroundColor: copied ? '#DDF3DC' : group.tint },
+                            { backgroundColor: copied ? C.leafSoft : group.tint },
                             pressed && { opacity: 0.7 },
                           ]}
                         >
                           <Ionicons
                             name={copied ? 'checkmark' : 'copy'}
                             size={copied ? 14 : 13}
-                            color={copied ? '#0B6E4F' : group.ink}
+                            color={copied ? C.brand : group.ink}
                           />
                         </Pressable>
                       </View>
@@ -283,7 +287,7 @@ const FormulasScreen = () => {
         {filtered.length === 0 && (
           <View style={styles.empty}>
             <View style={styles.emptyTile}>
-              <Ionicons name="search" size={20} color="#9AA995" />
+              <Ionicons name="search" size={20} color={C.ink4} />
             </View>
             <Text style={styles.emptyTitle}>Hech narsa topilmadi</Text>
             <Text style={styles.emptySub}>Boshqa mavzu yoki formula belgisini sinab ko'ring.</Text>
@@ -291,7 +295,7 @@ const FormulasScreen = () => {
         )}
       </ScrollView>
 
-      <TopScrim height={insets.top} line="#E6EBE0" />
+      <TopScrim height={insets.top} line={C.line} />
 
       {/* ── Formula tafsilotlari ── */}
       <Modal visible={!!detail} transparent animationType="none" onRequestClose={() => setDetail(null)}>
@@ -344,8 +348,8 @@ const FormulasScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   content: { paddingHorizontal: 16 },
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 },
@@ -354,13 +358,13 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: '#E1E7DA',
+    borderColor: C.line,
     borderRadius: 12,
   },
   titleBlock: { flex: 1, minWidth: 0, paddingHorizontal: 12, alignItems: 'center' },
-  kicker: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  kicker: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   h1: { marginTop: 2, fontSize: 15, lineHeight: 18, fontWeight: '600', color: C.ink },
   blitzBtn: {
     flexDirection: 'row',
@@ -368,43 +372,43 @@ const styles = StyleSheet.create({
     gap: 6,
     height: 38,
     paddingHorizontal: 10,
-    backgroundColor: '#FCF1DC',
+    backgroundColor: C.coinSoft,
     borderWidth: 1,
-    borderColor: '#E8A33D',
+    borderColor: C.coin,
     borderRadius: 12,
   },
   blitzText: { fontSize: 11.5, fontWeight: '600', color: '#B87A22' },
 
   searchWrap: { marginBottom: 12 },
   searchCard: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, height: 48 },
-  searchInput: { flex: 1, fontSize: 13.5, fontWeight: '500', color: '#0E1A12', paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 13.5, fontWeight: '500', color: C.ink, paddingVertical: 0 },
 
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   chipBase: { height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   chipAll: { paddingHorizontal: 12 },
-  chipAllIdle: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
+  chipAllIdle: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.line },
   chipAllText: { fontSize: 11.5, fontWeight: '600' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 8, paddingRight: 12, borderWidth: 1 },
-  chipIdle: { backgroundColor: '#FFFFFF', borderColor: '#E1E7DA' },
+  chipIdle: { backgroundColor: C.surface, borderColor: C.line },
   chipRail: { width: 5, height: 16, borderRadius: 3 },
   chipLabel: { fontSize: 11.5, fontWeight: '600' },
 
   group: { marginBottom: 20 },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8, paddingHorizontal: 4 },
-  groupTitle: { fontSize: 12.5, fontWeight: '600', color: '#33452F' },
-  groupLine: { flex: 1, height: 1, backgroundColor: '#CFD9C6' },
+  groupTitle: { fontSize: 12.5, fontWeight: '600', color: C.ink2 },
+  groupLine: { flex: 1, height: 1, backgroundColor: C.line },
   groupCount: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   groupCountText: { fontSize: 10, fontWeight: '600' },
 
   panel: { borderRadius: 16, overflow: 'hidden' },
-  row: { flexDirection: 'row', backgroundColor: '#FFFFFF', overflow: 'hidden' },
-  rowBorder: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
+  row: { flexDirection: 'row', backgroundColor: C.surface, overflow: 'hidden' },
+  rowBorder: { borderTopWidth: 1, borderTopColor: C.line },
   rowRail: { width: 4 },
   rowBody: { flex: 1, paddingLeft: 16, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },
   rowHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   rowText: { flex: 1, minWidth: 0 },
   rowTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: C.ink },
-  rowDesc: { marginTop: 4, fontSize: 11.5, lineHeight: 15, fontWeight: '500', color: '#6B7C66' },
+  rowDesc: { marginTop: 4, fontSize: 11.5, lineHeight: 15, fontWeight: '500', color: C.ink3 },
   copyBtn: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 9 },
   formulaBox: {
     marginTop: 12,
@@ -412,7 +416,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#FBFCF8',
     borderWidth: 1,
-    borderColor: '#E1E7DA',
+    borderColor: C.line,
     borderRadius: 10,
   },
   formulaText: { fontFamily: MATH_FONT, fontSize: 13.5, lineHeight: 20, fontWeight: '400', textAlign: 'center' },
@@ -425,29 +429,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#EDF7DE',
     borderWidth: 1,
-    borderColor: '#CFD9C6',
+    borderColor: C.line,
     borderRadius: 16,
     marginBottom: 12,
   },
   emptyTitle: { fontSize: 14, fontWeight: '600', color: C.ink },
-  emptySub: { marginTop: 4, fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  emptySub: { marginTop: 4, fontSize: 12, fontWeight: '500', color: C.ink3 },
 
   modalRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { backgroundColor: 'rgba(14,26,18,0.55)' },
   sheetOuter: { width: '100%', maxWidth: 430, alignSelf: 'center' },
   sheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     paddingHorizontal: 20,
     paddingTop: 12,
-    ...shadow('#0E1A12', 32, -12, 0.18),
+    ...shadow(C.ink, 32, -12, 0.18),
   },
-  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#E1E7DA', alignSelf: 'center', marginBottom: 16 },
+  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 16 },
   sheetCat: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, marginBottom: 8 },
   sheetCatText: { fontSize: 11, fontWeight: '600' },
   sheetTitle: { fontSize: 18, lineHeight: 23, fontWeight: '600', color: C.ink },
-  sheetDesc: { marginTop: 6, fontSize: 12.5, fontWeight: '500', color: '#6B7C66' },
+  sheetDesc: { marginTop: 6, fontSize: 12.5, fontWeight: '500', color: C.ink3 },
 
   detailBox: { marginTop: 16, borderRadius: 16, overflow: 'hidden' },
   detailRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
@@ -466,11 +470,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: '#0E1A12',
+    backgroundColor: C.ink,
     borderRadius: 12,
-    ...shadow('#0E1A12', 24, 10, 0.28),
+    ...shadow(C.ink, 24, 10, 0.28),
   },
-  toastText: { fontSize: 12.5, fontWeight: '600', color: '#CDE9AE' },
+  toastText: { fontSize: 12.5, fontWeight: '600', color: C.mint },
 })
 
 export default FormulasScreen

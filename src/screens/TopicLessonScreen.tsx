@@ -15,8 +15,10 @@ import { useExitToTopics } from '../lib/nav'
 import { LessonVideo } from '../components/LessonVideo'
 import { Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
-import { C, MATH_FONT, NUM, shadow } from '../theme/tokens'
-import { CARD, GRAD_RAIL, INK_BTN, LIME_BTN, SOLVER_BODY } from '../theme/solver'
+import { MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
+import { CARD, GRAD_RAIL, INK_BTN, LIME_BTN } from '../theme/solver'
 
 /**
  * Mavzu bo'limi — video dars + nazariya + misol + «o'zingizni sinab ko'ring».
@@ -110,15 +112,17 @@ const partKind = (title: string) => {
   return /^naz/i.test(kind) ? 'Nazariy' : 'Amaliy'
 }
 
-const kicker: TextStyle = {
+const kicker = (C: ThemeColors): TextStyle => ({
   fontSize: 12,
   lineHeight: 15,
   fontWeight: '500',
-  color: '#6B7C66',
-}
+  color: C.ink3,
+})
 
 /** Ustun shaklidagi hisob: 8567 / +1129 / 9696 */
 const StackView = ({ op, rows, result, dark }: Stack & { dark?: boolean }) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const width = Math.max(...rows.map(r => r.length), result.length) + 1
   return (
     <View style={[styles.stack, dark ? styles.stackDark : null]}>
@@ -127,13 +131,15 @@ const StackView = ({ op, rows, result, dark }: Stack & { dark?: boolean }) => {
           {i === 0 ? r : `${op === '+' || op === '−' ? `${op} ` : ''}${r}`}
         </Text>
       ))}
-      <Text style={[styles.stackRule, NUM, dark ? styles.stackRuleDark : { color: '#9AA995' }]}>{'─'.repeat(width)}</Text>
-      <Text style={[styles.stackResult, NUM, dark ? { color: '#9BE04B' } : { color: '#0B6E4F' }]}>{result}</Text>
+      <Text style={[styles.stackRule, NUM, dark ? styles.stackRuleDark : { color: C.ink4 }]}>{'─'.repeat(width)}</Text>
+      <Text style={[styles.stackResult, NUM, dark ? { color: C.limeBright } : { color: C.brand }]}>{result}</Text>
     </View>
   )
 }
 
 const TopicLessonScreen = () => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const route = useRoute<RouteProp<RootStackParamList, 'TopicLesson'>>()
@@ -268,10 +274,10 @@ const TopicLessonScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color={C.ink2} />
           </Pressable>
           <View style={styles.headerText}>
-            <Text style={kicker}>
+            <Text style={kicker(C)}>
               {st.done ? `Bo'lim ${lesson.id} · yakunlangan` : `Bo'lim ${lesson.id} · ${idx + 1}/${lessons.length}`}
             </Text>
             <Text style={styles.headerTitle} numberOfLines={1}>
@@ -281,7 +287,7 @@ const TopicLessonScreen = () => {
 
           <View style={[styles.headerCount, st.done && styles.headerCountDone]}>
             {st.done && <Ionicons name="checkmark-circle" size={13} color="#5FAF22" />}
-            <Text style={[styles.headerCountText, NUM, st.done && { color: '#0B6E4F' }]}>
+            <Text style={[styles.headerCountText, NUM, st.done && { color: C.brand }]}>
               {idx + 1}/{lessons.length}
             </Text>
           </View>
@@ -299,7 +305,7 @@ const TopicLessonScreen = () => {
         {active && (
           <View style={styles.videoSection}>
             <View style={styles.videoHead}>
-              <Text style={kicker}>Video dars</Text>
+              <Text style={kicker(C)}>Video dars</Text>
               <Text style={[styles.videoCount, NUM]}>{lesson.videos.length} qism</Text>
             </View>
 
@@ -341,7 +347,7 @@ const TopicLessonScreen = () => {
                         </Text>
                       </View>
                       {watchedPart && (
-                        <Ionicons name="checkmark" size={14} color={on ? '#9BE04B' : '#5FAF22'} />
+                        <Ionicons name="checkmark" size={14} color={on ? C.limeBright : C.limeDeep} />
                       )}
                     </Pressable>
                   )
@@ -435,7 +441,7 @@ const TopicLessonScreen = () => {
           <View style={styles.example}>
             <LinearGradient colors={GRAD_RAIL} style={styles.exampleRail} />
             <View style={styles.exampleBody}>
-              <Text style={[kicker, { color: '#9BE04B' }]}>Yechilgan misol</Text>
+              <Text style={[kicker(C), { color: C.limeBright }]}>Yechilgan misol</Text>
               <Text style={styles.examplePrompt}>{lesson.example.prompt}</Text>
 
               {lesson.example.stack && (
@@ -506,9 +512,9 @@ const TopicLessonScreen = () => {
                       <Ionicons
                         name={shown ? 'close' : 'checkmark'}
                         size={13}
-                        color={shown ? '#6B7C66' : '#0B6E4F'}
+                        color={shown ? C.ink3 : C.brand}
                       />
-                      <Text style={[styles.toggleText, { color: shown ? '#6B7C66' : '#0B6E4F' }]}>
+                      <Text style={[styles.toggleText, { color: shown ? C.ink3 : C.brand }]}>
                         {shown ? 'Yechimni yashirish' : "Yechimni ko'rish"}
                       </Text>
                     </Pressable>
@@ -558,9 +564,9 @@ const TopicLessonScreen = () => {
                         <Ionicons
                           name={shown ? 'close' : 'checkmark'}
                           size={13}
-                          color={shown ? '#6B7C66' : '#0B6E4F'}
+                          color={shown ? C.ink3 : C.brand}
                         />
-                        <Text style={[styles.toggleText, { color: shown ? '#6B7C66' : '#0B6E4F' }]}>
+                        <Text style={[styles.toggleText, { color: shown ? C.ink3 : C.brand }]}>
                           {shown ? 'Javobni yashirish' : "Javobni ko'rish"}
                         </Text>
                       </Pressable>
@@ -575,7 +581,7 @@ const TopicLessonScreen = () => {
         {/* ── Kitobda mashq bo'lmagan bo'lim ── */}
         {lesson.practice.length === 0 && !(lesson.exercises && lesson.exercises.length > 0) && (
           <View style={[CARD, styles.noPractice]}>
-            <Ionicons name="information-circle-outline" size={16} color="#6B7C66" />
+            <Ionicons name="information-circle-outline" size={16} color={C.ink3} />
             <Text style={styles.noPracticeText}>
               Bu bo&apos;limda kitobda amaliy mashq berilmagan — nazariyani o&apos;zlashtirib, bo&apos;limni yakunlang.
             </Text>
@@ -599,19 +605,19 @@ const TopicLessonScreen = () => {
         >
           {st.done ? (
             <>
-              <Text style={[styles.dockBtnText, { color: '#1C3214' }]}>
+              <Text style={[styles.dockBtnText, { color: C.inkOnLime }]}>
                 {nextId ? "Keyingi bo'lim" : 'Mavzu yakuniy testi'}
               </Text>
               <Ionicons name="chevron-forward" size={16} color="#1C3214" />
             </>
           ) : canFinish ? (
             <>
-              <Text style={[styles.dockBtnText, { color: '#CDE9AE' }]}>Bo&apos;limni yakunlash</Text>
+              <Text style={[styles.dockBtnText, { color: C.mint }]}>Bo&apos;limni yakunlash</Text>
               <Ionicons name="checkmark" size={16} color="#9BE04B" />
             </>
           ) : (
             <>
-              <Text style={[styles.dockBtnText, { color: '#6B7C66' }]}>Avval video darsni to&apos;liq ko&apos;ring</Text>
+              <Text style={[styles.dockBtnText, { color: C.ink3 }]}>Avval video darsni to&apos;liq ko&apos;ring</Text>
               <Ionicons name="film" size={16} color="#8A9984" />
             </>
           )}
@@ -628,7 +634,7 @@ const TopicLessonScreen = () => {
 
         {st.done && !!nextId && (
           <Pressable onPress={exit} style={({ pressed }) => [styles.dockList, pressed && { opacity: 0.7 }]}>
-            <Ionicons name="refresh" size={12} color="#6B7C66" />
+            <Ionicons name="refresh" size={12} color={C.ink3} />
             <Text style={styles.dockListText}>Mavzular ro&apos;yxati</Text>
           </Pressable>
         )}
@@ -639,12 +645,12 @@ const TopicLessonScreen = () => {
 
 const cardRail: ViewStyle = { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   content: { paddingHorizontal: 16, paddingBottom: 24 },
 
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 16, paddingBottom: 8 },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 12 },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: C.surface, borderWidth: 1, borderColor: C.line, borderRadius: 12 },
   headerText: { flex: 1, minWidth: 0 },
   headerTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: C.ink, marginTop: 2 },
   headerCount: {
@@ -654,16 +660,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
     borderRadius: 9,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: '#E1E7DA',
+    borderColor: C.line,
   },
-  headerCountDone: { backgroundColor: '#EFF8EC', borderColor: '#CDE9AE' },
-  headerCountText: { fontSize: 11.5, fontWeight: '600', color: '#6B7C66' },
+  headerCountDone: { backgroundColor: C.leafTint, borderColor: C.mint },
+  headerCountText: { fontSize: 11.5, fontWeight: '600', color: C.ink3 },
 
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   missingBtn: { height: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  missingText: { fontSize: 13, fontWeight: '600', color: '#0E1A12' },
+  missingText: { fontSize: 13, fontWeight: '600', color: C.ink },
 
   goal: {
     marginTop: 4,
@@ -688,25 +694,25 @@ const styles = StyleSheet.create({
 
   videoSection: { marginTop: 16 },
   videoHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
-  videoCount: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
+  videoCount: { fontSize: 11.5, fontWeight: '500', color: C.ink3 },
   partRow: { gap: 8, paddingTop: 10, paddingBottom: 2, paddingRight: 16 },
-  partChip: { minHeight: 48, maxWidth: 236, flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 10, paddingRight: 14, paddingVertical: 8, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA' },
-  partChipOn: { backgroundColor: '#0E1A12', borderColor: '#0E1A12' },
-  partIndex: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#F1F4EE' },
+  partChip: { minHeight: 48, maxWidth: 236, flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 10, paddingRight: 14, paddingVertical: 8, borderRadius: 14, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line },
+  partChipOn: { backgroundColor: C.ink, borderColor: C.ink },
+  partIndex: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: C.canvas },
   partIndexOn: { backgroundColor: 'rgba(155,224,75,0.16)' },
-  partIndexText: { fontSize: 11.5, fontWeight: '900', color: '#6B7C66' },
-  partIndexTextOn: { color: '#9BE04B' },
+  partIndexText: { fontSize: 11.5, fontWeight: '900', color: C.ink3 },
+  partIndexTextOn: { color: C.limeBright },
   partBody: { flexShrink: 1, minWidth: 0 },
-  partKind: { fontSize: 10.5, fontWeight: '600', color: '#5FAF22' },
-  partKindOn: { color: '#9BE04B' },
-  partName: { marginTop: 2, fontSize: 12, fontWeight: '500', color: '#33452F' },
-  partNameOn: { color: '#FFFFFF' },
+  partKind: { fontSize: 10.5, fontWeight: '600', color: C.limeDeep },
+  partKindOn: { color: C.limeBright },
+  partName: { marginTop: 2, fontSize: 12, fontWeight: '500', color: C.ink2 },
+  partNameOn: { color: C.surface },
   videoWrap: { marginTop: 12 },
-  videoSkeleton: { aspectRatio: 16 / 9, borderRadius: 16, backgroundColor: '#0E1A12' },
-  videoOnlyNote: { marginTop: 12, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66' },
+  videoSkeleton: { aspectRatio: 16 / 9, borderRadius: 16, backgroundColor: C.ink },
+  videoOnlyNote: { marginTop: 12, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: C.ink3 },
 
   blockHead: { marginTop: 24, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 4 },
-  blockHeadTitle: { fontSize: 13, fontWeight: '600', color: '#33452F' },
+  blockHeadTitle: { fontSize: 13, fontWeight: '600', color: C.ink2 },
   blockHeadLine: { flex: 1, height: 1, backgroundColor: '#DDE5D4' },
 
   block: { borderRadius: 14, marginTop: 12, flexDirection: 'row', overflow: 'hidden' },
@@ -714,63 +720,63 @@ const styles = StyleSheet.create({
   blockBody: { flex: 1, paddingLeft: 16, paddingRight: 15, paddingVertical: 15 },
   tag: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   tagText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.1 },
-  blockText: { marginTop: 10, fontSize: 15, lineHeight: 25, fontWeight: '400', color: '#33452F' },
+  blockText: { marginTop: 10, fontSize: 15, lineHeight: 25, fontWeight: '400', color: C.ink2 },
   blockTextGap: { marginTop: 12 },
 
   listCard: { borderRadius: 14, marginTop: 16, overflow: 'hidden' },
   listCaption: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 8, fontSize: 13, lineHeight: 19, fontWeight: '600', color: C.ink },
   listItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 14, paddingVertical: 8 },
-  divided: { borderTopWidth: 1, borderTopColor: '#EDF1E7' },
+  divided: { borderTopWidth: 1, borderTopColor: C.line },
   listNum: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EDF7DE', borderRadius: 6 },
-  listNumText: { fontSize: 10.5, fontWeight: '900', color: '#33452F' },
+  listNumText: { fontSize: 10.5, fontWeight: '900', color: C.ink2 },
   listItemText: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink2 },
 
   props: { borderRadius: 14, marginTop: 16, overflow: 'hidden' },
-  propsHead: { paddingHorizontal: 14, paddingVertical: 12, fontSize: 12.5, fontWeight: '600', color: '#6B7C66', borderBottomWidth: 1, borderBottomColor: '#EDF1E7' },
+  propsHead: { paddingHorizontal: 14, paddingVertical: 12, fontSize: 12.5, fontWeight: '600', color: C.ink3, borderBottomWidth: 1, borderBottomColor: C.line },
   propRow: { paddingHorizontal: 14, paddingVertical: 12 },
   propTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  propName: { fontSize: 12.5, fontWeight: '600', color: '#5FAF22' },
+  propName: { fontSize: 12.5, fontWeight: '600', color: C.limeDeep },
   propDetail: { flex: 1, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink },
-  propExample: { marginTop: 8, fontSize: 13.5, fontWeight: '400', color: '#0B6E4F', fontFamily: MATH_FONT },
+  propExample: { marginTop: 8, fontSize: 13.5, fontWeight: '400', color: C.brand, fontFamily: MATH_FONT },
 
-  example: { marginTop: 20, flexDirection: 'row', overflow: 'hidden', backgroundColor: '#0E1A12', borderRadius: 16 },
+  example: { marginTop: 20, flexDirection: 'row', overflow: 'hidden', backgroundColor: C.ink, borderRadius: 16 },
   exampleRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
   exampleBody: { flex: 1, paddingLeft: 20, paddingRight: 16, paddingVertical: 16 },
-  examplePrompt: { marginTop: 8, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 14.5, lineHeight: 23, color: '#FFFFFF' },
+  examplePrompt: { marginTop: 8, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 14.5, lineHeight: 23, color: C.surface },
   stackBox: { marginTop: 12, alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10 },
   steps: { marginTop: 12, gap: 6 },
   stepRow: { flexDirection: 'row', gap: 10 },
-  stepNum: { fontSize: 11.5, fontWeight: '900', color: '#9BE04B', width: 18 },
+  stepNum: { fontSize: 11.5, fontWeight: '900', color: C.limeBright, width: 18 },
   stepText: { flex: 1, fontSize: 13, lineHeight: 19, color: 'rgba(255,255,255,0.82)' },
   answerRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(205,233,174,0.16)', paddingTop: 12 },
   answerLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(205,233,174,0.7)' },
-  answerValue: { fontSize: 16, fontWeight: '600', color: '#9BE04B' },
+  answerValue: { fontSize: 16, fontWeight: '600', color: C.limeBright },
 
   stack: { paddingLeft: 12, marginTop: 8 },
   stackDark: {},
   stackRow: { fontSize: 17, lineHeight: 30, fontWeight: '400', color: C.ink, textAlign: 'right', fontFamily: MATH_FONT },
-  stackRowDark: { color: '#FFFFFF' },
-  stackRule: { fontSize: 15, lineHeight: 24, textAlign: 'right', color: '#9AA995', fontFamily: MATH_FONT },
+  stackRowDark: { color: C.surface },
+  stackRule: { fontSize: 15, lineHeight: 24, textAlign: 'right', color: C.ink4, fontFamily: MATH_FONT },
   stackRuleDark: { color: 'rgba(205,233,174,0.5)', fontSize: 13, lineHeight: 24 },
-  stackResult: { fontSize: 18, lineHeight: 30, fontWeight: '400', textAlign: 'right', color: '#0B6E4F', fontFamily: MATH_FONT },
+  stackResult: { fontSize: 18, lineHeight: 30, fontWeight: '400', textAlign: 'right', color: C.brand, fontFamily: MATH_FONT },
 
   practiceSection: { marginTop: 24 },
   practiceHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 10 },
   practiceTitle: { fontSize: 15.5, fontWeight: '600', color: C.ink },
-  practiceCount: { fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
+  practiceCount: { fontSize: 11.5, fontWeight: '500', color: C.ink3 },
   practiceList: { gap: 10 },
   practiceCard: { borderRadius: 14, overflow: 'hidden' },
   practicePrompt: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, fontFamily: MATH_FONT, fontWeight: '400', fontSize: 14, lineHeight: 21, color: C.ink },
   solution: { marginHorizontal: 14, marginBottom: 12, flexDirection: 'row', overflow: 'hidden', borderRadius: 10, backgroundColor: '#FBFCF8' },
-  solutionRail: { width: 2, backgroundColor: '#5FAF22' },
+  solutionRail: { width: 2, backgroundColor: C.limeDeep },
   solutionBody: { flex: 1, paddingLeft: 12, paddingRight: 12, paddingVertical: 12, gap: 4 },
   solutionStep: { fontSize: 13, lineHeight: 20, color: C.ink2 },
-  solutionAnswer: { marginTop: 8, fontSize: 14, fontWeight: '600', color: '#0B6E4F' },
-  toggleBtn: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderTopWidth: 1, borderTopColor: '#EDF1E7' },
+  solutionAnswer: { marginTop: 8, fontSize: 14, fontWeight: '600', color: C.brand },
+  toggleBtn: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderTopWidth: 1, borderTopColor: C.line },
   toggleText: { fontSize: 12, fontWeight: '600' },
 
   noPractice: { marginTop: 20, flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 14, paddingVertical: 14, borderRadius: 14 },
-  noPracticeText: { flex: 1, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: '#6B7C66' },
+  noPracticeText: { flex: 1, fontSize: 12.5, lineHeight: 19, fontWeight: '500', color: C.ink3 },
 
   dockSpace: { height: 118 },
   dock: {
@@ -780,9 +786,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: SOLVER_BODY,
+    backgroundColor: C.solverBody,
     borderTopWidth: 1,
-    borderTopColor: '#E1E7DA',
+    borderTopColor: C.line,
     ...shadow(C.ink, 18, 2, 0.07),
   },
   dockBtn: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12 },
@@ -791,7 +797,7 @@ const styles = StyleSheet.create({
   dockReward: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   dockRewardText: { fontSize: 11.5, fontWeight: '500', color: '#7C8B77' },
   dockList: { marginTop: 6, height: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  dockListText: { fontSize: 11.5, fontWeight: '600', color: '#6B7C66' },
+  dockListText: { fontSize: 11.5, fontWeight: '600', color: C.ink3 },
 })
 
 export default TopicLessonScreen

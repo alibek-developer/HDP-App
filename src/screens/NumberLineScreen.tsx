@@ -11,7 +11,8 @@ import { useApp } from '../store/useStore'
 import { SolveTopBar } from '../components/SolveKit'
 import { GameLobby } from '../components/GameLobby'
 import { NumberLineMark } from '../components/GameMarks'
-import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { ABS_FILL, MATH_FONT, NUM, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import { GRAD_LIME } from '../theme/solver'
 import {
   NUMBERLINE_LEVELS, NUMBERLINE_ROUNDS, numberLineOutcome, numberLineTicks,
@@ -28,14 +29,11 @@ import {
 
 type Phase = 'lobby' | 'play' | 'result'
 
-const INK = '#0E1A12'
-const GRAY = '#6B7C66'
-const FAINT = '#9AA995'
-const LINE = '#E1E7DA'
-const BLUE = '#4C7DF0'
 const PAD = 14
 
 const NumberLineScreen = () => {
+  const C = useColors()
+  const s = makeS(C)
   const insets = useSafeAreaInsets()
   const exit = useExit('Main')
   const { width: winW } = useWindowDimensions()
@@ -272,7 +270,7 @@ const NumberLineScreen = () => {
       <View style={s.screen}>
         <View style={[s.lobbyHead, { paddingTop: insets.top + 10 }]}>
           <Pressable onPress={exit} accessibilityLabel="Chiqish" hitSlop={10} style={s.back}>
-            <Ionicons name="close" size={18} color="#33452F" />
+            <Ionicons name="close" size={18} color={C.ink2} />
           </Pressable>
           <Text style={s.lobbyKicker}>Natija</Text>
           <View style={{ width: 36 }} />
@@ -285,7 +283,7 @@ const NumberLineScreen = () => {
                 key={i}
                 name={i < outcome.stars ? 'star' : 'star-outline'}
                 size={i === 1 ? 46 : 36}
-                color={i < outcome.stars ? '#E8A33D' : '#C9D2C1'}
+                color={i < outcome.stars ? C.coin : C.ink4}
                 style={i === 1 && { marginTop: -12 }}
               />
             ))}
@@ -308,7 +306,7 @@ const NumberLineScreen = () => {
                 <Ionicons name="flash" size={14} color={C.xp} />
                 <Text style={[s.resultPillText, NUM]}>+{outcome.xp}</Text>
               </View>
-              <View style={[s.resultPill, { backgroundColor: '#F1F5EC' }]}>
+              <View style={[s.resultPill, { backgroundColor: C.surface2 }]}>
                 <Ionicons name="star" size={13} color="#E8A33D" />
                 <Text style={[s.resultPillText, NUM]}>rekord {Math.max(outcome.stars, best)}/3</Text>
               </View>
@@ -349,7 +347,7 @@ const NumberLineScreen = () => {
       <SolveTopBar style={{ paddingTop: insets.top + 8 }}>
         <View style={s.headRow}>
           <Pressable onPress={exit} accessibilityLabel="Chiqish" hitSlop={10} style={s.back}>
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color={C.ink2} />
           </Pressable>
           <View style={s.headMid}>
             <Text style={s.kicker}>Sonlar chizig&apos;i · {level.title}</Text>
@@ -363,7 +361,7 @@ const NumberLineScreen = () => {
                 key={i}
                 name={i < hearts ? 'heart' : 'heart-outline'}
                 size={15}
-                color={i < hearts ? '#D9483B' : '#C9D2C1'}
+                color={i < hearts ? C.danger : C.ink4}
               />
             ))}
           </View>
@@ -435,7 +433,7 @@ const NumberLineScreen = () => {
                 ]}
               />
               <View style={[s.puck, okPulse && s.puckOk]}>
-                <View style={[s.puckDot, okPulse && { backgroundColor: '#FFFFFF' }]} />
+                <View style={[s.puckDot, okPulse && { backgroundColor: C.surface }]} />
               </View>
             </View>
           </View>
@@ -452,7 +450,7 @@ const NumberLineScreen = () => {
                 size={14}
                 color={okPulse ? '#3F7D1C' : '#B23A2F'}
               />
-              <Text style={[s.tipText, { color: okPulse ? '#2F6B14' : '#B23A2F' }]}>{message}</Text>
+              <Text style={[s.tipText, { color: okPulse ? C.limeDeep : '#B23A2F' }]}>{message}</Text>
             </View>
           ) : (
             <Text style={s.tip}>Puckni sudrang yoki relsga bosing</Text>
@@ -482,8 +480,8 @@ const NumberLineScreen = () => {
   )
 }
 
-const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F7EE' },
+const makeS = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
 
   lobbyHead: {
     flexDirection: 'row',
@@ -492,8 +490,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6EBE0',
-    backgroundColor: '#F3F7EE',
+    borderBottomColor: C.line,
+    backgroundColor: C.solverBody,
   },
   back: {
     width: 36,
@@ -501,13 +499,13 @@ const s = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  lobbyKicker: { fontSize: 13, fontWeight: '600', color: INK, letterSpacing: 0.2 },
+  lobbyKicker: { fontSize: 13, fontWeight: '600', color: C.ink, letterSpacing: 0.2 },
 
-  lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: '#F3F7EE' },
+  lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: C.solverBody },
   ctaWrap: { borderRadius: 16 },
   cta: {
     height: 56,
@@ -516,7 +514,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    ...shadow('#5FAF22', 8, 5, 0.3),
+    ...shadow(C.limeDeep, 8, 5, 0.3),
   },
   ctaText: { fontSize: 15.5, fontWeight: '600', color: C.inkOnLime },
   ghostBtn: {
@@ -524,16 +522,16 @@ const s = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  ghostText: { fontSize: 14, fontWeight: '600', color: '#33452F' },
+  ghostText: { fontSize: 14, fontWeight: '600', color: C.ink2 },
 
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 },
   headMid: { flex: 1 },
-  kicker: { fontSize: 13, fontWeight: '600', color: INK },
-  step: { marginTop: 1, fontSize: 11, color: GRAY },
+  kicker: { fontSize: 13, fontWeight: '600', color: C.ink },
+  step: { marginTop: 1, fontSize: 11, color: C.ink3 },
   hearts: { flexDirection: 'row', gap: 3 },
 
   timerTrack: {
@@ -541,10 +539,10 @@ const s = StyleSheet.create({
     marginHorizontal: 16,
     height: 6,
     borderRadius: 9999,
-    backgroundColor: '#E4E9DD',
+    backgroundColor: C.line,
     overflow: 'hidden',
   },
-  timerFill: { height: 6, borderRadius: 9999, backgroundColor: BLUE },
+  timerFill: { height: 6, borderRadius: 9999, backgroundColor: C.xp },
 
   playBody: { flex: 1, paddingHorizontal: 16, justifyContent: 'center' },
 
@@ -558,7 +556,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 26,
   },
   targetLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.4, color: 'rgba(169,196,255,0.75)' },
-  targetValue: { marginTop: 2, fontFamily: MATH_FONT, fontSize: 40, lineHeight: 46, color: '#FFFFFF' },
+  targetValue: { marginTop: 2, fontFamily: MATH_FONT, fontSize: 40, lineHeight: 46, color: C.surface },
   targetHint: { marginTop: 2, fontSize: 11, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },
 
   railWrap: { marginTop: 18 },
@@ -577,7 +575,7 @@ const s = StyleSheet.create({
     marginTop: 3,
     fontSize: 9.5,
     fontWeight: '600',
-    color: GRAY,
+    color: C.ink3,
     width: 40,
     textAlign: 'center',
     marginLeft: -20,
@@ -589,7 +587,7 @@ const s = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: BLUE,
+    backgroundColor: C.xp,
   },
   puck: {
     marginTop: 3,
@@ -597,18 +595,18 @@ const s = StyleSheet.create({
     height: 26,
     borderRadius: 13,
     borderWidth: 2.5,
-    borderColor: '#FFFFFF',
-    backgroundColor: BLUE,
+    borderColor: C.surface,
+    backgroundColor: C.xp,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow(BLUE, 8, 4, 0.4),
+    ...shadow(C.xp, 8, 4, 0.4),
   },
-  puckOk: { backgroundColor: '#5FAF22', borderColor: '#F0FBDF' },
-  puckDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#FFFFFF' },
-  railHint: { marginTop: 6, textAlign: 'center', fontSize: 10.5, color: FAINT },
+  puckOk: { backgroundColor: C.limeDeep, borderColor: '#F0FBDF' },
+  puckDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.surface },
+  railHint: { marginTop: 6, textAlign: 'center', fontSize: 10.5, color: C.ink4 },
 
   tipRow: { marginTop: 14, alignItems: 'center', minHeight: 30, justifyContent: 'center' },
-  tip: { fontSize: 12, color: GRAY, textAlign: 'center' },
+  tip: { fontSize: 12, color: C.ink3, textAlign: 'center' },
   tipPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -619,24 +617,24 @@ const s = StyleSheet.create({
     borderRadius: 9999,
     borderWidth: 1,
   },
-  tipPillOk: { backgroundColor: '#EAF7DC', borderColor: '#CBE8AC' },
+  tipPillOk: { backgroundColor: C.surface2, borderColor: C.line },
   tipPillBad: { backgroundColor: '#FBEAE8', borderColor: '#F0C6C1' },
   tipText: { fontSize: 11.5, fontWeight: '600', flexShrink: 1 },
 
-  dock: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: '#F3F7EE' },
+  dock: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: C.solverBody },
 
   resultBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 56 },
-  resultTitle: { marginTop: 6, fontSize: 21, fontWeight: '600', color: INK },
-  resultSub: { marginTop: 5, fontSize: 12.5, color: GRAY },
+  resultTitle: { marginTop: 6, fontSize: 21, fontWeight: '600', color: C.ink },
+  resultSub: { marginTop: 5, fontSize: 12.5, color: C.ink3 },
   resultSheet: {
     marginTop: 20,
     alignSelf: 'stretch',
     padding: 14,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
   resultRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
   resultPill: {
@@ -647,8 +645,8 @@ const s = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 9999,
   },
-  resultPillText: { fontSize: 12.5, fontWeight: '600', color: INK },
-  resultNote: { marginTop: 10, textAlign: 'center', fontSize: 11.5, lineHeight: 16, color: GRAY },
+  resultPillText: { fontSize: 12.5, fontWeight: '600', color: C.ink },
+  resultNote: { marginTop: 10, textAlign: 'center', fontSize: 11.5, lineHeight: 16, color: C.ink3 },
 })
 
 export default NumberLineScreen

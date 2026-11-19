@@ -21,7 +21,7 @@ import { CoinIcon } from '../components/CoinIcon'
 import { ScaleMark } from '../components/ScaleMark'
 import { FightersMark, MemoryMark, NumberLineMark } from '../components/GameMarks'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { C, NUM, shadow } from '../theme/tokens'
+import { NUM, shadow } from '../theme/tokens'
 import { useColors } from '../theme/useTheme'
 import type { ThemeColors } from '../theme/tokens'
 
@@ -40,12 +40,12 @@ const MARKS: Record<GameMarkKey, ComponentType<{ size?: number; color?: string }
 }
 
 /** O'yin belgisi ranglari — info qatoridagi plitka */
-const TINT: Record<GameMarkKey, { bg: string; fg: string }> = {
+const gameTints = (C: ThemeColors): Record<GameMarkKey, { bg: string; fg: string }> => ({
   scale: { bg: C.leafSoft, fg: C.limeDeep },
   memory: { bg: C.violetSoft, fg: C.violet },
   line: { bg: C.xpSoft, fg: C.xp },
-  fight: { bg: C.coinSoft, fg: '#B87A22' },
-}
+  fight: { bg: C.coinSoft, fg: C.coin },
+})
 
 const ART: Record<GameId, ImageSourcePropType> = {
   balance: require('../assets/games/hub-balance.jpg'),
@@ -87,6 +87,7 @@ const GamesScreen = () => {
 
   const C = useColors()
   const styles = makeStyles(C)
+  const TINT = gameTints(C)
 
   const cardW = Math.round(width - SIDE * 2 - PEEK)
 
@@ -365,7 +366,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     lineHeight: 25,
     letterSpacing: -0.35,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: C.surface,
     textShadowColor: 'rgba(4,18,11,0.45)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 8,
@@ -384,7 +385,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  infoTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '700', color: '#FFFFFF' },
+  infoTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '700', color: C.surface },
   infoMeta: { fontSize: 10.5, lineHeight: 13, fontWeight: '500', color: 'rgba(255,255,255,0.78)' },
 
   /* Muvozanat — qiyshaygan oq tarozi paneli + lime tugma */
@@ -490,7 +491,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   ctaLimeText: { fontSize: 13.5, fontWeight: '700', color: C.inkOnLime },
   ctaLimeCount: { fontSize: 11, fontWeight: '600', color: 'rgba(28,50,20,0.72)' },
   ctaViolet: { backgroundColor: C.violet },
-  ctaWhiteText: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
+  ctaWhiteText: { fontSize: 13.5, fontWeight: '700', color: C.surface },
   ctaWhiteCount: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.82)' },
   ctaAmber: { backgroundColor: C.coin },
   ctaAmberText: { fontSize: 13.5, fontWeight: '700', color: '#3B2A07' },

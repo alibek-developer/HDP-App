@@ -10,7 +10,8 @@ import { LimeButton } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
 import { TOPICS } from '../data/curriculum'
 import type { RootStackParamList } from '../navigation/types'
-import { C, NUM } from '../theme/tokens'
+import { NUM, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>
 
@@ -25,6 +26,8 @@ const CHAIN = [
  * oladi; matn qisqa: yo'l nima ekanini rasm emas, uchta so'z aytadi.
  */
 const OnboardingScreen = ({ navigation }: Props) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const insets = useSafeAreaInsets()
 
   const start = () => {
@@ -112,10 +115,10 @@ const OnboardingScreen = ({ navigation }: Props) => {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     paddingHorizontal: 20,
   },
 
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
   heroWrap: { flex: 1, minHeight: 150, justifyContent: 'center' },
 
   title: { marginTop: 6, fontSize: 29, lineHeight: 35, letterSpacing: -0.7 },
-  titleDim: { color: '#77947D', fontWeight: '400' },
+  titleDim: { color: C.ink3, fontWeight: '400' },
   titleStrong: { color: C.ink, fontWeight: '700' },
   sub: { marginTop: 6, maxWidth: 330, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink3 },
 

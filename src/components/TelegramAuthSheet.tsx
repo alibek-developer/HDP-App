@@ -9,21 +9,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { checkTelegramLogin, startTelegramLogin } from '../lib/telegramAuth'
-import { ABS_FILL, C, R } from '../theme/tokens'
+import { ABS_FILL, R, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Haqiqiy Telegram kirish. Ism kiritilmaydi: ilova botni ochadi, Telegram
  * «Start»ni bosgach profil webhook orqali qaytadi va kirish avtomatik yakunlanadi.
  */
 
-export const TelegramMark = ({ size = 22 }: { size?: number }) => (
+export const TelegramMark = ({ size = 22 }: { size?: number }) => {
+  return (
   <Svg viewBox="0 0 24 24" width={size} height={size}>
     <Path
       fill="#229ED9"
       d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.5.5 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.259-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.324-.437.891-.662 3.483-1.517 5.806-2.518 6.967-3.003 3.32-1.381 4.011-1.621 4.46-1.628z"
     />
   </Svg>
-)
+  )
+}
 
 type Props = {
   visible: boolean
@@ -43,6 +46,8 @@ const STEPS = [
 ]
 
 const TelegramAuthSheet = ({ visible, onClose, onDone }: Props) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const insets = useSafeAreaInsets()
   const signInWithTelegram = useApp(s => s.signInWithTelegram)
 
@@ -323,13 +328,13 @@ const TelegramAuthSheet = ({ visible, onClose, onDone }: Props) => {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(9,17,13,0.6)' },
   sheet: {
     width: '100%',
     maxWidth: 430,
     alignSelf: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderTopLeftRadius: R['3xl'],
     borderTopRightRadius: R['3xl'],
     paddingHorizontal: 16,
@@ -357,10 +362,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
   },
   heroText: { flex: 1, minWidth: 0 },
-  heroTitle: { fontSize: 17, lineHeight: 22, letterSpacing: -0.2, fontWeight: '600', color: '#FFFFFF' },
+  heroTitle: { fontSize: 17, lineHeight: 22, letterSpacing: -0.2, fontWeight: '600', color: C.surface },
   heroSub: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: 'rgba(255,255,255,0.62)' },
 
   status: {
@@ -378,7 +383,7 @@ const styles = StyleSheet.create({
   },
   statusBad: { backgroundColor: 'rgba(217,72,59,0.14)', borderColor: 'rgba(255,140,128,0.3)' },
   statusMid: { flex: 1, minWidth: 0 },
-  statusText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: '#FFFFFF' },
+  statusText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: C.surface },
   statusTitleBad: { color: '#FFC9C2' },
   statusHint: { marginTop: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: 'rgba(255,255,255,0.62)' },
 
@@ -443,7 +448,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 12,
   },
-  primaryText: { fontSize: 14.5, fontWeight: '600', color: '#FFFFFF' },
+  primaryText: { fontSize: 14.5, fontWeight: '600', color: C.surface },
 
   cancel: { height: 44, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
   cancelText: { fontSize: 12.5, fontWeight: '600', color: C.ink3 },

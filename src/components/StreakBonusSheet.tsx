@@ -17,7 +17,8 @@ import { streakReward } from '../data/content'
 import { triggerHaptic } from '../lib/haptics'
 import { getCoinTarget } from '../lib/coinTarget'
 import { CoinIcon } from './CoinIcon'
-import { ABS_FILL, C, NUM, R, shadow } from '../theme/tokens'
+import { ABS_FILL, NUM, R, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Kunlik zanjir bonusi — ochilishda pastdan chiqadigan oq varaq.
@@ -42,6 +43,8 @@ const GAP = 9
 type Phase = 'idle' | 'collecting'
 
 const StreakBonusSheet = () => {
+  const C = useColors()
+  const s = makeS(C)
   const insets = useSafeAreaInsets()
   const { width: winW } = useWindowDimensions()
   const gift = useApp(s => s.streakGift)
@@ -307,17 +310,17 @@ const StreakBonusSheet = () => {
   )
 }
 
-const s = StyleSheet.create({
+const makeS = (C: ThemeColors) => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { backgroundColor: 'rgba(14,26,18,0.45)' },
   wrap: { width: '100%', maxWidth: 430, alignSelf: 'center' },
   sheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderTopLeftRadius: R['3xl'],
     borderTopRightRadius: R['3xl'],
     paddingHorizontal: 20,
     paddingTop: 9,
-    ...shadow('#0E1A12', 28, -8, 0.16),
+    ...shadow(C.ink, 28, -8, 0.16),
   },
   handle: {
     width: 40,
@@ -386,8 +389,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.brand,
   },
-  ctaShadow: shadow('#0B6E4F', 16, 7, 0.24),
-  ctaText: { fontSize: 15.5, letterSpacing: 0.1, fontWeight: '800', color: '#FFFFFF' },
+  ctaShadow: shadow(C.brand, 16, 7, 0.24),
+  ctaText: { fontSize: 15.5, letterSpacing: 0.1, fontWeight: '800', color: C.surface },
 })
 
 export default StreakBonusSheet

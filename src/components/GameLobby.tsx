@@ -9,7 +9,8 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import type { EdgeInsets } from 'react-native-safe-area-context'
 import { triggerHaptic } from '../lib/haptics'
 import { GRAD_LIME } from '../theme/solver'
-import { C, NUM, shadow } from '../theme/tokens'
+import { NUM, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 export interface LobbyLevel<T extends string = string> {
   id: T
@@ -43,6 +44,8 @@ export function GameLobby<T extends string>({
   title, blurb, art, mark, accent, accentSoft, accentInk,
   levels, selected, starsFor, plays = 0, insets, onBack, onSelect, onStart,
 }: Props<T>) {
+  const C = useColors()
+  const s = makeS(C)
   const pulse = useRef(new Animated.Value(0)).current
   useEffect(() => {
     const loop = Animated.loop(Animated.sequence([
@@ -85,7 +88,7 @@ export function GameLobby<T extends string>({
         resizeMode="cover"
       />
       <LinearGradient
-        colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0)', '#FFFFFF', '#FFFFFF']}
+        colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0)', C.surface, C.surface]}
         locations={[0, 0.54, 0.68, 1]}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
@@ -213,8 +216,8 @@ export function GameLobby<T extends string>({
   )
 }
 
-const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+const makeS = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.surface },
 
   head: {
     flexDirection: 'row',
@@ -229,7 +232,7 @@ const s = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.line,
   },
@@ -241,7 +244,7 @@ const s = StyleSheet.create({
     height: 24,
     paddingHorizontal: 9,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.line,
   },

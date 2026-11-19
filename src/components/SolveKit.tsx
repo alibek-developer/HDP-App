@@ -4,8 +4,9 @@ import type { StyleProp, ViewStyle } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { GridPaper } from './GridPaper'
-import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
-import { GRAD_LIME, GRAD_RAIL, SOLVER_BODY } from '../theme/solver'
+import { ABS_FILL, MATH_FONT, NUM, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import { GRAD_LIME, GRAD_RAIL } from '../theme/solver'
 
 /**
  * Yechish ekranlarining savol qurilmasi — daraja sessiyasi, mavzu testi,
@@ -18,13 +19,6 @@ import { GRAD_LIME, GRAD_RAIL, SOLVER_BODY } from '../theme/solver'
  * — asosiy tugma ekran tubida qotiriladi — barmoq zonasida, 48+ px nishon.
  */
 
-const INK = '#0E1A12'
-const GRAY = '#6B7C66'
-const FAINT = '#9AA995'
-const LINE = '#E1E7DA'
-const CELL_DONE = '#5FAF22'
-const CELL_TODO = '#E4E9DD'
-const INK_GRAD = ['#22402C', '#0E1A12'] as const
 
 /* ── Progress: sarlavha + hisob + bo'linmalar ── */
 
@@ -41,7 +35,10 @@ export const SolveProgress = ({
   /** 0 dan katta bo'lsa bo'linmalar shu ustunlar bilan qatorlarga bo'linadi (30 savolli test) */
   columns?: number
   style?: StyleProp<ViewStyle>
-}) => (
+}) => {
+  const C = useColors()
+  const s = makeS(C)
+  return (
   <View style={[s.progress, style]}>
     <View style={s.progressTop}>
       {label ? (
@@ -89,7 +86,8 @@ export const SolveProgress = ({
       </View>
     )}
   </View>
-)
+  )
+}
 
 /* ── Savol: katak qog'ozli karta ── */
 
@@ -103,7 +101,10 @@ export const QuestionStage = ({
   badge?: ReactNode
   size?: 'lg' | 'md'
   style?: StyleProp<ViewStyle>
-}) => (
+}) => {
+  const C = useColors()
+  const s = makeS(C)
+  return (
   <View style={[s.stage, style]}>
     <GridPaper band={520} />
     <LinearGradient
@@ -117,7 +118,8 @@ export const QuestionStage = ({
       <Text style={[s.stagePrompt, size === 'md' && s.stagePromptMd]}>{prompt}</Text>
     </View>
   </View>
-)
+  )
+}
 
 /* ── Variant ── */
 
@@ -141,6 +143,8 @@ export const AnswerOption = ({
   compact?: boolean
   style?: StyleProp<ViewStyle>
 }) => {
+  const C = useColors()
+  const s = makeS(C)
   const lit = state === 'selected' || state === 'correct'
   return (
     <Pressable
@@ -233,6 +237,8 @@ export const SolveAction = ({
   icon?: 'next' | 'check' | 'none'
   style?: StyleProp<ViewStyle>
 }) => {
+  const C = useColors()
+  const s = makeS(C)
   const ink = tone === 'ink'
   return (
     <Pressable
@@ -246,7 +252,7 @@ export const SolveAction = ({
       {({ pressed }) => (
         <>
           {!disabled && (
-            <View style={[s.actionEdge, { backgroundColor: ink ? '#0A140E' : '#4E9420' }]} />
+            <View style={[s.actionEdge, { backgroundColor: ink ? '#0A140E' : C.brand }]} />
           )}
           <View
             style={[
@@ -257,7 +263,7 @@ export const SolveAction = ({
           >
             {!disabled && (
               <LinearGradient
-                colors={ink ? INK_GRAD : GRAD_LIME}
+                colors={ink ? [C.brandDeep, C.brand] : GRAD_LIME}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={[ABS_FILL, { borderRadius: 14 }]}
@@ -267,7 +273,7 @@ export const SolveAction = ({
               style={[
                 s.actionLabel,
                 disabled
-                  ? { color: FAINT }
+                  ? { color: C.ink4 }
                   : ink
                     ? { color: C.mint }
                     : { color: '#123B24' },
@@ -298,7 +304,10 @@ export const SolveActionBar = ({
   note?: string
   bottom?: number
   children: ReactNode
-}) => (
+}) => {
+  const C = useColors()
+  const s = makeS(C)
+  return (
   <View style={[s.bar, { paddingBottom: Math.max(bottom, 10) + 10 }]}>
     {note ? (
       <Text style={[s.barNote, NUM]} numberOfLines={2}>
@@ -307,7 +316,8 @@ export const SolveActionBar = ({
     ) : null}
     {children}
   </View>
-)
+  )
+}
 
 /** Ekran tepasida qotirilgan zona — savollar shu chegara ostidan siljiydi */
 export const SolveTopBar = ({
@@ -316,41 +326,45 @@ export const SolveTopBar = ({
 }: {
   style?: StyleProp<ViewStyle>
   children: ReactNode
-}) => <View style={[s.topBar, style]}>{children}</View>
+}) => {
+  const C = useColors()
+  const s = makeS(C)
+  return <View style={[s.topBar, style]}>{children}</View>
+}
 
-const s = StyleSheet.create({
+const makeS = (C: ThemeColors) => StyleSheet.create({
   progress: { paddingHorizontal: 16 },
   progressTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   progressGap: { flex: 1 },
-  progressLabel: { flex: 1, fontSize: 12, fontWeight: '600', color: GRAY },
+  progressLabel: { flex: 1, fontSize: 12, fontWeight: '600', color: C.ink3 },
   counter: {
     height: 26,
     paddingHorizontal: 9,
     borderRadius: 9,
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: '#FFFFFF',
-    borderColor: LINE,
+    backgroundColor: C.surface,
+    borderColor: C.line,
     borderWidth: 1,
   },
-  counterNow: { fontSize: 13, fontWeight: '600', color: INK },
-  counterRest: { fontSize: 11.5, fontWeight: '600', color: FAINT },
+  counterNow: { fontSize: 13, fontWeight: '600', color: C.ink },
+  counterRest: { fontSize: 11.5, fontWeight: '600', color: C.ink4 },
 
   segRow: { marginTop: 10, flexDirection: 'row', gap: 5 },
-  segment: { flex: 1, height: 7, borderRadius: 9999, backgroundColor: CELL_TODO },
-  cellDone: { backgroundColor: CELL_DONE },
-  cellNow: { backgroundColor: INK },
+  segment: { flex: 1, height: 7, borderRadius: 9999, backgroundColor: C.lineSoft },
+  cellDone: { backgroundColor: C.limeDeep },
+  cellNow: { backgroundColor: C.ink },
 
   grid: { marginTop: 10, gap: 4 },
   gridRow: { flexDirection: 'row', gap: 4 },
-  gridCell: { flex: 1, height: 6, borderRadius: 9999, backgroundColor: CELL_TODO },
+  gridCell: { flex: 1, height: 6, borderRadius: 9999, backgroundColor: C.lineSoft },
   gridCellGhost: { backgroundColor: 'transparent' },
 
   stage: {
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: C.surface,
-    borderColor: LINE,
+    borderColor: C.line,
     borderWidth: 1,
     borderRadius: 18,
     ...shadow(C.ink, 12, 5, 0.05),
@@ -361,7 +375,7 @@ const s = StyleSheet.create({
     fontFamily: MATH_FONT,
     fontSize: 20,
     lineHeight: 29,
-    color: INK,
+    color: C.ink,
   },
   stagePromptMd: { fontSize: 17.5, lineHeight: 26 },
 
@@ -375,7 +389,7 @@ const s = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#E5E9E0',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
   },
   optionCompact: {
     minHeight: 82,
@@ -393,7 +407,7 @@ const s = StyleSheet.create({
     backgroundColor: '#F7FDEE',
     ...shadow(C.limeDeep, 8, 3, 0.14),
   },
-  optionCorrect: { borderColor: '#5FAF22', backgroundColor: '#EAF7DC' },
+  optionCorrect: { borderColor: C.limeDeep, backgroundColor: C.surface2 },
   optionWrong: { borderColor: C.danger, backgroundColor: '#FDF2F0' },
   optionDim: { opacity: 0.5 },
   optionPressed: { backgroundColor: '#F4F7EF' },
@@ -405,20 +419,20 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F3F5EF',
-    borderColor: LINE,
+    borderColor: C.line,
     borderWidth: 1,
   },
   chipCompact: { width: 26, height: 26, borderRadius: 8 },
   chipLit: { backgroundColor: C.lime, borderColor: C.lime, overflow: 'hidden' },
-  chipCorrect: { backgroundColor: '#5FAF22', borderColor: '#5FAF22' },
+  chipCorrect: { backgroundColor: C.limeDeep, borderColor: C.limeDeep },
   chipWrong: { backgroundColor: C.dangerSoft, borderColor: '#EFC9C4' },
-  chipText: { fontSize: 13, fontWeight: '600', color: GRAY },
+  chipText: { fontSize: 13, fontWeight: '600', color: C.ink3 },
   chipTextCompact: { fontSize: 11 },
   chipTextLit: { color: C.inkOnLime },
 
-  optionLabel: { flex: 1, fontSize: 15, lineHeight: 21, fontWeight: '600', color: INK },
+  optionLabel: { flex: 1, fontSize: 15, lineHeight: 21, fontWeight: '600', color: C.ink },
   optionLabelCompact: { flex: 0, fontSize: 14, lineHeight: 19 },
-  optionLabelLit: { color: '#1C3214' },
+  optionLabelLit: { color: C.inkOnLime },
 
   actionWrap: { height: 56, borderRadius: 16 },
   actionEdge: {
@@ -441,8 +455,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#7ED321',
-    ...shadow('#5FAF22', 7, 4, 0.28),
+    backgroundColor: C.lime,
+    ...shadow(C.limeDeep, 7, 4, 0.28),
   },
   actionFaceOff: {
     backgroundColor: '#EAEEE3',
@@ -455,16 +469,16 @@ const s = StyleSheet.create({
 
   topBar: {
     paddingBottom: 12,
-    backgroundColor: SOLVER_BODY,
+    backgroundColor: C.solverBody,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6EBE0',
+    borderBottomColor: C.line,
   },
   bar: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    backgroundColor: SOLVER_BODY,
+    backgroundColor: C.solverBody,
     borderTopWidth: 1,
-    borderTopColor: '#E6EBE0',
+    borderTopColor: C.line,
   },
   barNote: {
     marginBottom: 8,
@@ -472,6 +486,6 @@ const s = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     fontWeight: '500',
-    color: FAINT,
+    color: C.ink4,
   },
 })

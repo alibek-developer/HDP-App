@@ -402,7 +402,7 @@ const HomeScreen = () => {
             >
               <View style={styles.avatarRing}>
                 <LinearGradient
-                  colors={['#B7EE7E', '#0B6E4F']}
+                  colors={['#B7EE7E', C.brand]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.avatarRingFill}
@@ -412,7 +412,7 @@ const HomeScreen = () => {
                     <Image source={{ uri: photoUrl }} style={styles.avatarImg} />
                   ) : (
                     <LinearGradient
-                      colors={['#F2FAE9', '#CFEBB2']}
+                      colors={[C.leafTint, C.mintSoft]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={styles.avatarMonogram}
@@ -528,7 +528,7 @@ const HomeScreen = () => {
                 ]}
                 accessibilityLabel={`${streak} kunlik zanjir`}
               >
-                <MCI name="fire" size={14} color={streakBonusClaimed === todayKey() ? '#9AA995' : '#E2652B'} />
+                <MCI name="fire" size={14} color={streakBonusClaimed === todayKey() ? C.ink4 : '#E2652B'} />
                 <Text style={[styles.statText, NUM]}>{streak}</Text>
               </Pressable>
 
@@ -838,7 +838,7 @@ const HomeScreen = () => {
                         ]}
                       >
                         {on ? (
-                          <MCI name="check" size={14} color={today ? C.inkOnLime : '#FFFFFF'} />
+                          <MCI name="check" size={14} color={today ? C.inkOnLime : C.surface} />
                         ) : null}
                       </Animated.View>
                       <Text style={[styles.pebbleDay, today && styles.pebbleDayNow]}>{label}</Text>
@@ -869,13 +869,13 @@ const HomeScreen = () => {
         </Reveal>
       </ScrollView>
 
-      <TopScrim height={insets.top} colors={['#FFFFFF', '#FFFFFF']} line="rgba(14,26,18,0.06)" />
+      <TopScrim height={insets.top} colors={[C.surface, C.surface]} line="rgba(14,26,18,0.06)" />
     </View>
   )
 }
 
 const makeStyles = (C: ThemeColors) => StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  screen: { flex: 1, backgroundColor: C.surface },
   content: { paddingHorizontal: 16 },
 
   /* ── Sarlavha ── */
@@ -990,7 +990,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   },
   proGloss: { position: 'absolute', top: 0, left: 0, right: 0, height: 14 },
   proShine: { position: 'absolute', top: -16, bottom: -16, width: 18 },
-  proText: { fontSize: 11.5, letterSpacing: 0.9, fontWeight: '800', color: '#FFFFFF' },
+  proText: { fontSize: 11.5, letterSpacing: 0.9, fontWeight: '800', color: C.surface },
 
   /* ── Reklama karuseli ── */
   adWrap: { marginTop: 14, borderRadius: R['2xl'], overflow: 'hidden' },
@@ -1002,14 +1002,14 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   adPhoto: { position: 'absolute', right: 0, top: 0, width: '62%', height: '100%' },
   adInner: { maxWidth: 220, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 26 },
   adBrand: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  adBrandText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.1, color: '#CDE9AE' },
+  adBrandText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.1, color: C.mint },
   adTitle: {
     marginTop: 5,
     fontSize: 17,
     lineHeight: 22,
     letterSpacing: -0.2,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: C.surface,
   },
   adDots: {
     position: 'absolute',
@@ -1128,7 +1128,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.leafTint,
   },
-  doneIconWrong: { backgroundColor: '#FCF1DC' },
+  doneIconWrong: { backgroundColor: C.coinSoft },
   doneText: { flex: 1 },
   doneTitle: { fontSize: 13.5, letterSpacing: -0.2, fontWeight: '600', color: C.ink },
   doneTitleWrong: { color: '#B87A22' },
@@ -1195,10 +1195,10 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
   },
   courseBody: { gap: 2 },
-  courseName: { fontSize: 19, letterSpacing: -0.4, fontWeight: '700', color: '#FFFFFF' },
+  courseName: { fontSize: 19, letterSpacing: -0.4, fontWeight: '700', color: C.surface },
   courseMeta: { fontSize: 11.5, fontWeight: '500', color: 'rgba(255,255,255,0.75)' },
   courseBar: {
     marginTop: 8,

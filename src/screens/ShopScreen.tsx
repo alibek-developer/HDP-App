@@ -35,11 +35,7 @@ type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<RootStackParamList>
 >
 
-const INK = '#0E1A12'
-const HAIR = '#E7ECE4'
-const GRAY = '#6B7C66'
 const AMBER_INK = '#854D0E'
-const BAD = '#B4402F'
 
 type Filter = 'all' | ProductCat | 'fav'
 type Sort = 'yangi' | 'arzon' | 'qimmat'
@@ -164,7 +160,7 @@ const makeArt = (C: ThemeColors) => StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0E1A12',
+    shadowColor: C.ink,
     shadowOpacity: 0.1,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
@@ -235,7 +231,7 @@ const ShopScreen = () => {
         onPress={() => { triggerHaptic('selection'); setFilter(key) }}
         style={({ pressed }) => [styles.chip, on ? styles.chipOn : styles.chipOff, pressed && { opacity: 0.85 }]}
       >
-        <MCI name={icon} size={14} color={on ? '#9BE04B' : '#8B9985'} />
+        <MCI name={icon} size={14} color={on ? C.limeBright : '#8B9985'} />
         <Text style={[styles.chipText, on ? styles.chipTextOn : styles.chipTextOff]}>{label}</Text>
         {count > 0 && (
           <Text style={[styles.chipCount, NUM, on ? styles.chipCountOn : styles.chipCountOff]}>
@@ -265,7 +261,7 @@ const ShopScreen = () => {
               accessibilityLabel="Sevimli"
               style={({ pressed }) => [styles.favBtn, pressed && { transform: [{ scale: 0.9 }] }]}
             >
-              <MCI name={fav ? 'heart' : 'heart-outline'} size={17} color={fav ? BAD : '#5D6B58'} />
+              <MCI name={fav ? 'heart' : 'heart-outline'} size={17} color={fav ? C.danger : C.ink3} />
             </Pressable>
 
             {out && (
@@ -284,7 +280,7 @@ const ShopScreen = () => {
                   {num(p.price)}
                 </Text>
               </View>
-              <Text style={[styles.footNote, NUM, out && { color: BAD }, ready && styles.footReady]}>
+              <Text style={[styles.footNote, NUM, out && { color: C.danger }, ready && styles.footReady]}>
                 {out ? "yo'q" : ready ? 'yetadi' : `${stock} dona`}
               </Text>
             </View>
@@ -317,7 +313,7 @@ const ShopScreen = () => {
           hitSlop={10}
           style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.5 }]}
         >
-          <MCI name="history" size={20} color={INK} />
+          <MCI name="history" size={20} color={C.ink} />
           {orders.length > 0 && <View style={styles.iconDot} />}
         </Pressable>
       </View>
@@ -378,7 +374,7 @@ const ShopScreen = () => {
           value={query}
           onChangeText={setQuery}
           placeholder="Telefon, sumka, ruchka..."
-          placeholderTextColor="#9AA995"
+          placeholderTextColor={C.ink4}
           style={styles.searchInput}
           returnKeyType="search"
         />
@@ -418,7 +414,7 @@ const ShopScreen = () => {
             <MCI
               name={filter === 'fav' ? 'heart' : 'heart-outline'}
               size={19}
-              color={filter === 'fav' ? BAD : INK}
+              color={filter === 'fav' ? C.danger : C.ink}
             />
           </Pressable>
           <Pressable
@@ -427,7 +423,7 @@ const ShopScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [pressed && { opacity: 0.55 }]}
           >
-            <MCI name="tune-variant" size={19} color={sort === 'yangi' ? INK : C.brand} />
+            <MCI name="tune-variant" size={19} color={sort === 'yangi' ? C.ink : C.brand} />
           </Pressable>
         </View>
       </View>
@@ -463,7 +459,7 @@ const ShopScreen = () => {
               <MCI
                 name={filter === 'fav' ? 'heart-outline' : 'gift-outline'}
                 size={22}
-                color="#9AA995"
+                color={C.ink4}
               />
               <Text style={styles.emptyTitle}>
                 {filter === 'fav' ? "Sevimlilar bo'sh" : "Bu javonda hozircha yo'q"}
@@ -490,7 +486,7 @@ const ShopScreen = () => {
       />
 
       {/* Status bar zonasi — kontent shu chegara ostidan o'tadi */}
-      <TopScrim height={insets.top} line={HAIR} />
+      <TopScrim height={insets.top} line={C.line} />
 
       {/* ── Saralash varaqasi ── */}
       <Sheet open={sortOpen} onClose={() => setSortOpen(false)} title="Saralash">
@@ -502,10 +498,10 @@ const ShopScreen = () => {
               style={({ pressed }) => [styles.sortRow, pressed && { opacity: 0.6 }]}
             >
               <View style={styles.sortRowLeft}>
-                <MCI name={o.icon} size={16} color={GRAY} />
+                <MCI name={o.icon} size={16} color={C.ink3} />
                 <Text style={styles.sortLabel}>{o.label}</Text>
               </View>
-              {sort === o.key && <MCI name="check" size={17} color={INK} />}
+              {sort === o.key && <MCI name="check" size={17} color={C.ink} />}
             </Pressable>
           ))}
         </View>
@@ -543,14 +539,14 @@ const ShopScreen = () => {
 }
 
 const makeStyles = (C: ThemeColors) => StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  screen: { flex: 1, backgroundColor: C.surface },
   content: { paddingTop: 16 },
 
   head: { paddingHorizontal: 16, marginBottom: 4 },
   headTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headText: { flex: 1, minWidth: 0 },
-  h1: { fontSize: 21, lineHeight: 26, fontWeight: '600', letterSpacing: -0.6, color: INK },
-  h1Sub: { marginTop: 2, fontSize: 12, letterSpacing: 0.1, fontWeight: '500', color: GRAY },
+  h1: { fontSize: 21, lineHeight: 26, fontWeight: '600', letterSpacing: -0.6, color: C.ink },
+  h1Sub: { marginTop: 2, fontSize: 12, letterSpacing: 0.1, fontWeight: '500', color: C.ink3 },
   iconBtn: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   iconDot: {
     position: 'absolute',
@@ -576,8 +572,8 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   balanceMain: { flex: 1, minWidth: 0 },
   balanceValueRow: { flexDirection: 'row', alignItems: 'center' },
   balanceValueInner: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  balanceValue: { fontSize: 32, lineHeight: 36, fontWeight: '700', letterSpacing: -1, color: INK },
-  balanceUnit: { fontSize: 12, fontWeight: '600', color: GRAY },
+  balanceValue: { fontSize: 32, lineHeight: 36, fontWeight: '700', letterSpacing: -1, color: C.ink },
+  balanceUnit: { fontSize: 12, fontWeight: '600', color: C.ink3 },
   balanceTrack: {
     marginTop: 10,
     height: 4,
@@ -588,7 +584,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   next: { flexDirection: 'row', alignItems: 'center', gap: 9, maxWidth: 168 },
   nextImg: { width: 46, height: 46, borderRadius: 11, backgroundColor: C.surface2 },
   nextText: { flex: 1, minWidth: 0 },
-  nextTitle: { fontSize: 12, lineHeight: 15, fontWeight: '600', color: INK },
+  nextTitle: { fontSize: 12, lineHeight: 15, fontWeight: '600', color: C.ink },
   nextPrice: { marginTop: 2, fontSize: 11, fontWeight: '600', color: AMBER_INK },
 
   searchBox: {
@@ -601,7 +597,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
   },
-  searchInput: { flex: 1, fontSize: 13.5, fontWeight: '500', color: INK, paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 13.5, fontWeight: '500', color: C.ink, paddingVertical: 0 },
 
   rail: { marginTop: 14, paddingHorizontal: 0, gap: 8, alignItems: 'center' },
   chip: {
@@ -613,9 +609,9 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     gap: 6,
   },
   chipOff: { backgroundColor: C.surface2 },
-  chipOn: { backgroundColor: INK },
+  chipOn: { backgroundColor: C.ink },
   chipText: { fontSize: 12.5, fontWeight: '600' },
-  chipTextOn: { color: '#FFFFFF' },
+  chipTextOn: { color: C.surface },
   chipTextOff: { color: '#4C5C46' },
   chipCount: { fontSize: 11, fontWeight: '600' },
   chipCountOn: { color: 'rgba(255,255,255,0.62)' },
@@ -629,11 +625,11 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
-  resultText: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '600', color: GRAY },
+  resultText: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '600', color: C.ink3 },
   resultActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
 
   goalRow: { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  goalTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '600', color: INK },
+  goalTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '600', color: C.ink },
   goalRight: { fontSize: 12, fontWeight: '600', color: C.brand },
 
   gridWrap: { paddingHorizontal: 16 },
@@ -656,21 +652,21 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(14,26,18,0.38)',
   },
-  outText: { fontSize: 11.5, fontWeight: '700', color: '#FFFFFF' },
+  outText: { fontSize: 11.5, fontWeight: '700', color: C.surface },
 
   cardBody: { paddingTop: 8, paddingHorizontal: 1 },
-  cardTitle: { fontSize: 13, lineHeight: 17, fontWeight: '600', color: INK },
+  cardTitle: { fontSize: 13, lineHeight: 17, fontWeight: '600', color: C.ink },
   cardFoot: { marginTop: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   priceText: { fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 },
   priceReady: { color: C.brand },
   priceIdle: { color: AMBER_INK },
-  footNote: { fontSize: 10.5, fontWeight: '500', color: '#9AA995' },
+  footNote: { fontSize: 10.5, fontWeight: '500', color: C.ink4 },
   footReady: { color: C.brand, fontWeight: '700' },
 
   empty: { paddingTop: 28, paddingBottom: 8, alignItems: 'center' },
-  emptyTitle: { marginTop: 10, fontSize: 14, fontWeight: '600', color: INK, textAlign: 'center' },
-  emptySub: { marginTop: 6, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: GRAY, textAlign: 'center' },
+  emptyTitle: { marginTop: 10, fontSize: 14, fontWeight: '600', color: C.ink, textAlign: 'center' },
+  emptySub: { marginTop: 6, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: C.ink3, textAlign: 'center' },
 
   sortList: { marginTop: 4 },
   sortRow: {
@@ -680,11 +676,11 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     paddingVertical: 14,
   },
   sortRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sortLabel: { fontSize: 14, fontWeight: '600', color: INK },
+  sortLabel: { fontSize: 14, fontWeight: '600', color: C.ink },
 
-  histEmpty: { fontSize: 13, lineHeight: 20, fontWeight: '500', color: GRAY },
+  histEmpty: { fontSize: 13, lineHeight: 20, fontWeight: '500', color: C.ink3 },
   histHead: { marginTop: 4, marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  histCount: { fontSize: 12.5, fontWeight: '500', color: GRAY },
+  histCount: { fontSize: 12.5, fontWeight: '500', color: C.ink3 },
   histSpent: { fontSize: 12.5, fontWeight: '600', color: AMBER_INK },
   histRow: {
     flexDirection: 'row',
@@ -692,12 +688,12 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
   },
-  histDate: { width: 42, fontSize: 12, fontWeight: '500', color: '#9AA995' },
+  histDate: { width: 42, fontSize: 12, fontWeight: '500', color: C.ink4 },
   histMid: { flex: 1, minWidth: 0 },
-  histTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
-  histNote: { fontSize: 12, fontWeight: '500', color: GRAY },
+  histTitle: { fontSize: 13.5, fontWeight: '600', color: C.ink },
+  histNote: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   histPrice: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
-  histFoot: { marginTop: 12, fontSize: 11.5, lineHeight: 17, color: GRAY },
+  histFoot: { marginTop: 12, fontSize: 11.5, lineHeight: 17, color: C.ink3 },
 })
 
 export default ShopScreen

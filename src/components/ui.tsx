@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { StyleProp, TextInputProps, ViewStyle } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { C, R, T } from '../theme/tokens'
+import { R, T, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Kirish ekranlarining umumiy qurilishi. Har ekran o'z element tiliga ega
@@ -17,23 +18,27 @@ import { C, R, T } from '../theme/tokens'
  */
 export const TopScrim = ({
   height,
-  colors = ['#F3F7EE', '#F3F7EE'],
+  colors,
   line,
 }: {
   height: number
   colors?: readonly [string, string, ...string[]]
   line?: string
-}) => (
+}) => {
+  const C = useColors()
+  const styles = makeStyles(C)
+  return (
   <View pointerEvents="none" style={[styles.topScrim, { height }]}>
     <LinearGradient
-      colors={colors}
+      colors={colors ?? [C.solverBody, C.solverBody]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={StyleSheet.absoluteFill}
     />
     {line ? <View style={[styles.topScrimLine, { backgroundColor: line }]} /> : null}
   </View>
-)
+  )
+}
 
 type BtnProps = {
   label: string
@@ -56,7 +61,10 @@ export const LimeButton = ({
   height = 56,
   trailing,
   style,
-}: BtnProps) => (
+}: BtnProps) => {
+  const C = useColors()
+  const styles = makeStyles(C)
+  return (
   <Pressable
     onPress={onPress}
     disabled={disabled || busy}
@@ -68,7 +76,7 @@ export const LimeButton = ({
     ]}
   >
     <LinearGradient
-      colors={['#A6EA55', '#7ED321']}
+      colors={['#A6EA55', C.lime]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.lime, { height }, !disabled && styles.limeShadow]}
@@ -78,7 +86,8 @@ export const LimeButton = ({
       {!busy && trailing}
     </LinearGradient>
   </Pressable>
-)
+  )
+}
 
 /** Ikkinchi darajali harakat — oq yuza, siyoh matn */
 export const GhostButton = ({
@@ -93,7 +102,10 @@ export const GhostButton = ({
   height?: number
   icon?: React.ReactNode
   style?: StyleProp<ViewStyle>
-}) => (
+}) => {
+  const C = useColors()
+  const styles = makeStyles(C)
+  return (
   <Pressable
     onPress={onPress}
     accessibilityRole="button"
@@ -104,7 +116,8 @@ export const GhostButton = ({
       <Text style={styles.ghostText}>{label}</Text>
     </View>
   </Pressable>
-)
+  )
+}
 
 /** Maydoncha: yorliq + ikon + input (+ o'ngda ko'z tugmasi) + xato matni */
 export const Field = ({
@@ -123,6 +136,8 @@ export const Field = ({
   error?: string | null
   style?: StyleProp<ViewStyle>
 }) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const [focused, setFocused] = useState(false)
 
   return (
@@ -160,7 +175,10 @@ export const AuthSwitch = ({
   active: 'login' | 'signup'
   onSwitch: (mode: 'login' | 'signup') => void
   style?: StyleProp<ViewStyle>
-}) => (
+}) => {
+  const C = useColors()
+  const styles = makeStyles(C)
+  return (
   <View style={[styles.switch, style]}>
     {([
       { key: 'login' as const, label: 'Kirish' },
@@ -177,7 +195,7 @@ export const AuthSwitch = ({
         >
           {on && (
             <LinearGradient
-              colors={['#9BE04B', '#7ED321']}
+              colors={[C.limeBright, C.lime]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[StyleSheet.absoluteFill, { borderRadius: R.full }]}
@@ -188,10 +206,14 @@ export const AuthSwitch = ({
       )
     })}
   </View>
-)
+  )
+}
 
 /** Onboarding savollari uchun qadam ko'rsatkichi — segmentlar + sanoq */
-export const StepHeader = ({ step, total = 2 }: { step: number; total?: number }) => (
+export const StepHeader = ({ step, total = 2 }: { step: number; total?: number }) => {
+  const C = useColors()
+  const styles = makeStyles(C)
+  return (
   <View style={styles.stepHead}>
     <View style={styles.stepSegs}>
       {Array.from({ length: total }, (_, i) => (
@@ -203,9 +225,10 @@ export const StepHeader = ({ step, total = 2 }: { step: number; total?: number }
       <Text style={styles.stepTextDim}>/{total}</Text>
     </Text>
   </View>
-)
+  )
+}
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   topScrim: { position: 'absolute', left: 0, right: 0, top: 0, zIndex: 20 },
   topScrimLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: StyleSheet.hairlineWidth },
   lime: {
@@ -218,7 +241,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.55)',
   },
   limeShadow: {
-    shadowColor: '#5FAF22',
+    shadowColor: C.limeDeep,
     shadowOpacity: 0.36,
     shadowRadius: 13,
     shadowOffset: { width: 0, height: 12 },
@@ -257,7 +280,7 @@ const styles = StyleSheet.create({
     borderColor: '#E6EEDF',
   },
   fieldFocus: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderColor: C.limeDeep,
     shadowColor: C.limeDeep,
     shadowOpacity: 0.16,
@@ -266,7 +289,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   fieldBad: { borderColor: '#E4A6A0', backgroundColor: '#FFFBFA' },
-  fieldErrorText: { marginTop: 6, marginLeft: 4, fontSize: 12.5, lineHeight: 17, fontWeight: '500', color: '#C2453D' },
+  fieldErrorText: { marginTop: 6, marginLeft: 4, fontSize: 12.5, lineHeight: 17, fontWeight: '500', color: C.danger },
   switch: {
     flexDirection: 'row',
     padding: 4,

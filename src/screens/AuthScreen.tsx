@@ -11,7 +11,8 @@ import { AuthSwitch, Field, GhostButton, LimeButton } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
 import type { RootStackParamList } from '../navigation/types'
 import { useApp } from '../store/useStore'
-import { C } from '../theme/tokens'
+import { type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 type AuthMode = 'login' | 'signup'
 
@@ -33,6 +34,8 @@ const autoHandle = (value: string) =>
     .slice(0, 20)
 
 function AuthScreen<RouteName extends 'Login' | 'SignUp'>({ initialMode, navigation }: Props<RouteName>) {
+  const C = useColors()
+  const styles = makeStyles(C)
   const insets = useSafeAreaInsets()
   const signInWithUsername = useApp(s => s.signInWithUsername)
   const setProfile = useApp(s => s.setProfile)
@@ -121,7 +124,7 @@ function AuthScreen<RouteName extends 'Login' | 'SignUp'>({ initialMode, navigat
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['#F5FBEC', '#FFFFFF']}
+        colors={[C.leafTint, C.surface]}
         locations={[0, 0.38]}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
@@ -217,7 +220,7 @@ function AuthScreen<RouteName extends 'Login' | 'SignUp'>({ initialMode, navigat
                   <View style={[styles.checkbox, terms && styles.checkboxOn]}>
                     {terms && (
                       <LinearGradient
-                        colors={['#A6EA55', '#7ED321']}
+                        colors={['#A6EA55', C.lime]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={[StyleSheet.absoluteFill, { borderRadius: 6 }]}
@@ -297,8 +300,8 @@ function AuthScreen<RouteName extends 'Login' | 'SignUp'>({ initialMode, navigat
   )
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.surface },
   fill: { flex: 1 },
   scroll: { flexGrow: 1, paddingHorizontal: 20 },
   topBar: {
@@ -314,16 +317,16 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: 'rgba(28,50,20,0.08)',
   },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   topBarSide: { width: 44, height: 44 },
 
-  switch: { marginTop: 4, backgroundColor: '#F4F9EE' },
+  switch: { marginTop: 4, backgroundColor: C.surface2 },
   title: { marginTop: 22, fontSize: 29, lineHeight: 34, letterSpacing: -0.7 },
-  titleDim: { color: '#77947D', fontWeight: '400' },
+  titleDim: { color: C.ink3, fontWeight: '400' },
   titleStrong: { color: C.ink, fontWeight: '700' },
   lead: { marginTop: 10, fontSize: 13, lineHeight: 19, fontWeight: '500', color: C.ink3 },
 
@@ -335,13 +338,13 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: '#D8E0D2',
+    borderColor: C.line,
   },
-  checkboxOn: { borderColor: '#7ED321' },
+  checkboxOn: { borderColor: C.lime },
   termsText: { flex: 1, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: C.ink2 },
-  err: { marginTop: 8, paddingHorizontal: 2, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: '#C2453D' },
+  err: { marginTop: 8, paddingHorizontal: 2, fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: C.danger },
   submit: { marginTop: 20 },
   tgPrimary: {
     marginTop: 20,
@@ -360,7 +363,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 12,
   },
-  tgPrimaryText: { fontSize: 14.5, fontWeight: '600', color: '#FFFFFF' },
+  tgPrimaryText: { fontSize: 14.5, fontWeight: '600', color: C.surface },
 
   handleRow: {
     marginTop: 10,
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 13,
-    backgroundColor: '#F4F9EE',
+    backgroundColor: C.surface2,
   },
   handleText: { flex: 1, minWidth: 0, fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: C.ink2 },
   handleTag: { fontSize: 11, lineHeight: 15, fontWeight: '600', color: C.ink4 },

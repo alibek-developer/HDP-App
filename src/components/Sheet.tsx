@@ -3,7 +3,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { triggerHaptic } from '../lib/haptics'
 import { Reveal } from './Reveal'
-import { ABS_FILL } from '../theme/tokens'
+import { ABS_FILL, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Pastdan ochiladigan oq varaqa — do'konning standart «raskop» holati.
@@ -23,6 +24,8 @@ const Sheet = ({
   subtitle?: string
   children: React.ReactNode
 }) => {
+  const C = useColors()
+  const sh = makeSh(C)
   const insets = useSafeAreaInsets()
   return (
     <Modal visible={open} transparent animationType="none" onRequestClose={onClose}>
@@ -43,7 +46,7 @@ const Sheet = ({
                   accessibilityLabel="Yopish"
                   style={({ pressed }) => [sh.closeBtn, pressed && { opacity: 0.6 }]}
                 >
-                  <Ionicons name="close" size={17} color={GRAY} />
+                  <Ionicons name="close" size={17} color={C.ink3} />
                 </Pressable>
               </View>
               <ScrollView showsVerticalScrollIndicator={false} style={sh.body}>
@@ -57,26 +60,24 @@ const Sheet = ({
   )
 }
 
-const GRAY = '#6B7C66'
-const HAIR = '#E7ECE4'
 
-const sh = StyleSheet.create({
+const makeSh = (C: ThemeColors) => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { backgroundColor: 'rgba(14,26,18,0.55)' },
   outer: { width: '100%', maxWidth: 430, alignSelf: 'center' },
   sheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     paddingHorizontal: 16,
     paddingTop: 12,
     maxHeight: 560,
   },
-  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: HAIR, alignSelf: 'center', marginBottom: 12 },
+  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: C.line, alignSelf: 'center', marginBottom: 12 },
   headRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 },
   headText: { flex: 1, minWidth: 0, paddingRight: 8 },
-  title: { fontSize: 11, fontWeight: '600', letterSpacing: 1.4, color: GRAY },
-  subtitle: { marginTop: 4, fontSize: 12.5, color: GRAY },
+  title: { fontSize: 11, fontWeight: '600', letterSpacing: 1.4, color: C.ink3 },
+  subtitle: { marginTop: 4, fontSize: 12.5, color: C.ink3 },
   closeBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   body: { flexGrow: 0 },
 })

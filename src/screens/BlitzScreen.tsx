@@ -11,6 +11,8 @@ import { useApp } from '../store/useStore'
 import { Reveal } from '../components/Reveal'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM, TICK } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
 import { CARD, GRAD_RAIL, LIME_BTN, OUT_BTN } from '../theme/solver'
 import { AnswerOption, QuestionStage, SolveProgress, SolveTopBar } from '../components/SolveKit'
 
@@ -34,11 +36,10 @@ const TIME_LIMIT = 30
 const COIN_PER_HIT = 5
 const XP_PER_HIT = 4
 
-const INK = '#0E1A12'
-const GRAY = '#6B7C66'
-const FAINT = '#9AA995'
 
 const BlitzScreen = () => {
+  const C = useColors()
+  const s = makeS(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const exit = useExit('Main')
@@ -103,7 +104,7 @@ const BlitzScreen = () => {
               hitSlop={10}
               style={({ pressed }) => [s.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
             >
-              <Ionicons name="chevron-back" size={18} color="#33452F" />
+              <Ionicons name="chevron-back" size={18} color={C.ink2} />
             </Pressable>
             <Text style={s.lobbyKicker}>Sprint</Text>
             <View style={s.headSpacer} />
@@ -139,10 +140,10 @@ const BlitzScreen = () => {
             style={({ pressed }) => [s.reviseBtn, pressed && { opacity: 0.85 }]}
           >
             <View style={s.reviseTile}>
-              <Ionicons name="book" size={15} color="#0B6E4F" />
+              <Ionicons name="book" size={15} color={C.brand} />
             </View>
             <Text style={s.reviseText}>Formulalarni takrorlash</Text>
-            <Ionicons name="chevron-forward" size={15} color={FAINT} />
+            <Ionicons name="chevron-forward" size={15} color={C.ink4} />
           </Pressable>
         </View>
       </View>
@@ -153,7 +154,7 @@ const BlitzScreen = () => {
   if (phase === 'result') {
     const hits = myScore / 10
     const coins = hits * COIN_PER_HIT
-    const tone = record ? TICK.ok : myScore > 0 ? '#0B6E4F' : '#6B7C66'
+    const tone = record ? TICK.ok : myScore > 0 ? C.brand : C.ink3
     const reset = () => {
       triggerHaptic('medium')
       credited.current = false
@@ -162,8 +163,8 @@ const BlitzScreen = () => {
     }
 
     const cells = [
-      { v: String(myScore), u: 'ball', c: INK },
-      { v: String(hits), u: "to'g'ri", c: GRAY },
+      { v: String(myScore), u: 'ball', c: C.ink },
+      { v: String(hits), u: "to'g'ri", c: C.ink3 },
       { v: `+${coins}`, u: 'coin', c: '#B87A22' },
     ]
 
@@ -231,8 +232,8 @@ const BlitzScreen = () => {
           <View style={s.scoreboard}>
             <View style={s.scoreRow}>
               {[
-                { v: String(myScore), u: 'ball', c: INK },
-                { v: String(myScore / 10), u: "to'g'ri", c: GRAY },
+                { v: String(myScore), u: 'ball', c: C.ink },
+                { v: String(myScore / 10), u: "to'g'ri", c: C.ink3 },
               ].map((cell, i) => (
                 <View key={cell.u} style={s.scoreCellWrap}>
                   {i > 0 && <View style={s.scoreDivider} />}
@@ -249,13 +250,13 @@ const BlitzScreen = () => {
                 style={[
                   s.timer,
                   {
-                    backgroundColor: urgent ? '#FBE9E7' : '#F6F8F3',
-                    borderColor: urgent ? '#D9534F' : '#E1E7DA',
+                    backgroundColor: urgent ? C.dangerSoft : C.surface2,
+                    borderColor: urgent ? C.danger : C.line,
                   },
                 ]}
               >
-                <Ionicons name="time" size={14} color={urgent ? TICK.bad : FAINT} />
-                <Text style={[s.timerText, NUM, { color: urgent ? TICK.bad : INK }]}>{timeLeft}</Text>
+                <Ionicons name="time" size={14} color={urgent ? TICK.bad : C.ink4} />
+                <Text style={[s.timerText, NUM, { color: urgent ? TICK.bad : C.ink }]}>{timeLeft}</Text>
               </View>
             </View>
           </View>
@@ -306,8 +307,8 @@ const BlitzScreen = () => {
 
 const GAP = 10
 
-const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F7EE' },
+const makeS = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   scroller: { flex: 1 },
   centerWrap: { justifyContent: 'center', paddingHorizontal: 16 },
   lobbyPad: { paddingHorizontal: 16, paddingTop: 20 },
@@ -315,48 +316,48 @@ const s = StyleSheet.create({
   lobbyHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
   backBtn: {
     width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderColor: '#E1E7DA', borderWidth: 1, borderRadius: 12,
+    backgroundColor: C.surface, borderColor: C.line, borderWidth: 1, borderRadius: 12,
   },
-  lobbyKicker: { fontSize: 12, fontWeight: '500', color: GRAY },
+  lobbyKicker: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   headSpacer: { width: 40 },
 
   mark: {
     position: 'relative', width: 56, height: 56, borderRadius: 16, overflow: 'hidden',
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#7ED321',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: C.lime,
   },
-  markIcon: { color: '#1C3214' },
-  h1: { marginTop: 16, fontSize: 26, lineHeight: 32, fontWeight: '600', color: INK },
-  h1Sub: { marginTop: 6, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: GRAY },
+  markIcon: { color: C.inkOnLime },
+  h1: { marginTop: 16, fontSize: 26, lineHeight: 32, fontWeight: '600', color: C.ink },
+  h1Sub: { marginTop: 6, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink3 },
 
-  recordLine: { marginTop: 20, fontSize: 12.5, fontWeight: '500', color: GRAY },
+  recordLine: { marginTop: 20, fontSize: 12.5, fontWeight: '500', color: C.ink3 },
 
   startBtn: {
     ...LIME_BTN, position: 'relative', overflow: 'hidden', marginTop: 20, height: 52, gap: 8,
   },
   againBtn: { marginTop: 16 },
-  startText: { fontSize: 14.5, fontWeight: '600', color: '#1C3214' },
-  startIcon: { color: '#1C3214' },
+  startText: { fontSize: 14.5, fontWeight: '600', color: C.inkOnLime },
+  startIcon: { color: C.inkOnLime },
 
   reviseBtn: {
     marginTop: 10, height: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF', borderColor: '#CFD9C6', borderWidth: 1, borderStyle: 'dashed', borderRadius: 14,
+    backgroundColor: C.surface, borderColor: C.line, borderWidth: 1, borderStyle: 'dashed', borderRadius: 14,
   },
   reviseTile: {
-    width: 28, height: 28, borderRadius: 9, backgroundColor: '#F6F8F3',
-    borderColor: '#E1E7DA', borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+    width: 28, height: 28, borderRadius: 9, backgroundColor: C.surface2,
+    borderColor: C.line, borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  reviseText: { flex: 1, fontSize: 13, fontWeight: '600', color: INK },
+  reviseText: { flex: 1, fontSize: 13, fontWeight: '600', color: C.ink },
 
   resultCard: { position: 'relative', overflow: 'hidden', ...CARD, borderRadius: 16 },
   resultRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6 },
   resultInner: { paddingLeft: 20, paddingRight: 16, paddingVertical: 20 },
   resultHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  resultKicker: { fontSize: 11.5, fontWeight: '500', color: GRAY },
-  resultH1: { marginTop: 8, fontSize: 24, lineHeight: 26, fontWeight: '600', color: INK },
-  resultSub: { marginTop: 8, fontSize: 13, fontWeight: '500', color: GRAY },
+  resultKicker: { fontSize: 11.5, fontWeight: '500', color: C.ink3 },
+  resultH1: { marginTop: 8, fontSize: 24, lineHeight: 26, fontWeight: '600', color: C.ink },
+  resultSub: { marginTop: 8, fontSize: 13, fontWeight: '500', color: C.ink3 },
 
   homeBtn: { ...OUT_BTN, marginTop: 10, height: 48 },
-  homeBtnText: { fontSize: 13.5, fontWeight: '600', color: '#33452F' },
+  homeBtnText: { fontSize: 13.5, fontWeight: '600', color: C.ink2 },
 
   gamePad: { paddingHorizontal: 16, paddingTop: 16 },
   scoreboardWrap: { paddingHorizontal: 16 },
@@ -366,11 +367,11 @@ const s = StyleSheet.create({
   },
   scoreRow: { flex: 2, flexDirection: 'row', alignItems: 'stretch' },
   scoreCellWrap: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
-  scoreDivider: { width: 1, backgroundColor: '#EDF1E7', marginVertical: 4 },
+  scoreDivider: { width: 1, backgroundColor: C.line, marginVertical: 4 },
   scoreCell: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
   scoreValue: { fontSize: 19, lineHeight: 20, fontWeight: '600' },
   scoreValueBig: { fontSize: 20, lineHeight: 21, fontWeight: '600' },
-  scoreUnit: { marginTop: 6, fontSize: 10.5, fontWeight: '500', color: FAINT },
+  scoreUnit: { marginTop: 6, fontSize: 10.5, fontWeight: '500', color: C.ink4 },
   timerWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   timer: {
     height: 40, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -385,7 +386,7 @@ const s = StyleSheet.create({
   optionOuter: { width: '48%' },
 
   footNote: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  footNoteText: { fontSize: 11.5, fontWeight: '500', color: FAINT },
+  footNoteText: { fontSize: 11.5, fontWeight: '500', color: C.ink4 },
 })
 
 export default BlitzScreen

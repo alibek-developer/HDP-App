@@ -11,8 +11,10 @@ import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { useExitToTopics } from '../lib/nav'
 import type { RootStackParamList } from '../navigation/types'
-import { C, NUM } from '../theme/tokens'
-import { LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
+import { NUM } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
+import { LIME_BTN, LIME_TEXT } from '../theme/solver'
 import { AnswerOption, QuestionStage, SolveAction, SolveActionBar, SolveProgress, SolveTopBar } from '../components/SolveKit'
 import Sheet from '../components/Sheet'
 
@@ -28,6 +30,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>
 type Answer = SessionResult['answers'][number]
 
 const TopicTestScreen = () => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const route = useRoute<RouteProp<RootStackParamList, 'TopicTest'>>()
@@ -82,7 +86,7 @@ const TopicTestScreen = () => {
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.gate}>
           <View style={styles.gateIcon}>
-            <Ionicons name="lock-closed" size={24} color="#9AA995" />
+            <Ionicons name="lock-closed" size={24} color={C.ink4} />
           </View>
           <Text style={styles.gateTitle}>Yakuniy test hali yopiq</Text>
           <Text style={styles.gateSub}>
@@ -256,7 +260,7 @@ const TopicTestScreen = () => {
                   pressed && hints > 0 && { opacity: 0.7 },
                 ]}
               >
-                <Ionicons name="bulb-outline" size={14} color="#6B7C66" />
+                <Ionicons name="bulb-outline" size={14} color={C.ink3} />
                 <Text style={styles.aidLabel}>Maslahat</Text>
                 <Text style={[styles.aidCount, NUM]}>{hints}</Text>
               </Pressable>
@@ -272,7 +276,7 @@ const TopicTestScreen = () => {
                   pressed && skips > 0 && { opacity: 0.7 },
                 ]}
               >
-                <Ionicons name="play-skip-forward-outline" size={13} color="#6B7C66" />
+                <Ionicons name="play-skip-forward-outline" size={13} color={C.ink3} />
                 <Text style={styles.aidLabel}>O&apos;tkazish</Text>
                 <Text style={[styles.aidCount, NUM]}>{skips}</Text>
               </Pressable>
@@ -320,19 +324,19 @@ const TopicTestScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   scroll: { flex: 1 },
   content: { paddingBottom: 24 },
 
   gate: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
-  gateIcon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBFCF8', borderWidth: 1, borderColor: '#E1E7DA', borderRadius: 16 },
+  gateIcon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBFCF8', borderWidth: 1, borderColor: C.line, borderRadius: 16 },
   gateTitle: { fontSize: 16, fontWeight: '600', color: C.ink, textAlign: 'center' },
-  gateSub: { fontSize: 12.5, lineHeight: 19, textAlign: 'center', fontWeight: '500', color: '#6B7C66' },
+  gateSub: { fontSize: 12.5, lineHeight: 19, textAlign: 'center', fontWeight: '500', color: C.ink3 },
   gateBtn: { marginTop: 8, height: 46, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   gateBtnText: { fontSize: 13.5 },
 
-  replayNote: { marginTop: 14, paddingHorizontal: 16, fontSize: 11, lineHeight: 16, fontWeight: '500', color: '#9AA995' },
+  replayNote: { marginTop: 14, paddingHorizontal: 16, fontSize: 11, lineHeight: 16, fontWeight: '500', color: C.ink4 },
 
   stage: { paddingHorizontal: 16, marginTop: 14 },
   options: { marginTop: 16, gap: 10 },
@@ -341,16 +345,16 @@ const styles = StyleSheet.create({
   aid: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     height: 34, paddingHorizontal: 12, borderRadius: 11,
-    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA',
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.line,
   },
   aidOff: { opacity: 0.4 },
   aidLabel: { fontSize: 12, fontWeight: '600', color: '#3B4A36' },
-  aidCount: { fontSize: 11, fontWeight: '600', color: '#9AA995' },
+  aidCount: { fontSize: 11, fontWeight: '600', color: C.ink4 },
 
   hintBlock: { marginTop: 12, backgroundColor: '#F7F9F6', borderRadius: 12, padding: 12 },
-  hintKind: { fontSize: 9.5, fontWeight: '600', letterSpacing: 1.2, color: '#6B7C66', marginBottom: 6 },
+  hintKind: { fontSize: 9.5, fontWeight: '600', letterSpacing: 1.2, color: C.ink3, marginBottom: 6 },
   hintText: { fontSize: 13, lineHeight: 19, color: '#26331F' },
-  hintNote: { marginTop: 14, fontSize: 11, lineHeight: 16, color: '#9AA995' },
+  hintNote: { marginTop: 14, fontSize: 11, lineHeight: 16, color: C.ink4 },
 })
 
 export default TopicTestScreen

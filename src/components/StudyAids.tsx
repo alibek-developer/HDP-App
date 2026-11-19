@@ -8,7 +8,8 @@ import { triggerHaptic } from '../lib/haptics'
 import { PopIn, Reveal } from './Reveal'
 import Sheet from './Sheet'
 import type { RootStackParamList } from '../navigation/types'
-import { NUM } from '../theme/tokens'
+import { NUM, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import {
   BOOST_CARD, CONSUMABLES, DAILY_BONUS, MISSION_REWARDS, PROBLEM_SETS,
   PRO_TRIAL, SET_COIN_RANGE, TEST_REWARD, UNLOCKABLE_SETS,
@@ -36,15 +37,14 @@ interface Offer {
 /** 100 tadan arzon narsa — bir bosishda; yuqorisi — chek varaqasida */
 const DIRECT_LIMIT = 100
 
-const INK = '#0E1A12'
-const HAIR = '#E7ECE4'
-const GRAY = '#6B7C66'
 const AMBER_INK = '#854D0E'
 const GREEN_TILE = '#00A855'
 
 const num = (n: number) => n.toLocaleString('en-US')
 
 const StudyAids = () => {
+  const C = useColors()
+  const st = makeSt(C)
   const navigation = useNavigation<Nav>()
   const [open, setOpen] = useState(false)
   const [buying, setBuying] = useState<Offer | null>(null)
@@ -190,8 +190,8 @@ const StudyAids = () => {
       : isAmber
         ? AMBER_INK
         : o.kind === 'trial'
-          ? INK
-          : '#86957F'
+          ? C.ink
+          : C.ink3
 
     return (
       <View key={o.id} style={[st.row, last ? undefined : st.rowLine]}>
@@ -225,7 +225,7 @@ const StudyAids = () => {
             accessibilityLabel="Maqsad qilish"
             style={({ pressed }) => [st.goalBtn, pressed && { opacity: 0.6 }]}
           >
-            <Ionicons name="flag" size={15} color={goalId === o.id ? GREEN_TILE : '#9AA995'} />
+            <Ionicons name="flag" size={15} color={goalId === o.id ? GREEN_TILE : C.ink4} />
           </Pressable>
         )}
 
@@ -242,11 +242,11 @@ const StudyAids = () => {
               {o.kind === 'set' && <Ionicons name="chevron-forward" size={13} color={GREEN_TILE} />}
             </View>
           ) : full ? (
-            <Text style={[st.pillText, { color: '#9AA995' }]}>to&apos;la</Text>
+            <Text style={[st.pillText, { color: C.ink4 }]}>to&apos;la</Text>
           ) : poor ? (
             <View style={st.pillRow}>
-              <Ionicons name="trending-up" size={12} color="#86957F" />
-              <Text style={[st.pillText, { color: '#86957F' }]}>+{num(o.cost - coin)}</Text>
+              <Ionicons name="trending-up" size={12} color={C.ink3} />
+              <Text style={[st.pillText, { color: C.ink3 }]}>+{num(o.cost - coin)}</Text>
             </View>
           ) : (
             <View style={st.pillRow}>
@@ -287,7 +287,7 @@ const StudyAids = () => {
           <Ionicons
             name={open ? 'chevron-up' : 'chevron-down'}
             size={17}
-            color={GRAY}
+            color={C.ink3}
             style={st.headChevron}
           />
         </Pressable>
@@ -328,7 +328,7 @@ const StudyAids = () => {
                 <Text style={st.headTitle}>Pro rejalarini so&apos;mda ko&apos;rish</Text>
                 <Text style={st.headSub}>oylik / 3 oylik / yillik to&apos;lov</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#9AA995" />
+              <Ionicons name="chevron-forward" size={16} color={C.ink4} />
             </Pressable>
           </Reveal>
         )}
@@ -403,14 +403,14 @@ const StudyAids = () => {
   )
 }
 
-const st = StyleSheet.create({
-  card: { backgroundColor: '#FFFFFF' },
+const makeSt = (C: ThemeColors) => StyleSheet.create({
+  card: { backgroundColor: C.surface },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 2 },
   headIcon: { width: 26, alignItems: 'center', justifyContent: 'center' },
   headMid: { flex: 1, minWidth: 0 },
-  headTitle: { fontSize: 14, fontWeight: '600', color: INK },
-  headSub: { marginTop: 3, fontSize: 12, color: GRAY, lineHeight: 16 },
-  headCount: { fontSize: 11.5, fontWeight: '600', color: GRAY },
+  headTitle: { fontSize: 14, fontWeight: '600', color: C.ink },
+  headSub: { marginTop: 3, fontSize: 12, color: C.ink3, lineHeight: 16 },
+  headCount: { fontSize: 11.5, fontWeight: '600', color: C.ink3 },
   headChevron: { marginLeft: 4 },
   bodyWrap: { marginTop: 4 },
 
@@ -419,8 +419,8 @@ const st = StyleSheet.create({
     paddingTop: 20, paddingBottom: 6,
   },
   groupHeadRow: { marginTop: 0 },
-  groupLabel: { fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: GRAY },
-  groupHint: { fontSize: 10.5, fontWeight: '500', color: GRAY },
+  groupLabel: { fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: C.ink3 },
+  groupHint: { fontSize: 10.5, fontWeight: '500', color: C.ink3 },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
   rowLine: { borderBottomWidth: 1, borderBottomColor: '#F1F4EF' },
@@ -429,9 +429,9 @@ const st = StyleSheet.create({
   },
   mid: { flex: 1, minWidth: 0 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { fontSize: 14, fontWeight: '600', color: INK, flexShrink: 1 },
-  hold: { fontSize: 11, fontWeight: '500', color: GRAY },
-  desc: { marginTop: 3, fontSize: 12, lineHeight: 17, color: GRAY },
+  title: { fontSize: 14, fontWeight: '600', color: C.ink, flexShrink: 1 },
+  hold: { fontSize: 11, fontWeight: '500', color: C.ink3 },
+  desc: { marginTop: 3, fontSize: 12, lineHeight: 17, color: C.ink3 },
   goalBtn: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   pill: {
     minHeight: 30, alignItems: 'flex-end', justifyContent: 'center',
@@ -448,7 +448,7 @@ const st = StyleSheet.create({
   earnCta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   earnCtaText: { fontSize: 11.5, fontWeight: '600', color: GREEN_TILE },
   earnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 11 },
-  earnLabel: { fontSize: 12, color: GRAY },
+  earnLabel: { fontSize: 12, color: C.ink3 },
   earnValue: { fontSize: 12, fontWeight: '600', color: AMBER_INK },
 
   proRow: {
@@ -464,34 +464,34 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 8,
   },
-  basketTitle: { fontSize: 13.5, fontWeight: '600', color: INK },
+  basketTitle: { fontSize: 13.5, fontWeight: '600', color: C.ink },
   basketSum: { fontSize: 12, fontWeight: '600', color: AMBER_INK },
-  basketEmpty: { paddingVertical: 8, fontSize: 12, color: GRAY },
+  basketEmpty: { paddingVertical: 8, fontSize: 12, color: C.ink3 },
   basketRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
-  basketName: { flex: 1, fontSize: 13, color: INK },
+  basketName: { flex: 1, fontSize: 13, color: C.ink },
   basketCost: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
 
-  receiptTitle: { fontSize: 19, fontWeight: '600', color: INK },
-  receiptDesc: { marginTop: 4, fontSize: 12.5, color: GRAY, lineHeight: 18 },
+  receiptTitle: { fontSize: 19, fontWeight: '600', color: C.ink },
+  receiptDesc: { marginTop: 4, fontSize: 12.5, color: C.ink3, lineHeight: 18 },
   receiptBox: { marginTop: 16, backgroundColor: '#F7F9F6', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
   receiptLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  receiptLineTop: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: HAIR },
-  receiptLabel: { fontSize: 12, fontWeight: '600', color: GRAY },
+  receiptLineTop: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.line },
+  receiptLabel: { fontSize: 12, fontWeight: '600', color: C.ink3 },
   receiptPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   receiptPrice: { fontSize: 15, fontWeight: '600', color: AMBER_INK },
-  receiptLeft: { fontSize: 13, fontWeight: '600', color: INK },
+  receiptLeft: { fontSize: 13, fontWeight: '600', color: C.ink },
   receiptActions: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   cancelBtn: {
     flex: 1, height: 50, borderRadius: 100, backgroundColor: '#F1F4F0',
     alignItems: 'center', justifyContent: 'center',
   },
-  cancelText: { fontSize: 13, fontWeight: '600', color: GRAY },
+  cancelText: { fontSize: 13, fontWeight: '600', color: C.ink3 },
   buyBtn: {
-    flex: 1, height: 50, borderRadius: 100, backgroundColor: INK,
+    flex: 1, height: 50, borderRadius: 100, backgroundColor: C.ink,
     alignItems: 'center', justifyContent: 'center',
   },
-  buyText: { fontSize: 13, fontWeight: '600', color: '#CDE9AE' },
-  receiptNote: { marginTop: 12, textAlign: 'center', fontSize: 11, color: '#9AA995' },
+  buyText: { fontSize: 13, fontWeight: '600', color: C.mint },
+  receiptNote: { marginTop: 12, textAlign: 'center', fontSize: 11, color: C.ink4 },
 })
 
 export default StudyAids

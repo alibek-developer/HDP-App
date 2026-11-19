@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, StyleSheet, View } from 'react-native'
 import type { LayoutChangeEvent } from 'react-native'
 import Svg, { Circle, Defs, LinearGradient, Line, Path, RadialGradient, Stop } from 'react-native-svg'
+import type { ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 const AnimatedPath = Animated.createAnimatedComponent(Path)
 
@@ -15,6 +17,8 @@ const DASH = 360
  * Ramka va soya yo'q, shuning uchun ekranning o'zida "chizilgan"dek turadi.
  */
 const OnboardingHero = () => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const draw = useRef(new Animated.Value(0)).current
   const breathe = useRef(new Animated.Value(0)).current
   const spin = useRef(new Animated.Value(0)).current
@@ -91,7 +95,7 @@ const OnboardingHero = () => {
             <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
           </RadialGradient>
           <LinearGradient id="trail" x1="0" y1="1" x2="1" y2="0">
-            <Stop offset="0" stopColor="#0B6E4F" />
+            <Stop offset="0" stopColor={C.brand} />
             <Stop offset="0.55" stopColor="#5FAF22" />
             <Stop offset="1" stopColor="#9BE04B" />
           </LinearGradient>
@@ -120,7 +124,7 @@ const OnboardingHero = () => {
         <Circle cx="126" cy="191" r="3.4" fill="#FFFFFF" stroke="#5FAF22" strokeWidth="2" />
         <Circle cx="197" cy="154" r="3.4" fill="#FFFFFF" stroke="#5FAF22" strokeWidth="2" />
 
-        <Circle cx="24" cy="252" r="4.6" fill="#FFFFFF" stroke="#0B6E4F" strokeWidth="2.2" />
+        <Circle cx="24" cy="252" r="4.6" fill="#FFFFFF" stroke={C.brand} strokeWidth="2.2" />
         <Circle cx="292" cy="84" r="7.6" fill="#7ED321" stroke="#FFFFFF" strokeWidth="2.6" />
         <Circle cx="289" cy="81" r="2" fill="#F2FBE6" opacity="0.9" />
       </Svg>
@@ -134,7 +138,7 @@ const OnboardingHero = () => {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   holder: { width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center' },
   box: { aspectRatio: 1.2 },
   glow: {
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     left: '54%',
     top: '20%',
-    backgroundColor: '#CDE9AE',
+    backgroundColor: C.mint,
   },
   dotB: {
     position: 'absolute',
@@ -175,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     left: '26%',
     top: '58%',
-    backgroundColor: '#DDF3DC',
+    backgroundColor: C.leafSoft,
   },
 })
 

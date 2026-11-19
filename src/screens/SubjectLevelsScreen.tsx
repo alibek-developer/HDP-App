@@ -14,8 +14,10 @@ import {
 } from '../data/problems'
 import type { LevelKey } from '../data/problems'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
-import { CARD, GRAD_LIME, LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
+import { ABS_FILL, NUM } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
+import { CARD, GRAD_LIME, LIME_BTN, LIME_TEXT } from '../theme/solver'
 
 /**
  * Fan ichidagi uch daraja. Bu ekran maqsadni ochadi: har darajada 3 yulduz,
@@ -27,10 +29,12 @@ type Nav = NativeStackNavigationProp<RootStackParamList>
 const TONE: Record<LevelKey, { rail: string; tile: string; ink: string; icon: keyof typeof Ionicons.glyphMap }> = {
   oson: { rail: '#7ED321', tile: '#EDF7DE', ink: '#3F7A18', icon: 'leaf' },
   "o'rta": { rail: '#E8A33D', tile: '#FCF1DC', ink: '#8A6520', icon: 'trending-up' },
-  qiyin: { rail: '#D9534F', tile: '#FBE9E7', ink: '#A33B31', icon: 'flame' },
+  qiyin: { rail: '#D9483B', tile: '#FBE9E7', ink: '#A33B31', icon: 'flame' },
 }
 
 const SubjectLevelsScreen = () => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const exit = useExitToTab('problems')
@@ -78,7 +82,7 @@ const SubjectLevelsScreen = () => {
             hitSlop={10}
             style={({ pressed }) => [styles.backBtn, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color={C.ink2} />
           </Pressable>
 
           <View style={styles.headerTitle}>
@@ -95,7 +99,7 @@ const SubjectLevelsScreen = () => {
         {/* ── Fan holati ── */}
         <View style={styles.hero}>
           <LinearGradient
-            colors={['#0E1A12', '#143326']}
+            colors={[C.ink, '#143326']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
@@ -176,7 +180,7 @@ const SubjectLevelsScreen = () => {
                           key={i}
                           name={i < earned ? 'star' : 'star-outline'}
                           size={15}
-                          color={i < earned ? '#E8A33D' : '#CFD9C6'}
+                          color={i < earned ? C.coin : C.line}
                         />
                       ))}
                     </View>
@@ -215,7 +219,7 @@ const SubjectLevelsScreen = () => {
         </View>
 
         <View style={styles.legend}>
-          <Ionicons name="information-circle-outline" size={14} color="#6B7C66" />
+          <Ionicons name="information-circle-outline" size={14} color={C.ink3} />
           <Text style={styles.legendText}>
             Yulduz: <Text style={styles.legendStrong}>6</Text> ta to‘g‘ri — 1★,{' '}
             <Text style={styles.legendStrong}>8</Text> ta — 2★,{' '}
@@ -227,8 +231,8 @@ const SubjectLevelsScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: SOLVER_BODY },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
   content: { paddingBottom: 112, paddingHorizontal: 16 },
   center: { alignItems: 'center', justifyContent: 'center' },
 
@@ -248,12 +252,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: '#E1E7DA',
+    borderColor: C.line,
   },
   headerTitle: { flex: 1, minWidth: 0, alignItems: 'center', paddingHorizontal: 8 },
-  headerKicker: { fontSize: 12, fontWeight: '500', color: '#6B7C66' },
+  headerKicker: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   headerName: { marginTop: 2, fontSize: 15, fontWeight: '600', color: C.ink, lineHeight: 19 },
   wallet: {
     width: 46,
@@ -261,9 +265,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: '#FCF1DC',
+    backgroundColor: C.coinSoft,
     borderWidth: 1,
-    borderColor: '#E8A33D',
+    borderColor: C.coin,
     gap: 1,
   },
   walletText: { fontSize: 10.5, fontWeight: '600', color: '#B87A22' },
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(205,233,174,0.16)',
     overflow: 'hidden',
   },
-  heroFill: { height: '100%', borderRadius: 3, backgroundColor: '#9BE04B' },
+  heroFill: { height: '100%', borderRadius: 3, backgroundColor: C.limeBright },
 
   week: { marginTop: 12, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14 },
   weekTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -323,8 +327,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6E7CB',
     overflow: 'hidden',
   },
-  weekFill: { height: '100%', borderRadius: 3, backgroundColor: '#E8A33D' },
-  weekHint: { marginTop: 9, fontSize: 11.5, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
+  weekFill: { height: '100%', borderRadius: 3, backgroundColor: C.coin },
+  weekHint: { marginTop: 9, fontSize: 11.5, lineHeight: 17, fontWeight: '500', color: C.ink3 },
 
   levelList: { marginTop: 16, gap: 12 },
   levelCard: { borderRadius: 16, flexDirection: 'row', overflow: 'hidden' },
@@ -334,16 +338,16 @@ const styles = StyleSheet.create({
   levelTile: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   levelText: { flex: 1, minWidth: 0 },
   levelName: { fontSize: 14, lineHeight: 18, fontWeight: '600', color: C.ink },
-  levelBrief: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: '#6B7C66' },
+  levelBrief: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: C.ink3 },
   levelStars: { flexDirection: 'row', alignItems: 'center', gap: 2 },
 
   levelProgress: { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  levelTrack: { flex: 1, height: 5, borderRadius: 3, backgroundColor: '#EDF1E7', overflow: 'hidden' },
+  levelTrack: { flex: 1, height: 5, borderRadius: 3, backgroundColor: C.line, overflow: 'hidden' },
   levelFill: { height: '100%', borderRadius: 3 },
-  levelCount: { fontSize: 11.5, fontWeight: '600', color: '#6B7C66' },
+  levelCount: { fontSize: 11.5, fontWeight: '600', color: C.ink3 },
 
   levelFoot: { marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  levelGoal: { flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: '#9AA995' },
+  levelGoal: { flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: C.ink4 },
   levelCta: {
     height: 38,
     paddingHorizontal: 13,
@@ -363,7 +367,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 4,
   },
-  legendText: { flex: 1, fontSize: 11.5, lineHeight: 17, fontWeight: '500', color: '#6B7C66' },
+  legendText: { flex: 1, fontSize: 11.5, lineHeight: 17, fontWeight: '500', color: C.ink3 },
   legendStrong: { fontWeight: '600', color: C.ink2 },
 })
 

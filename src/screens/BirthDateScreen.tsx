@@ -18,7 +18,8 @@ import { LimeButton, StepHeader } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
 import { useApp } from '../store/useStore'
 import type { RootStackParamList } from '../navigation/types'
-import { C, NUM } from '../theme/tokens'
+import { NUM, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 const ROW_H = 44
 const ROWS = 5
@@ -58,6 +59,8 @@ type WheelColumnProps = {
  * xiralashadi — chegara va chiziqlarsiz, faqat yumshoq fon lentasi bilan.
  */
 const WheelColumn = ({ items, index, onIndexChange, flex, label }: WheelColumnProps) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const ref = useRef<ScrollViewInstance>(null)
   const initial = useRef(index * ROW_H).current
   const scrollY = useRef(new Animated.Value(initial)).current
@@ -154,6 +157,8 @@ const WheelColumn = ({ items, index, onIndexChange, flex, label }: WheelColumnPr
 
 /** 2-savol — tug'ilgan sana. Uch ustunli baraban: kun, oy, yil. */
 const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStackParamList, 'BirthDate'>) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const insets = useSafeAreaInsets()
   const { goal } = route.params
   const saveStudyProfile = useApp(s => s.saveStudyProfile)
@@ -191,7 +196,7 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
     <Fade>
       <View style={styles.root}>
         <LinearGradient
-          colors={['#F5FBEC', '#FFFFFF']}
+          colors={[C.leafTint, C.surface]}
           locations={[0, 0.38]}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
@@ -252,12 +257,12 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
               />
             </View>
             <LinearGradient
-              colors={['#FFFFFF', 'rgba(255,255,255,0)']}
+              colors={[C.surface, 'rgba(255,255,255,0)']}
               style={styles.fadeTop}
               pointerEvents="none"
             />
             <LinearGradient
-              colors={['rgba(255,255,255,0)', '#FFFFFF']}
+              colors={['rgba(255,255,255,0)', C.surface]}
               style={styles.fadeBottom}
               pointerEvents="none"
             />
@@ -278,8 +283,8 @@ const BirthDateScreen = ({ navigation, route }: NativeStackScreenProps<RootStack
   )
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.surface },
   page: { flex: 1, paddingHorizontal: 20 },
 
   topBar: {
@@ -295,13 +300,13 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F4F9EE',
+    backgroundColor: C.surface2,
   },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   topBarSide: { width: 44, height: 44 },
 
   title: { marginTop: 18, fontSize: 29, lineHeight: 35, letterSpacing: -0.7 },
-  titleDim: { color: '#77947D', fontWeight: '400' },
+  titleDim: { color: C.ink3, fontWeight: '400' },
   titleStrong: { color: C.ink, fontWeight: '700' },
   sub: { marginTop: 7, fontSize: 13.5, lineHeight: 19, fontWeight: '500', color: C.ink3 },
 
@@ -321,7 +326,7 @@ const styles = StyleSheet.create({
     top: (WHEEL_H - BAND_H) / 2,
     height: BAND_H,
     borderRadius: 18,
-    backgroundColor: '#F3F9EA',
+    backgroundColor: C.surface2,
   },
   columns: { flex: 1, flexDirection: 'row', alignItems: 'stretch' },
   column: { height: WHEEL_H },

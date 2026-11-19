@@ -9,7 +9,8 @@ import { Fade, Reveal } from '../components/Reveal'
 import { LimeButton, StepHeader } from '../components/ui'
 import { triggerHaptic } from '../lib/haptics'
 import type { RootStackParamList } from '../navigation/types'
-import { C } from '../theme/tokens'
+import { type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 const GOALS = [
   { id: 'dtm', label: 'DTM 100 ball', desc: 'Imtihonga tayyorlanish', icon: 'trophy-outline' as const },
@@ -20,6 +21,8 @@ const GOALS = [
 
 /** 1-savol — maqsad. To'rtta yo'nalish ikki qatorda; tanlovsiz «Keyingi» ochilmaydi. */
 const GoalScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, 'Goal'>) => {
+  const C = useColors()
+  const styles = makeStyles(C)
   const insets = useSafeAreaInsets()
   const [picked, setPicked] = useState<string | null>(null)
 
@@ -49,7 +52,7 @@ const GoalScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, '
         ]}
       >
         <LinearGradient
-          colors={['#F5FBEC', '#FFFFFF']}
+          colors={[C.leafTint, C.surface]}
           locations={[0, 0.38]}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
@@ -128,8 +131,8 @@ const GoalScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, '
   )
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 20 },
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.surface, paddingHorizontal: 20 },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -143,7 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: 'rgba(28,50,20,0.08)',
   },
@@ -151,7 +154,7 @@ const styles = StyleSheet.create({
   topBarSide: { width: 44, height: 44 },
 
   title: { marginTop: 18, fontSize: 29, lineHeight: 35, letterSpacing: -0.7 },
-  titleDim: { color: '#77947D', fontWeight: '400' },
+  titleDim: { color: C.ink3, fontWeight: '400' },
   titleStrong: { color: C.ink, fontWeight: '700' },
 
   gridWrap: { marginTop: 22 },
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#CFDCC8',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
   },
   radioOn: { borderWidth: 0, backgroundColor: C.limeDeep },
   tileTitle: { marginTop: 14, fontSize: 14.5, lineHeight: 19, fontWeight: '600', color: C.ink },

@@ -9,7 +9,8 @@ import { useApp } from '../store/useStore'
 import { SolveTopBar } from '../components/SolveKit'
 import { GameLobby } from '../components/GameLobby'
 import { FightersMark } from '../components/GameMarks'
-import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { ABS_FILL, MATH_FONT, NUM, shadow, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import { GRAD_LIME } from '../theme/solver'
 import {
   FIGHTER_LEVELS, applyFighterOp, buildFighterHand, fighterOutcome,
@@ -24,15 +25,11 @@ import {
 
 type Phase = 'lobby' | 'play' | 'result'
 
-const INK = '#0E1A12'
-const GRAY = '#6B7C66'
-const FAINT = '#9AA995'
-const LINE = '#E1E7DA'
-const AMBER = '#E8A33D'
 const AMBER_DEEP = '#B87A22'
-const AMBER_SOFT = '#FCF1DC'
 
 const FightersScreen = () => {
+  const C = useColors()
+  const s = makeS(C)
   const insets = useSafeAreaInsets()
   const exit = useExit('Main')
   const creditGame = useApp(s => s.creditGame)
@@ -222,7 +219,7 @@ const FightersScreen = () => {
       <View style={s.screen}>
         <View style={[s.lobbyHead, { paddingTop: insets.top + 10 }]}>
           <Pressable onPress={exit} accessibilityLabel="Chiqish" hitSlop={10} style={s.back}>
-            <Ionicons name="close" size={18} color="#33452F" />
+            <Ionicons name="close" size={18} color={C.ink2} />
           </Pressable>
           <Text style={s.lobbyKicker}>Natija</Text>
           <View style={{ width: 36 }} />
@@ -235,7 +232,7 @@ const FightersScreen = () => {
                 key={i}
                 name={i < outcome.stars ? 'star' : 'star-outline'}
                 size={i === 1 ? 46 : 36}
-                color={i < outcome.stars ? AMBER : '#C9D2C1'}
+                color={i < outcome.stars ? C.coin : C.ink4}
                 style={i === 1 && { marginTop: -12 }}
               />
             ))}
@@ -258,8 +255,8 @@ const FightersScreen = () => {
                 <Ionicons name="flash" size={14} color={C.xp} />
                 <Text style={[s.resultPillText, NUM]}>+{outcome.xp}</Text>
               </View>
-              <View style={[s.resultPill, { backgroundColor: '#F1F5EC' }]}>
-                <Ionicons name="star" size={13} color={AMBER} />
+              <View style={[s.resultPill, { backgroundColor: C.surface2 }]}>
+                <Ionicons name="star" size={13} color={C.coin} />
                 <Text style={[s.resultPillText, NUM]}>rekord {Math.max(outcome.stars, best)}/3</Text>
               </View>
             </View>
@@ -313,7 +310,7 @@ const FightersScreen = () => {
       <SolveTopBar style={{ paddingTop: insets.top + 8 }}>
         <View style={s.headRow}>
           <Pressable onPress={exit} accessibilityLabel="Chiqish" hitSlop={10} style={s.back}>
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
+            <Ionicons name="chevron-back" size={18} color={C.ink2} />
           </Pressable>
           <View style={s.headMid}>
             <Text style={s.kicker} numberOfLines={1}>Raqam jangchilari · {level.title}</Text>
@@ -365,7 +362,7 @@ const FightersScreen = () => {
                   key={i}
                   name={i < playerHp ? 'heart' : 'heart-outline'}
                   size={11}
-                  color={i < playerHp ? '#8CE86A' : 'rgba(255,255,255,0.28)'}
+                  color={i < playerHp ? C.leafBright : 'rgba(255,255,255,0.28)'}
                 />
               ))}
             </View>
@@ -445,7 +442,7 @@ const FightersScreen = () => {
                 size={14}
                 color={message.ok ? '#3F7D1C' : C.danger}
               />
-              <Text style={[s.msgText, { color: message.ok ? '#2F6B14' : '#B23A2F' }]} numberOfLines={1}>
+              <Text style={[s.msgText, { color: message.ok ? C.limeDeep : '#B23A2F' }]} numberOfLines={1}>
                 {message.text}
               </Text>
             </View>
@@ -474,8 +471,8 @@ const FightersScreen = () => {
                 pressed && ready && { transform: [{ translateY: 2 }] },
               ]}
             >
-              <Text style={[s.ctaText, !ready && { color: '#5F7357' }]}>Hujum</Text>
-              <Ionicons name="flash" size={16} color={ready ? C.inkOnLime : '#5F7357'} />
+              <Text style={[s.ctaText, !ready && { color: C.ink3 }]}>Hujum</Text>
+              <Ionicons name="flash" size={16} color={ready ? C.inkOnLime : C.ink3} />
             </LinearGradient>
           )}
         </Pressable>
@@ -484,8 +481,8 @@ const FightersScreen = () => {
   )
 }
 
-const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F7EE' },
+const makeS = (C: ThemeColors) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.solverBody },
 
   lobbyHead: {
     flexDirection: 'row',
@@ -494,8 +491,8 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E6EBE0',
-    backgroundColor: '#F3F7EE',
+    borderBottomColor: C.line,
+    backgroundColor: C.solverBody,
   },
   back: {
     width: 36,
@@ -503,13 +500,13 @@ const s = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  lobbyKicker: { fontSize: 13, fontWeight: '600', color: INK, letterSpacing: 0.2 },
+  lobbyKicker: { fontSize: 13, fontWeight: '600', color: C.ink, letterSpacing: 0.2 },
 
-  lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: '#F3F7EE' },
+  lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: C.solverBody },
   ctaWrap: { borderRadius: 16 },
   cta: {
     height: 56,
@@ -518,10 +515,10 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    ...shadow('#5FAF22', 8, 5, 0.3),
+    ...shadow(C.limeDeep, 8, 5, 0.3),
   },
   ctaOff: {
-    backgroundColor: '#DCE3D5',
+    backgroundColor: C.line,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -531,16 +528,16 @@ const s = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  ghostText: { fontSize: 14, fontWeight: '600', color: '#33452F' },
+  ghostText: { fontSize: 14, fontWeight: '600', color: C.ink2 },
 
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 },
   headMid: { flex: 1 },
-  kicker: { fontSize: 13, fontWeight: '600', color: INK },
-  step: { marginTop: 1, fontSize: 11, color: GRAY },
+  kicker: { fontSize: 13, fontWeight: '600', color: C.ink },
+  step: { marginTop: 1, fontSize: 11, color: C.ink3 },
   lives: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -548,7 +545,7 @@ const s = StyleSheet.create({
     height: 26,
     paddingHorizontal: 9,
     borderRadius: 9,
-    backgroundColor: AMBER_SOFT,
+    backgroundColor: C.coinSoft,
     borderWidth: 1,
     borderColor: 'rgba(232,163,61,0.28)',
   },
@@ -597,7 +594,7 @@ const s = StyleSheet.create({
   tileTag: { fontSize: 9.5, letterSpacing: 0.8, fontWeight: '600', color: 'rgba(255,255,255,0.55)' },
   segRow: { flexDirection: 'row', gap: 3, width: '72%' },
   seg: { flex: 1, height: 5, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.13)' },
-  segOn: { backgroundColor: '#E2725B' },
+  segOn: { backgroundColor: C.danger },
   heartRow: { flexDirection: 'row', gap: 3 },
   vs: { alignSelf: 'center', fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.35)' },
 
@@ -608,10 +605,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: '#F0D6AC',
-    ...shadow(AMBER, 9, 3, 0.12),
+    borderColor: C.line,
+    ...shadow(C.coin, 9, 3, 0.12),
   },
   shieldLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   shieldIconWrap: {
@@ -620,17 +617,17 @@ const s = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: AMBER_SOFT,
+    backgroundColor: C.coinSoft,
   },
   pulseRing: {
     ...ABS_FILL,
     borderRadius: 17,
     borderWidth: 1.5,
-    borderColor: AMBER,
+    borderColor: C.coin,
   },
   shieldLabel: { fontSize: 10, letterSpacing: 0.9, fontWeight: '600', color: AMBER_DEEP },
-  shieldHint: { marginTop: 1, fontSize: 11, color: GRAY },
-  shieldNum: { fontFamily: MATH_FONT, fontSize: 30, lineHeight: 34, color: INK, paddingHorizontal: 6 },
+  shieldHint: { marginTop: 1, fontSize: 11, color: C.ink3 },
+  shieldNum: { fontFamily: MATH_FONT, fontSize: 30, lineHeight: 34, color: C.ink, paddingHorizontal: 6 },
 
   expr: {
     flexDirection: 'row',
@@ -639,11 +636,11 @@ const s = StyleSheet.create({
     gap: 8,
     paddingVertical: 7,
   },
-  exprNum: { fontFamily: MATH_FONT, fontSize: 20, lineHeight: 26, color: INK, minWidth: 24, textAlign: 'center' },
+  exprNum: { fontFamily: MATH_FONT, fontSize: 20, lineHeight: 26, color: C.ink, minWidth: 24, textAlign: 'center' },
   exprOp: { fontFamily: MATH_FONT, fontSize: 18, lineHeight: 24, color: AMBER_DEEP },
-  exprEq: { fontFamily: MATH_FONT, fontSize: 17, lineHeight: 24, color: FAINT },
-  exprQ: { fontFamily: MATH_FONT, fontSize: 22, lineHeight: 28, color: AMBER },
-  exprDim: { color: '#C9D2C1' },
+  exprEq: { fontFamily: MATH_FONT, fontSize: 17, lineHeight: 24, color: C.ink4 },
+  exprQ: { fontFamily: MATH_FONT, fontSize: 22, lineHeight: 28, color: C.coin },
+  exprDim: { color: C.ink4 },
 
   chipRow: { flexDirection: 'row', gap: 8 },
   chip: {
@@ -652,12 +649,12 @@ const s = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1.5,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  chipOn: { borderColor: AMBER, backgroundColor: '#FDF6E9', ...shadow(AMBER, 6, 3, 0.18) },
-  chipNum: { fontSize: 18, fontWeight: '600', color: INK },
+  chipOn: { borderColor: C.coin, backgroundColor: '#FDF6E9', ...shadow(C.coin, 6, 3, 0.18) },
+  chipNum: { fontSize: 18, fontWeight: '600', color: C.ink },
   chipNumOn: { color: AMBER_DEEP },
   chipBadge: {
     position: 'absolute',
@@ -668,7 +665,7 @@ const s = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: AMBER,
+    backgroundColor: C.coin,
   },
   chipBadgeText: { fontSize: 9, fontWeight: '700', color: '#3A2A0E' },
 
@@ -680,16 +677,16 @@ const s = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1.5,
-    borderColor: LINE,
+    borderColor: C.line,
   },
-  opPillOn: { borderColor: AMBER, backgroundColor: AMBER },
-  opText: { fontFamily: MATH_FONT, fontSize: 16, lineHeight: 20, color: GRAY },
+  opPillOn: { borderColor: C.coin, backgroundColor: C.coin },
+  opText: { fontFamily: MATH_FONT, fontSize: 16, lineHeight: 20, color: C.ink3 },
   opTextOn: { color: '#3A2A0E' },
 
   msgWrap: { marginTop: 'auto', alignItems: 'center', minHeight: 30, justifyContent: 'center' },
-  msgHint: { fontSize: 12, color: GRAY, textAlign: 'center' },
+  msgHint: { fontSize: 12, color: C.ink3, textAlign: 'center' },
   msgPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -698,27 +695,27 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 9999,
-    backgroundColor: '#EAF7DC',
+    backgroundColor: C.surface2,
     borderWidth: 1,
-    borderColor: '#CBE8AC',
+    borderColor: C.line,
   },
   msgPillBad: { backgroundColor: '#FBEAE8', borderColor: '#F0C6C1' },
   msgText: { flexShrink: 1, fontSize: 12.5, fontWeight: '600' },
 
-  playFoot: { paddingHorizontal: 16, paddingTop: 8, backgroundColor: '#F3F7EE' },
+  playFoot: { paddingHorizontal: 16, paddingTop: 8, backgroundColor: C.solverBody },
 
   resultBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 56 },
-  resultTitle: { marginTop: 6, fontSize: 21, fontWeight: '600', color: INK },
-  resultSub: { marginTop: 5, fontSize: 12.5, color: GRAY },
+  resultTitle: { marginTop: 6, fontSize: 21, fontWeight: '600', color: C.ink },
+  resultSub: { marginTop: 5, fontSize: 12.5, color: C.ink3 },
   resultSheet: {
     marginTop: 20,
     alignSelf: 'stretch',
     padding: 14,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: LINE,
+    borderColor: C.line,
   },
   resultRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
   resultPill: {
@@ -729,8 +726,8 @@ const s = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 9999,
   },
-  resultPillText: { fontSize: 12.5, fontWeight: '600', color: INK },
-  resultNote: { marginTop: 10, textAlign: 'center', fontSize: 11.5, lineHeight: 16, color: GRAY },
+  resultPillText: { fontSize: 12.5, fontWeight: '600', color: C.ink },
+  resultNote: { marginTop: 10, textAlign: 'center', fontSize: 11.5, lineHeight: 16, color: C.ink3 },
 })
 
 export default FightersScreen
