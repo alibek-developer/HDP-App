@@ -9,10 +9,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { triggerHaptic } from '../lib/haptics'
 import { useExit } from '../lib/nav'
 import { useApp } from '../store/useStore'
-import { BalanceScale } from '../games/BalanceScale'
+import { BalanceScale, Rider } from '../games/BalanceScale'
 import { SolveTopBar } from '../components/SolveKit'
+import { GameLobby } from '../components/GameLobby'
 import { ScaleMark } from '../components/ScaleMark'
-import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
+import { C, MATH_FONT, NUM, shadow } from '../theme/tokens'
 import { GRAD_LIME } from '../theme/solver'
 import {
   BALANCE_LEVELS, balanceOutcome, pickBalanceRounds, sum,
@@ -28,8 +29,10 @@ type Phase = 'lobby' | 'play' | 'result'
 
 const INK = '#0E1A12'
 const GRAY = '#6B7C66'
-const FAINT = '#9AA995'
 const LINE = '#E1E7DA'
+
+const LIMA_ART = require('../assets/games/muvozanat-lima.png')
+const AMBAR_ART = require('../assets/games/muvozanat-ambar.png')
 
 const BalanceScreen = () => {
   const insets = useSafeAreaInsets()
@@ -52,6 +55,9 @@ const BalanceScreen = () => {
   const [outcome, setOutcome] = useState({ stars: 0, coins: 0, xp: 0, solved: 0 })
   const [drag, setDrag] = useState<{ value: number; x: number; y: number; moved: boolean } | null>(null)
   const [hot, setHot] = useState(false)
+  /** Ketma-ket tenglashtirilgan bosqichlar — tezkorlik hissi uchun */
+  const [combo, setCombo] = useState(0)
+  const comboRef = useRef(0)
 
   const level = useMemo(
     () => BALANCE_LEVELS.find(l => l.id === levelId) ?? BALANCE_LEVELS[0],
@@ -81,6 +87,8 @@ const BalanceScreen = () => {
     triggerHaptic('medium')
     credited.current = false
     solvedRef.current = 0
+    comboRef.current = 0
+    setCombo(0)
     heartsRef.current = lvl.hearts
     setLevelId(lvl.id)
     setRounds(pickBalanceRounds(lvl))
@@ -129,6 +137,8 @@ const BalanceScreen = () => {
       const left = heartsRef.current - 1
       heartsRef.current = left
       setHearts(left)
+      comboRef.current = 0
+      setCombo(0)
       triggerHaptic('error')
       if (left <= 0) {
         locked.current = true
@@ -160,6 +170,8 @@ const BalanceScreen = () => {
     timer.stopAnimation()
     triggerHaptic('success')
     solvedRef.current += 1
+    comboRef.current += 1
+    setCombo(comboRef.current)
     setMessage(`Teng!  x = ${need}`)
     advance.current = setTimeout(nextRound, 850)
   }, [placed]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -201,12 +213,13 @@ const BalanceScreen = () => {
 
   const panRect = () => {
     if (!scaleRect.current) return null
-    const panW = 150
+    /** yangi tarozida chap pana: nur chetidan 13 px, og'irliklar yonidan boshlanadi */
+    const panW = 142
     return {
-      x: scaleRect.current.x + 3,
-      y: scaleRect.current.y + 42,
+      x: scaleRect.current.x + 13,
+      y: scaleRect.current.y + 96,
       w: panW,
-      h: 120,
+      h: 130,
     }
   }
 
@@ -237,84 +250,27 @@ const BalanceScreen = () => {
 
   const chipWidth = winW - 32
   const best = gameStars[`balance:${levelId}`] ?? 0
-  const plays = gamePlays.balance ?? 0
 
   /* ── Lobby ── */
   if (phase === 'lobby') {
     return (
-      <View style={s.screen}>
-        <View style={[s.lobbyHead, { paddingTop: insets.top + 10 }]}>
-          <Pressable onPress={exit} accessibilityLabel="Orqaga" hitSlop={10} style={s.back}>
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
-          </Pressable>
-          <Text style={s.lobbyKicker}>O&apos;yin</Text>
-          <View style={{ width: 36 }} />
-        </View>
-
-        <View style={s.lobbyBody}>
-          <View style={s.hero}>
-            <LinearGradient colors={['#123B24', '#0E1A12']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
-            <View style={s.heroIcon}>
-              <ScaleMark size={24} color="#9BE04B" />
-            </View>
-            <Text style={s.heroTitle}>Muvozanat</Text>
-            <Text style={s.heroSub}>
-              Chap panada noma&apos;lum <Text style={s.heroX}>x</Text> turadi. Og&apos;irliklarni qo&apos;yib,
-              ikki tomonni tenglashtiring — vaqt tugamasin.
-            </Text>
-          </View>
-
-          {BALANCE_LEVELS.map(lvl => {
-            const lvBest = gameStars[`balance:${lvl.id}`] ?? 0
-            const on = lvl.id === levelId
-            return (
-              <Pressable
-                key={lvl.id}
-                onPress={() => { triggerHaptic('selection'); setLevelId(lvl.id) }}
-                style={({ pressed }) => [s.level, on && s.levelOn, pressed && { opacity: 0.9 }]}
-              >
-                <View style={s.levelMain}>
-                  <Text style={s.levelTitle}>{lvl.title}</Text>
-                  <Text style={[s.levelSub, NUM]}>{lvl.sub}</Text>
-                </View>
-                <View style={s.levelStars}>
-                  {[0, 1, 2].map(i => (
-                    <Ionicons
-                      key={i}
-                      name={i < lvBest ? 'star' : 'star-outline'}
-                      size={13}
-                      color={i < lvBest ? '#E8A33D' : '#C9D2C1'}
-                    />
-                  ))}
-                </View>
-                <View style={[s.levelRadio, on && s.levelRadioOn]}>
-                  {on && <View style={s.levelRadioDot} />}
-                </View>
-              </Pressable>
-            )
-          })}
-
-          {plays > 0 && (
-            <Text style={[s.plays, NUM]}>Shu o&apos;yinda {plays} ta urinish · eng yaxshi {best} yulduz</Text>
-          )}
-        </View>
-
-        <View style={[s.lobbyFoot, { paddingBottom: insets.bottom + 14 }]}>
-          <Pressable onPress={() => startLevel(level)} accessibilityRole="button" style={s.ctaWrap}>
-            {({ pressed }) => (
-              <LinearGradient
-                colors={GRAD_LIME}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[s.cta, pressed && { transform: [{ translateY: 2 }] }]}
-              >
-                <Text style={s.ctaText}>Boshlash</Text>
-                <Ionicons name="play" size={16} color={C.inkOnLime} />
-              </LinearGradient>
-            )}
-          </Pressable>
-        </View>
-      </View>
+      <GameLobby
+        title="Muvozanat"
+        blurb="Og'irliklarni qo'yib, tarozini tenglang"
+        art={require('../assets/games/bgw-balance.jpg')}
+        mark={<ScaleMark size={18} color={C.limeDeep} />}
+        accent={C.lime}
+        accentSoft={C.leafSoft}
+        accentInk={C.inkOnLime}
+        levels={BALANCE_LEVELS}
+        selected={levelId}
+        starsFor={id => gameStars[`balance:${id}`] ?? 0}
+        plays={gamePlays.balance ?? 0}
+        insets={insets}
+        onBack={exit}
+        onSelect={setLevelId}
+        onStart={() => startLevel(level)}
+      />
     )
   }
 
@@ -331,6 +287,11 @@ const BalanceScreen = () => {
         </View>
 
         <View style={s.resultBody}>
+          <View style={s.resultArt}>
+            <Rider source={LIMA_ART} cheer={outcome.stars > 0} delay={0} />
+            <Rider source={AMBAR_ART} cheer={outcome.stars > 0} delay={200} />
+          </View>
+
           <View style={s.starsRow}>
             {[0, 1, 2].map(i => (
               <Ionicons
@@ -452,6 +413,11 @@ const BalanceScreen = () => {
               <Ionicons name="checkmark-circle" size={14} color="#3F7D1C" />
               <Text style={[s.tipOn, NUM]}>{message}</Text>
             </View>
+          ) : combo >= 2 ? (
+            <View style={s.comboPill}>
+              <Ionicons name="flame" size={13} color="#B4530A" />
+              <Text style={[s.comboText, NUM]}>Ketma-ket ×{combo}</Text>
+            </View>
           ) : (
             <Text style={s.tip}>
               {placed.length > 0
@@ -561,56 +527,6 @@ const s = StyleSheet.create({
   },
   lobbyKicker: { fontSize: 13, fontWeight: '600', color: INK, letterSpacing: 0.2 },
 
-  lobbyBody: { flex: 1, paddingHorizontal: 16, paddingTop: 14, gap: 10 },
-  hero: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    padding: 16,
-  },
-  heroIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(155,224,75,0.16)',
-    borderWidth: 1,
-    borderColor: 'rgba(155,224,75,0.32)',
-    marginBottom: 10,
-  },
-  heroTitle: { fontSize: 21, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.3 },
-  heroSub: { marginTop: 5, fontSize: 12.5, lineHeight: 18, color: '#C6D9C1' },
-  heroX: { fontFamily: MATH_FONT, color: '#9BE04B' },
-
-  level: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: LINE,
-  },
-  levelOn: { borderColor: C.lime, backgroundColor: '#F8FDEF', ...shadow(C.limeDeep, 8, 3, 0.12) },
-  levelMain: { flex: 1 },
-  levelTitle: { fontSize: 14.5, fontWeight: '600', color: INK },
-  levelSub: { marginTop: 2, fontSize: 11.5, color: GRAY },
-  levelStars: { flexDirection: 'row', gap: 2 },
-  levelRadio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#D3DBCB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  levelRadioOn: { borderColor: C.limeDeep },
-  levelRadioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.limeDeep },
-  plays: { marginTop: 2, textAlign: 'center', fontSize: 11, color: FAINT },
-
   lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: '#F3F7EE' },
   ctaWrap: { borderRadius: 16 },
   cta: {
@@ -671,6 +587,12 @@ const s = StyleSheet.create({
     borderColor: '#CBE8AC',
   },
   tipOn: { fontSize: 12.5, fontWeight: '600', color: '#2F6B14' },
+  comboPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 11, paddingVertical: 5, borderRadius: 11,
+    backgroundColor: C.coinSoft, borderWidth: 1, borderColor: '#F0D3A1',
+  },
+  comboText: { fontSize: 12, fontWeight: '700', color: '#B4530A', letterSpacing: 0.1 },
 
   tray: {
     paddingHorizontal: 16,
@@ -715,6 +637,7 @@ const s = StyleSheet.create({
   ghostText2: { fontSize: 12, fontWeight: '700', color: '#1C3214' },
 
   resultBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  resultArt: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, marginBottom: 2 },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 56 },
   resultTitle: { marginTop: 6, fontSize: 21, fontWeight: '600', color: INK },
   resultSub: { marginTop: 5, fontSize: 12.5, color: GRAY },
