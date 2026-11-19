@@ -31,7 +31,6 @@ yarn-error.*
 *.pem
 
 # local env files
-.env
 .env*.local
 
 # xom video manbalar (~1.4 GB) — build'ga kirmaydi, faqat lokal arxiv
@@ -57,3 +56,4 @@ backend/.dev.vars
 # MCP configurations with secrets
 .mcp.json
 .agents/
+config.bat
