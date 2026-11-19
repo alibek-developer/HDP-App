@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions,
+  Animated, Easing, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions,
 } from 'react-native'
 import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -46,6 +46,8 @@ const AMBER_INK = '#B4530A'
 
 /** Qahramon panel — to'q marjon gradient */
 const PRO_DARK: readonly [string, string, string] = ['#16382A', '#0E241B', '#0A1B14']
+/** Premium juftlik: zumrad fon + oltin metall badge (Duolingo/Spotify uslubi) */
+const PRO_GOLD: readonly [string, string] = ['#FBE6B0', '#E8A33D']
 
 const ALL_LESSONS = TOPICS.flatMap(t => t.lessons)
 
@@ -250,6 +252,35 @@ const ProfileScreen = () => {
 
   const chartW = Math.max(180, width - 88)
 
+  /* ── Pro banner jonlanishi: sekin shimmer + yulduzcha pulsatsiyasi ── */
+  const shimmer = useRef(new Animated.Value(0)).current
+  const twinkle = useRef(new Animated.Value(0)).current
+  useEffect(() => {
+    const sweep = Animated.loop(
+      Animated.sequence([
+        Animated.delay(1200),
+        Animated.timing(shimmer, {
+          toValue: 1, duration: 2400, easing: Easing.inOut(Easing.quad), useNativeDriver: true,
+        }),
+        Animated.timing(shimmer, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ])
+    )
+    const blink = Animated.loop(
+      Animated.sequence([
+        Animated.timing(twinkle, {
+          toValue: 1, duration: 1000, easing: Easing.inOut(Easing.quad), useNativeDriver: true,
+        }),
+        Animated.timing(twinkle, {
+          toValue: 0, duration: 1000, easing: Easing.inOut(Easing.quad), useNativeDriver: true,
+        }),
+      ])
+    )
+    sweep.start()
+    blink.start()
+    return () => { sweep.stop(); blink.stop() }
+  }, [shimmer, twinkle])
+  const shimmerX = shimmer.interpolate({ inputRange: [0, 1], outputRange: [-90, 420] })
+
   const openEdit = () => {
     setDraftName(name)
     setDraftUser(username)
@@ -404,13 +435,15 @@ const ProfileScreen = () => {
           </View>
         </View>
 
-        {/* ── 3. Pro banner — to'q premium ── */}
+        {/* ── 3. Pro banner — zumrad fon, oltin badge, jonli shimmer ── */}
         <Pressable
           onPress={() => {
             triggerHaptic(proActive ? 'light' : 'medium')
             navigation.navigate('Pro')
           }}
-          style={({ pressed }) => [p.proWrap, pressed && { opacity: 0.92 }]}
+          accessibilityRole="button"
+          accessibilityLabel={proActive ? 'HDP Pro obunasini boshqarish' : 'HDP Pro sahifasini ochish'}
+          style={({ pressed }) => [p.proWrap, pressed && { opacity: 0.94, transform: [{ scale: 0.995 }] }]}
         >
           <LinearGradient
             colors={PRO_DARK}
@@ -418,11 +451,41 @@ const ProfileScreen = () => {
             end={{ x: 1, y: 1 }}
             style={p.proBanner}
           >
-            <View style={p.proGlow} />
-            <View style={p.proShine} />
-            <View style={p.proIcon}>
-              <MCI name="crown-outline" size={19} color={C.inkOnLime} />
+            <View pointerEvents="none" style={p.proBloom} />
+            <View pointerEvents="none" style={p.proRing} />
+            <View pointerEvents="none" style={p.proEdge} />
+            <Animated.View
+              pointerEvents="none"
+              style={[p.proSheen, { transform: [{ translateX: shimmerX }, { rotate: '16deg' }] }]}
+            >
+              <LinearGradient
+                colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.13)', 'rgba(255,255,255,0)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={ABS_FILL}
+              />
+            </Animated.View>
+
+            <View style={p.proBadge}>
+              <LinearGradient
+                colors={PRO_GOLD}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[ABS_FILL, { borderRadius: 14 }]}
+              />
+              <MCI name="crown" size={21} color="#3B2A07" />
+              <Animated.View
+                style={[p.proSparkA, { opacity: twinkle.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }]}
+              >
+                <MCI name="star-four-points" size={9} color="#FBE6B0" />
+              </Animated.View>
+              <Animated.View
+                style={[p.proSparkB, { opacity: twinkle.interpolate({ inputRange: [0, 1], outputRange: [1, 0.25] }) }]}
+              >
+                <MCI name="star-four-points" size={7} color="#FBE6B0" />
+              </Animated.View>
             </View>
+
             <View style={p.proMid}>
               <View style={p.proTitleRow}>
                 <Text style={p.proTitle}>HDP Pro</Text>
@@ -438,12 +501,20 @@ const ProfileScreen = () => {
               </View>
               <Text numberOfLines={1} style={p.proSub}>
                 {proActive
-                  ? `${planLabel}${proExpires ? ` · ${fmtUz(proExpires)}` : ''}`
+                  ? `${planLabel}${proDays > 0 ? ` · ${proDays} kun qoldi` : ''}`
                   : "Barcha mashq to'plamlari ochiq"}
               </Text>
             </View>
-            <View style={p.proGo}>
-              <MCI name="chevron-right" size={16} color={C.inkOnLime} />
+
+            <View style={p.proCta}>
+              <LinearGradient
+                colors={LIME_BTN_GRAD}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[ABS_FILL, { borderRadius: 11 }]}
+              />
+              <Text style={p.proCtaText}>{proActive ? 'Boshqarish' : 'Ochish'}</Text>
+              <MCI name="arrow-right" size={12} color={C.inkOnLime} />
             </View>
           </LinearGradient>
         </Pressable>
@@ -836,43 +907,54 @@ const p = StyleSheet.create({
 
   proWrap: { marginTop: 10, borderRadius: 18, ...glow('#0B6E4F') },
   proBanner: {
-    height: 58, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10,
+    height: 74, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 11,
     overflow: 'hidden', borderRadius: 18,
-    borderWidth: 1, borderColor: 'rgba(126,211,33,0.18)',
+    borderWidth: 1, borderColor: 'rgba(232,163,61,0.22)',
   },
-  proGlow: {
-    position: 'absolute', top: -45, right: 30, width: 130, height: 130,
-    borderRadius: 100, backgroundColor: 'rgba(126,211,33,0.22)',
+  proBloom: {
+    position: 'absolute', top: -58, right: -18, width: 150, height: 150,
+    borderRadius: 100, backgroundColor: 'rgba(232,163,61,0.16)',
   },
-  proShine: {
-    position: 'absolute', bottom: -55, left: 60, width: 120, height: 120,
-    borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.05)',
+  proRing: {
+    position: 'absolute', right: -26, bottom: -64, width: 128, height: 128,
+    borderRadius: 100, borderWidth: 1, borderColor: 'rgba(232,163,61,0.18)',
   },
-  proIcon: {
-    width: 34, height: 34, borderRadius: 100, backgroundColor: C.lime,
+  proEdge: {
+    position: 'absolute', top: 0, left: 16, right: 16, height: 1,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  proSheen: { position: 'absolute', top: -40, bottom: -40, left: 0, width: 54 },
+  proBadge: {
+    width: 44, height: 44, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
-    ...shadow('#7ED321', 8, 3, 0.45),
+    ...shadow('#E8A33D', 10, 4, 0.4),
   },
+  proSparkA: { position: 'absolute', top: -5, right: -7 },
+  proSparkB: { position: 'absolute', bottom: -4, left: -6 },
   proMid: { flex: 1, minWidth: 0 },
-  proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  proTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.2 },
+  proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  proTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.25 },
   proPill: {
-    backgroundColor: 'rgba(126,211,33,0.2)', borderRadius: 6,
-    paddingHorizontal: 5, paddingVertical: 2,
+    backgroundColor: 'rgba(232,163,61,0.18)', borderRadius: 7,
+    paddingHorizontal: 6, paddingVertical: 2,
   },
-  proPillText: { fontSize: 8.5, fontWeight: '800', color: C.lime, letterSpacing: 0.6 },
+  proPillText: { fontSize: 8.5, lineHeight: 11, fontWeight: '800', color: '#F3CB84', letterSpacing: 0.7 },
   proLive: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(126,211,33,0.18)', borderRadius: 100,
+    backgroundColor: 'rgba(126,211,33,0.16)', borderRadius: 7,
     paddingHorizontal: 6, paddingVertical: 2,
   },
   proLiveDot: { width: 5, height: 5, borderRadius: 100, backgroundColor: C.lime },
-  proLiveText: { fontSize: 8.5, fontWeight: '700', color: C.lime, letterSpacing: 0.4 },
-  proSub: { marginTop: 3, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: 'rgba(205,233,174,0.78)' },
-  proGo: {
-    width: 28, height: 28, borderRadius: 100, backgroundColor: C.lime,
-    alignItems: 'center', justifyContent: 'center',
-    ...shadow('#7ED321', 6, 2, 0.4),
+  proLiveText: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', color: C.lime, letterSpacing: 0.4 },
+  proSub: { marginTop: 3, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: 'rgba(223,240,208,0.72)' },
+  proCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 3, height: 30, flexShrink: 0,
+    paddingHorizontal: 10, borderRadius: 11, overflow: 'hidden',
+    ...shadow('#7ED321', 6, 2, 0.35),
+  },
+  proCtaText: {
+    fontSize: 10.5, lineHeight: 13, fontWeight: '800',
+    color: C.inkOnLime, letterSpacing: 0.1,
   },
 
   bigRow: { marginTop: 10, flexDirection: 'row', gap: 10 },
