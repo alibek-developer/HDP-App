@@ -267,6 +267,8 @@ interface AppState {
   setTheme: (t: 'light' | 'dark') => void
   /** Hisobdan chiqish — progress saqlanadi, faqat sessiya yopiladi */
   signOut: () => void
+  /** Kunlik streak bonusini qo'lda olish — kunlik bir marta */
+  claimStreakBonus: () => void
 
   /* ── Derived ── */
   canOpenSet: (id: string) => boolean
@@ -848,6 +850,15 @@ export const useApp = create<AppState>()(
           studyGoal: null,
           birthDate: null,
         }),
+
+      /** Kunlik streak bonusi — har kuni bir marta, streak coin beradi */
+      claimStreakBonus: () => {
+        const s = get()
+        const day = todayKey()
+        if (s.streakBonusClaimed === day) return
+        const bonus = Math.min(s.streak, 10) * 5 // max 50 coin (10 streak)
+        set({ coin: s.coin + bonus, streakBonusClaimed: day })
+      },
 
       resetAll: () =>
         set({

@@ -236,6 +236,9 @@ const HomeScreen = () => {
   const photoUrl = useApp(s => s.photoUrl)
   const coin = useApp(s => s.coin)
   const xp = useApp(s => s.xp)
+  const streak = useApp(s => s.streak)
+  const streakBonusClaimed = useApp(s => s.streakBonusClaimed)
+  const claimStreakBonus = useApp(s => s.claimStreakBonus)
   const streakBurst = useApp(s => s.streakBurst)
   const clearStreakBurst = useApp(s => s.clearStreakBurst)
   const enterApp = useApp(s => s.enterApp)
@@ -499,6 +502,24 @@ const HomeScreen = () => {
                   </View>
                 ) : null}
               </View>
+
+              <Pressable
+                onPress={() => {
+                  if (streakBonusClaimed !== todayKey()) {
+                    triggerHaptic('medium')
+                    claimStreakBonus()
+                  }
+                }}
+                style={({ pressed }) => [
+                  styles.statPill,
+                  streakBonusClaimed === todayKey() && styles.statPillClaimed,
+                  pressed && { opacity: 0.7 },
+                ]}
+                accessibilityLabel={`${streak} kunlik zanjir`}
+              >
+                <MCI name="fire" size={14} color={streakBonusClaimed === todayKey() ? '#9AA995' : '#E2652B'} />
+                <Text style={[styles.statText, NUM]}>{streak}</Text>
+              </Pressable>
 
               <ProPill onPress={tap(() => navigation.navigate('Pro'))} />
             </View>
@@ -909,6 +930,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
+  statPillClaimed: { opacity: 0.5 },
   statText: { fontSize: 16, fontWeight: '800', letterSpacing: -0.3, color: C.ink },
 
   /* ── Tanga sochilishi ── */
