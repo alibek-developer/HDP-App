@@ -13,9 +13,10 @@ import { useExitToTopics } from '../lib/nav'
 import { findTopic, shortTitle } from '../data/curriculum'
 import { topicHasPaidLessons } from '../data/paywall'
 import type { RootStackParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
+import { ABS_FILL, NUM } from '../theme/tokens'
+import type { Grad, ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import { CARD, LIME_BTN, SOLVER_BODY } from '../theme/solver'
-import type { Grad } from '../theme/tokens'
 
 /**
  * Mavzu bo'limlari — har bir mavzu uchun bir xil kova.
@@ -41,6 +42,9 @@ const TopicScreen = () => {
   const topicLessons = useApp(s => s.topicLessons)
   const topicTest = useApp(s => s.topicTests[topicNum])
   const canEnterTopicTest = useApp(s => s.canEnterTopicTest)
+
+  const C = useColors()
+  const styles = makeStyles(C)
 
   const lessons = entry?.lessons ?? []
   const meta = entry?.meta
@@ -340,7 +344,7 @@ const TopicScreen = () => {
 
 const railBase: ViewStyle = { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: SOLVER_BODY },
   content: { paddingHorizontal: 16, paddingBottom: 112 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center' },

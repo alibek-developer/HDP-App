@@ -13,7 +13,8 @@ import { navBottomSpace } from '../components/BottomNav'
 import { MidnightClock } from '../components/MidnightClock'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { ABS_FILL, C, MATH_FONT, NUM, R } from '../theme/tokens'
+import { ABS_FILL, MATH_FONT, NUM, R, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import ProblemSubjectCard from '../components/ProblemSubjectCard'
 import { DAILY_BONUS, FORMULA_GROUPS } from '../data/content'
 import {
@@ -63,6 +64,9 @@ const ProblemsScreen = () => {
   const rollDay = useApp(s => s.rollDay)
   const dailyBonusOn = useApp(s => s.dailyBonusOn)
   const { question: daily, status: dailyStatus } = useDailyQuestion()
+
+  const C = useColors()
+  const styles = makeStyles(C)
 
   /** Hafta almashgan bo'lsa eski yulduzlar ko'rinmaydi */
   const weekStars = starWeek === weekStartKey() ? starsThisWeek : 0
@@ -331,7 +335,7 @@ const ProblemsScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: SOLVER_BODY },
   content: { paddingBottom: 120 },
   body: { paddingHorizontal: 16 },

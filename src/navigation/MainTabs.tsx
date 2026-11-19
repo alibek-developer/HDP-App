@@ -10,7 +10,7 @@ import ShopScreen from '../screens/ShopScreen'
 import ProfileScreen from '../screens/ProfileScreen'
 import { ROUTE_TAB, TAB_ROUTE } from './types'
 import type { TabParamList } from './types'
-import { C } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Pastki tab'lar — alohida navigator. Ekranlar navni o'zi chizmaydi;
@@ -43,14 +43,16 @@ const TabBar = ({ state, navigation }: BottomTabBarProps) => {
   )
 }
 
-const MainTabs = () => (
+const MainTabs = () => {
+  const colors = useColors()
+  return (
   <Tab.Navigator
     screenOptions={{
       headerShown: false,
       animation: 'shift',
       /** Fokusdan chiqqan tab render qilmaydi — tab almashinuvi yengillashadi */
       freezeOnBlur: true,
-      sceneStyle: { backgroundColor: C.canvas },
+      sceneStyle: { backgroundColor: colors.canvas },
     }}
     tabBar={props => <TabBar {...props} />}
   >
@@ -60,6 +62,7 @@ const MainTabs = () => (
     <Tab.Screen name="Shop" component={ShopScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>
-)
+  )
+}
 
 export default MainTabs

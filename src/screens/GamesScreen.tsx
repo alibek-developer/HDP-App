@@ -22,6 +22,8 @@ import { ScaleMark } from '../components/ScaleMark'
 import { FightersMark, MemoryMark, NumberLineMark } from '../components/GameMarks'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
 import { C, NUM, shadow } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
+import type { ThemeColors } from '../theme/tokens'
 
 type Nav = CompositeNavigationProp<
   BottomTabNavigationProp<TabParamList>,
@@ -82,6 +84,9 @@ const GamesScreen = () => {
   const gamePlays = useApp(s => s.gamePlays)
   const xp = useApp(s => s.xp)
   const coin = useApp(s => s.coin)
+
+  const C = useColors()
+  const styles = makeStyles(C)
 
   const cardW = Math.round(width - SIDE * 2 - PEEK)
 
@@ -318,7 +323,7 @@ const GamesScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
 
   head: {

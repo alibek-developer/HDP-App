@@ -33,6 +33,7 @@ import MainTabs from './src/navigation/MainTabs'
 import StreakBonusSheet from './src/components/StreakBonusSheet'
 import type { RootStackParamList } from './src/navigation/types'
 import { C } from './src/theme/tokens'
+import { useColors, useIsDark } from './src/theme/useTheme'
 import { navigationRef } from './src/lib/navRef'
 import { configureNotifications, ensurePushToken, syncPushTokenToBackend } from './src/lib/push'
 
@@ -104,6 +105,9 @@ const App = () => {
       </View>
     )
 
+  const colors = useColors()
+  const isDark = useIsDark()
+
   const startRoute: keyof RootStackParamList = useApp.getState().onboarded
     ? 'Main'
     : useApp.getState().authed
@@ -112,10 +116,10 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <NavigationContainer
         ref={navigationRef}
-        theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: C.canvas } }}
+        theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.canvas } }}
       >
         <Stack.Navigator
           initialRouteName={startRoute}
@@ -131,7 +135,7 @@ const App = () => {
             gestureEnabled: true,
             /** Orqadagi ekran chizilishni to'xtatadi — chiqish (back) shu sabab yengil */
             freezeOnBlur: true,
-            contentStyle: { backgroundColor: C.canvas },
+            contentStyle: { backgroundColor: colors.canvas },
           }}
         >
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />

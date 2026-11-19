@@ -43,7 +43,63 @@ export const C = {
   dangerSoft: '#FBE9E7',
   violet: '#7C5CE0',
   violetSoft: '#EDE7FC',
+
+  /** Yechish oilasi ekranlari foni */
+  solverBody: '#F3F7EE',
 } as const
+
+/** Dark mode ranglar — yorqinlik teskarisiga */
+export const DARK = {
+  canvas: '#0E1A12',
+  canvasDeep: '#161F16',
+  surface: '#1A251C',
+  surface2: '#242F26',
+  line: '#2F3A31',
+  lineSoft: '#38433A',
+
+  ink: '#F1F4EE',
+  ink2: '#E6EBE2',
+  ink3: '#C5D0C7',
+  ink4: '#9AA995',
+
+  brand: '#4CC16F',
+  brandDeep: '#2A8A4A',
+  brandMid: '#6BC389',
+  leaf: '#8CE86A',
+  leafBright: '#A4F589',
+  leafSoft: '#2A4A30',
+  leafTint: '#1E3624',
+
+  mint: '#6BC389',
+  mintSoft: '#2A4A30',
+  lime: '#9BE04B',
+  limeDeep: '#6BC389',
+  limeBright: '#B5F56B',
+  inkOnLime: '#0E1A12',
+
+  coin: '#F6D8A6',
+  coinSoft: '#3A3228',
+  xp: '#7CA0FF',
+  xpSoft: '#2A3040',
+  danger: '#FF6B6B',
+  dangerSoft: '#4A2A2A',
+  violet: '#A78BFA',
+  violetSoft: '#3A304A',
+
+  solverBody: '#0E1A12',
+} as const
+
+export type ThemeColors = { [K in keyof typeof C]: string }
+
+/**
+ * Joriy aktiv palitra — `useColors()` har render'da yangilaydi.
+ * `solver.ts` dagi getter'lar shu orqali jonli rang o'qiydi:
+ * `[CARD, styles.x]` kabi JSX uslublari theme o'zgarganda qayta hisoblanadi.
+ */
+export let activeColors: ThemeColors = C
+export const setActiveColors = (c: ThemeColors) => {
+  activeColors = c
+}
 
 export const R = {
   sm: 10,

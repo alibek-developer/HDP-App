@@ -15,7 +15,8 @@ import Sheet from '../components/Sheet'
 import { TopScrim } from '../components/ui'
 import StudyAids from '../components/StudyAids'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { ABS_FILL, C, NUM } from '../theme/tokens'
+import { ABS_FILL, NUM, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import { GRAD_LIME } from '../theme/solver'
 import {
   PRODUCTS, PRODUCT_CATS,
@@ -128,6 +129,8 @@ const ProductArt = ({
   iconSize?: number
   children?: React.ReactNode
 }) => {
+  const C = useColors()
+  const art = makeArt(C)
   const tone = ART_TONE[product.cat]
   const img = PRODUCT_THUMBS[product.id] ?? PRODUCT_IMAGES[product.id]
   return (
@@ -156,7 +159,7 @@ const ProductArt = ({
   )
 }
 
-const art = StyleSheet.create({
+const makeArt = (C: ThemeColors) => StyleSheet.create({
   box: {
     overflow: 'hidden',
     alignItems: 'center',
@@ -188,6 +191,9 @@ const ShopScreen = () => {
   const stockTaken = useApp(s => s.stockTaken)
   const goalId = useApp(s => s.goalId)
   const toggleFav = useApp(s => s.toggleFav)
+
+  const C = useColors()
+  const styles = makeStyles(C)
 
   const left = (p: Product) => Math.max(0, p.stock - (stockTaken[p.id] ?? 0))
 
@@ -536,7 +542,7 @@ const ShopScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { paddingTop: 16 },
 

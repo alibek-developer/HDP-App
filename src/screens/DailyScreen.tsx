@@ -18,7 +18,8 @@ import { useDailyQuestion } from '../lib/useDailyQuestion'
 import { triggerHaptic } from '../lib/haptics'
 import { useExit } from '../lib/nav'
 import { MidnightClock } from '../components/MidnightClock'
-import { C, NUM, TICK } from '../theme/tokens'
+import { NUM, TICK, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 import { CARD, GRAD_RAIL, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
 import { AnswerOption, QuestionStage, SolveAction, SolveActionBar } from '../components/SolveKit'
 
@@ -56,6 +57,9 @@ const DailyScreen = () => {
   const solvedCount = useApp(s => s.solvedCount)
   const solvedToday = useApp(s => s.solvedToday)
   const beginSession = useApp(s => s.beginSession)
+
+  const C = useColors()
+  const s = makeStyles(C)
 
   const [picked, setPicked] = useState<number | null>(null)
   const [sourceOpen, setSourceOpen] = useState(false)
@@ -378,7 +382,7 @@ const DailyScreen = () => {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: SOLVER_BODY },
   scroll: { flex: 1 },
 

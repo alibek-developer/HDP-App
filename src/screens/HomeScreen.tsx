@@ -36,7 +36,8 @@ import { TopScrim } from '../components/ui'
 import { MidnightClock } from '../components/MidnightClock'
 import { navBottomSpace } from '../components/BottomNav'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
-import { C, NUM, R, MATH_FONT, ABS_FILL } from '../theme/tokens'
+import { NUM, R, MATH_FONT, ABS_FILL, type ThemeColors } from '../theme/tokens'
+import { useColors } from '../theme/useTheme'
 
 /**
  * Home — «hozir nima qilaman?» ekrani.
@@ -108,12 +109,16 @@ const useBreath = (period: number) => {
   return v
 }
 
-const SectionHead = ({ label, meta }: { label: string; meta?: string }) => (
-  <View style={styles.secHead}>
-    <Text style={styles.secLabel}>{label}</Text>
-    {meta ? <Text style={styles.secMeta}>{meta}</Text> : null}
-  </View>
-)
+const SectionHead = ({ label, meta }: { label: string; meta?: string }) => {
+  const C = useColors()
+  const styles = makeStyles(C)
+  return (
+    <View style={styles.secHead}>
+      <Text style={styles.secLabel}>{label}</Text>
+      {meta ? <Text style={styles.secMeta}>{meta}</Text> : null}
+    </View>
+  )
+}
 
 /** Pro belgisi — iliq gradient va ustidan o'tuvchi yorug'lik. */
 const PRO_GRAD = ['#FFC24B', '#FF8A1E'] as const
@@ -157,6 +162,9 @@ const ProPill = ({ onPress }: { onPress: () => void }) => {
       breathe.stop()
     }
   }, [sweep, live])
+
+  const C = useColors()
+  const styles = makeStyles(C)
 
   return (
     <Pressable
@@ -248,6 +256,9 @@ const HomeScreen = () => {
   const blitzBest = useApp(s => s.blitzBest)
   const dailyBonusOn = useApp(s => s.dailyBonusOn)
   const { question: daily, status: dailyStatus, plan: dailyPlan } = useDailyQuestion()
+
+  const C = useColors()
+  const styles = makeStyles(C)
 
   /** Kunlik masala faqat kamida bitta mavzu ochilgandan keyin chiqadi */
   const hasStudied = dailyPlan.studied.length > 0
@@ -863,7 +874,7 @@ const HomeScreen = () => {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { paddingHorizontal: 16 },
 
