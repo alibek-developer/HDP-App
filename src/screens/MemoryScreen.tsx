@@ -9,6 +9,7 @@ import { triggerHaptic } from '../lib/haptics'
 import { useExit } from '../lib/nav'
 import { useApp } from '../store/useStore'
 import { SolveTopBar } from '../components/SolveKit'
+import { GameLobby } from '../components/GameLobby'
 import { MemoryMark } from '../components/GameMarks'
 import { ABS_FILL, C, MATH_FONT, NUM, shadow } from '../theme/tokens'
 import { GRAD_LIME } from '../theme/solver'
@@ -27,7 +28,6 @@ type Phase = 'lobby' | 'play' | 'result'
 
 const INK = '#0E1A12'
 const GRAY = '#6B7C66'
-const FAINT = '#9AA995'
 const LINE = '#E1E7DA'
 const VIOLET = '#7C5CE0'
 const VIOLET_DEEP = '#4B33A0'
@@ -177,7 +177,6 @@ const MemoryScreen = () => {
   }
 
   const best = gameStars[`memory:${levelId}`] ?? 0
-  const plays = gamePlays.memory ?? 0
   const gap = 8
   const cardW = Math.floor((winW - 32 - gap * (COLS - 1)) / COLS)
   const cardH = Math.round(cardW * 1.14)
@@ -185,80 +184,23 @@ const MemoryScreen = () => {
   /* ── Lobby ── */
   if (phase === 'lobby') {
     return (
-      <View style={s.screen}>
-        <View style={[s.lobbyHead, { paddingTop: insets.top + 10 }]}>
-          <Pressable onPress={exit} accessibilityLabel="Orqaga" hitSlop={10} style={s.back}>
-            <Ionicons name="chevron-back" size={18} color="#33452F" />
-          </Pressable>
-          <Text style={s.lobbyKicker}>O&apos;yin</Text>
-          <View style={{ width: 36 }} />
-        </View>
-
-        <View style={s.lobbyBody}>
-          <View style={s.hero}>
-            <LinearGradient colors={['#241B4D', '#0E1A12']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
-            <View style={s.heroOrb} />
-            <View style={s.heroIcon}>
-              <MemoryMark size={24} color="#C9B8FF" />
-            </View>
-            <Text style={s.heroTitle}>Sonlar xotirasi</Text>
-            <Text style={s.heroSub}>
-              Kartalarda ifoda va uning natijasi yashirin. Ikkitasini ochib juftlashtiring —
-              juftlik qancha erta topilsa, yulduz shuncha ko&apos;p.
-            </Text>
-          </View>
-
-          {MEMORY_LEVELS.map(lvl => {
-            const lvBest = gameStars[`memory:${lvl.id}`] ?? 0
-            const on = lvl.id === levelId
-            return (
-              <Pressable
-                key={lvl.id}
-                onPress={() => { triggerHaptic('selection'); setLevelId(lvl.id) }}
-                style={({ pressed }) => [s.level, on && s.levelOn, pressed && { opacity: 0.9 }]}
-              >
-                <View style={s.levelMain}>
-                  <Text style={s.levelTitle}>{lvl.title}</Text>
-                  <Text style={[s.levelSub, NUM]}>{lvl.sub}</Text>
-                </View>
-                <View style={s.levelStars}>
-                  {[0, 1, 2].map(i => (
-                    <Ionicons
-                      key={i}
-                      name={i < lvBest ? 'star' : 'star-outline'}
-                      size={13}
-                      color={i < lvBest ? '#E8A33D' : '#C9D2C1'}
-                    />
-                  ))}
-                </View>
-                <View style={[s.levelRadio, on && s.levelRadioOn]}>
-                  {on && <View style={s.levelRadioDot} />}
-                </View>
-              </Pressable>
-            )
-          })}
-
-          {plays > 0 && (
-            <Text style={[s.plays, NUM]}>Shu o&apos;yinda {plays} ta urinish · eng yaxshi {best} yulduz</Text>
-          )}
-        </View>
-
-        <View style={[s.lobbyFoot, { paddingBottom: insets.bottom + 14 }]}>
-          <Pressable onPress={() => startLevel(level)} accessibilityRole="button" style={s.ctaWrap}>
-            {({ pressed }) => (
-              <LinearGradient
-                colors={GRAD_LIME}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[s.cta, pressed && { transform: [{ translateY: 2 }] }]}
-              >
-                <Text style={s.ctaText}>Boshlash</Text>
-                <Ionicons name="play" size={16} color={C.inkOnLime} />
-              </LinearGradient>
-            )}
-          </Pressable>
-        </View>
-      </View>
+      <GameLobby
+        title="Sonlar xotirasi"
+        blurb="Juftliklarni eslab qolin"
+        art={require('../assets/games/bgw-memory.jpg')}
+        mark={<MemoryMark size={18} color={C.violet} />}
+        accent={C.violet}
+        accentSoft={C.violetSoft}
+        accentInk="#FFFFFF"
+        levels={MEMORY_LEVELS}
+        selected={levelId}
+        starsFor={id => gameStars[`memory:${id}`] ?? 0}
+        plays={gamePlays.memory ?? 0}
+        insets={insets}
+        onBack={exit}
+        onSelect={setLevelId}
+        onStart={() => startLevel(level)}
+      />
     )
   }
 
@@ -523,60 +465,6 @@ const s = StyleSheet.create({
     borderColor: LINE,
   },
   lobbyKicker: { fontSize: 13, fontWeight: '600', color: INK, letterSpacing: 0.2 },
-
-  lobbyBody: { flex: 1, paddingHorizontal: 16, paddingTop: 14, gap: 10 },
-  hero: { borderRadius: 16, overflow: 'hidden', padding: 16 },
-  heroOrb: {
-    position: 'absolute',
-    right: -30,
-    top: -40,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(124,92,224,0.28)',
-  },
-  heroIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(201,184,255,0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(201,184,255,0.32)',
-    marginBottom: 10,
-  },
-  heroTitle: { fontSize: 21, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.3 },
-  heroSub: { marginTop: 5, fontSize: 12.5, lineHeight: 18, color: '#C6D9C1' },
-
-  level: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: LINE,
-  },
-  levelOn: { borderColor: '#B4A2F5', backgroundColor: '#F6F3FF', ...shadow(VIOLET, 8, 3, 0.14) },
-  levelMain: { flex: 1 },
-  levelTitle: { fontSize: 14.5, fontWeight: '600', color: INK },
-  levelSub: { marginTop: 2, fontSize: 11.5, color: GRAY },
-  levelStars: { flexDirection: 'row', gap: 2 },
-  levelRadio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#D3DBCB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  levelRadioOn: { borderColor: VIOLET },
-  levelRadioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: VIOLET },
-  plays: { marginTop: 2, textAlign: 'center', fontSize: 11, color: FAINT },
 
   lobbyFoot: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: '#F3F7EE' },
   ctaWrap: { borderRadius: 16 },
