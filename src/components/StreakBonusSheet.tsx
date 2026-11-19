@@ -113,7 +113,7 @@ const StreakBonusSheet = () => {
     }).start(() => setOpen(false))
   }
 
-  /** Yopish — bonus olinmaydi, keyingi kirishda qayta taklif etiladi */
+  /** Yopish — bonus olinmaydi, taklif bugun uchun yakunlanadi */
   const close = () => {
     if (phase !== 'idle') return
     useApp.getState().dismissStreakGift()

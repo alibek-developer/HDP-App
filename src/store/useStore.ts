@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
-  LESSONS, PROBLEM_SETS, findLesson, findProblemSet,
+  LESSONS, PROBLEM_SETS, findProblemSet,
   CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_BONUS, findProduct, streakReward,
   type ConsumableKind,
 } from '../data/content'
@@ -16,12 +16,8 @@ import { isFreeLessonId } from '../data/paywall'
  * Ilovaning yagona holat manbai.
  * Bu yerda oqim qoidalari yashaydi:
  *  - 10 ta dars bepul, qolgani faqat Pro
- *  - video tugamasa -> misolga o'tish yopiq
- *  - misol yechilmasa -> testga o'tish yopiq
  *  - har to'g'ri javob coin/XP keltiradi
  */
-
-export type Stage = 'new' | 'video' | 'example' | 'test' | 'done'
 
 /** Hisob raqami — faqat hisob ochilganda bir marta yaratiladi */
 const makePublicId = () => `HDP-${Math.floor(100000 + Math.random() * 900000)}`
@@ -29,20 +25,6 @@ const makePublicId = () => `HDP-${Math.floor(100000 + Math.random() * 900000)}`
 /** Ism familiyadan Telegram uslubidagi username: «Ali Karimov» → ali_karimov */
 const handleOf = (value: string) =>
   value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
-
-export interface LessonProgress {
-  videoWatched: boolean
-  exampleDone: boolean
-  testScore: number | null
-  testTotal: number | null
-}
-
-const emptyProgress = (): LessonProgress => ({
-  videoWatched: false,
-  exampleDone: false,
-  testScore: null,
-  testTotal: null,
-})
 
 export interface SessionResult {
   /** 'lesson-test' | 'problem-set' | 'daily' | 'topic-test' */
@@ -164,7 +146,6 @@ interface AppState {
   theme: 'light' | 'dark'
 
   /* ── Progressiya ── */
-  lessons: Record<number, LessonProgress>
   /** to'plamda yechilgan savol id'lari */
   solvedQuestions: Record<string, string[]>
   /** Masalalar darajalari: `algebra-oson` -> eng yaxshi yulduz (0..3) */
@@ -182,7 +163,7 @@ interface AppState {
   claimedMissions: string[]
   /** kunlik mega masala bonusi olingan sana */
   dailyBonusOn: string | null
-  /** kunlik streak bonusi olingan sana */
+  /** kunlik streak bonusi hal qilingan sana (olindi yoki yopildi) */
   streakBonusClaimed: string | null
   /** ochilishda taklif qilingan zanjir bonusi (modal olinguncha) — saqlanmaydi */
   streakGift: number
@@ -192,8 +173,6 @@ interface AppState {
   dailyQuestion: DailyQuestion | null
   /** oxirgi natija ekrani ma'lumoti */
   lastResult: SessionResult | null
-  /** zanjir davomida ochib turadigan dars id'si */
-  activeLessonId: number | null
   /** Hisob ochilgan — keyingi ochilishda ro'yxatdan o'tkazmaymiz */
   authed: boolean
   onboarded: boolean
@@ -234,13 +213,7 @@ interface AppState {
   setProfile: (name: string, username: string) => void
   /** Seans boshlandi — daqiqa hisobi shu nuqtadan yuriladi */
   beginSession: () => void
-  startLesson: (id: number) => void
-  markVideoWatched: (id: number) => void
-  markExampleDone: (id: number) => void
-  /** testni yakunlash: coin/XP yig'ish va natijani saqlash */
-  finishLessonTest: (lessonId: number, result: SessionResult) => void
   finishProblemSet: (setId: string, result: SessionResult) => void
-  finishDaily: (result: SessionResult) => void
   /** bugungi savolni saqlash (AI yoki zaxira) */
   setDailyQuestion: (question: DailyQuestion) => void
   /** javobni qayd etish — to'g'ri bo'lsa kunlik bonus, keyin qulflanadi */
@@ -255,16 +228,13 @@ interface AppState {
   completeTopicLesson: (id: string) => void
   /** Mavzu yakuniy testini yozish (eng yaxshi urinish saqlanadi) */
   finishTopicTest: (topicNum: number, result: SessionResult) => void
-  subscribePro: (months: number) => void
   cancelPro: () => void
-  spendCoins: (amount: number) => boolean
   /** to'plamni coin evaziga ochish */
   unlockSet: (id: string, price: number) => boolean
   /** sana o'zgarganda kunlik hisoblagichlarni nollash */
   rollDay: () => void
   /** ilova ochildi: kunni aylantiradi, zanjirni belgilaydi va bonusni taklif qiladi */
   enterApp: () => void
-  claimMission: (key: string, reward: number) => void
   /** zanjir bonusini olish — tanga shu yerda qo'shiladi */
   claimStreakGift: () => void
   /** modal olinmasdan yopildi — bonus berilmaydi */
@@ -281,8 +251,6 @@ interface AppState {
   setGoal: (id: string | null) => void
   /** buyumni ishlatish: soni 1 ga kamayadi */
   useConsumable: (kind: ConsumableKind) => boolean
-  /** holdagi buyum soni */
-  heldCount: (id: string) => number
   /** haqiqiy sovg'a buyurtmasi: coin yechiladi, ombor kamayadi */
   buyProduct: (id: string) => 'ok' | 'poor' | 'out'
   /** ombordagi qolgan dona (buyurtmalar bilan kamaygan) */
@@ -301,10 +269,6 @@ interface AppState {
   signOut: () => void
 
   /* ── Derived ── */
-  lessonStage: (id: number) => Stage
-  canOpenLesson: (id: number) => boolean
-  canEnterExample: (id: number) => boolean
-  canEnterTest: (id: number) => boolean
   canOpenSet: (id: string) => boolean
   xpForNext: () => number
   /** mavzu bo'limi holati */
@@ -423,7 +387,6 @@ export const useApp = create<AppState>()(
       notifOn: true,
       theme: 'light',
 
-      lessons: {},
       solvedQuestions: {},
       levelStars: {},
       starWeek: weekStartKey(),
@@ -439,7 +402,6 @@ export const useApp = create<AppState>()(
       streakBurst: 0,
       dailyQuestion: null,
       lastResult: null,
-      activeLessonId: null,
       authed: false,
       onboarded: false,
       topicLessons: {},
@@ -492,62 +454,6 @@ export const useApp = create<AppState>()(
         if (get().sessionStartedAt !== null) return
         set({ sessionStartedAt: Date.now() })
       },
-
-      startLesson: (id) => set({ activeLessonId: id }),
-
-      markVideoWatched: (id) =>
-        set((s) => {
-          const day = todayKey()
-          return {
-            lessons: {
-              ...s.lessons,
-              [id]: { ...emptyProgress(), ...s.lessons[id], videoWatched: true },
-            },
-            ...bumpStreak(s, day),
-            ...creditMinutes(s, day),
-          }
-        }),
-
-      markExampleDone: (id) =>
-        set((s) => ({
-          lessons: {
-            ...s.lessons,
-            [id]: { ...emptyProgress(), ...s.lessons[id], exampleDone: true },
-          },
-        })),
-
-      finishLessonTest: (lessonId, result) =>
-        set((s) => {
-          const day = todayKey()
-          const ok = result.answers.filter((a) => a.ok).length
-          const prev = s.lessons[lessonId]
-          /** Test faqat birinchi topshirilganda to'lanadi — qayta yechish mashq */
-          const firstPass = !prev || prev.testScore === null
-          const credited = firstPass ? applyBoost(s, result) : { ...result, coinsEarned: 0, xpEarned: 0 }
-          return {
-            lessons: {
-              ...s.lessons,
-              [lessonId]: {
-                ...emptyProgress(),
-                ...prev,
-                videoWatched: true,
-                exampleDone: true,
-                testScore: Math.max(prev?.testScore ?? 0, ok),
-                testTotal: result.answers.length,
-              },
-            },
-            coin: s.coin + credited.coinsEarned,
-            xp: s.xp + credited.xpEarned,
-            level: levelFromXp(s.xp + credited.xpEarned),
-            solvedCount: s.solvedCount + (firstPass ? ok : 0),
-            lastResult: credited,
-            activeLessonId: lessonId,
-            ...bumpStreak(s, day),
-            ...creditMinutes(s, day),
-            ...(firstPass ? creditAnswers(s, result) : {}),
-            ...(firstPass ? boostConsume(s) : {}),
-          }
-        }),
 
       finishProblemSet: (setId, result) =>
         set((s) => {
@@ -631,21 +537,6 @@ export const useApp = create<AppState>()(
             level: levelFromXp(s.xp + xp),
             ...bumpStreak(s, day),
             ...creditMinutes(s, day),
-          }
-        }),
-
-      finishDaily: (result) =>
-        set((s) => {
-          const day = todayKey()
-          return {
-            coin: s.coin + result.coinsEarned,
-            xp: s.xp + result.xpEarned,
-            level: levelFromXp(s.xp + result.xpEarned),
-            solvedCount: s.solvedCount + result.answers.filter((a) => a.ok).length,
-            lastResult: result,
-            ...bumpStreak(s, day),
-            ...creditMinutes(s, day),
-            ...creditAnswers(s, result),
           }
         }),
 
@@ -755,19 +646,7 @@ export const useApp = create<AppState>()(
           }
         }),
 
-      subscribePro: (months) => {
-        const until = new Date()
-        until.setMonth(until.getMonth() + months)
-        set({ isPro: true, proExpires: until.toISOString().slice(0, 10) })
-      },
-
       cancelPro: () => set({ isPro: false, proExpires: null }),
-
-      spendCoins: (amount) => {
-        if (get().coin < amount) return false
-        set((s) => ({ coin: s.coin - amount }))
-        return true
-      },
 
       /** To'plamni coin evaziga ochish — bir marta, abadiy */
       unlockSet: (id, price) => {
@@ -791,27 +670,26 @@ export const useApp = create<AppState>()(
 
       /**
        * Ilova ochildi: kun aylanadi, zanjir bugun uchun qayd bo'ladi va
-       * kunlik bonus taklif qilinadi. Tanga modalda «olish» bosilganda qo'shiladi.
-       * Hozircha har kirishda taklif etiladi — vaqtga bog'lash keyingi bosqichda.
+       * kunlik bonus taklif qilinadi. Taklif kuniga bir marta — olinmasa
+       * ham «hal qilindi» deb belgilanadi, qayta ochilishda chiqmaydi.
+       * Muddati o'tgan Pro ham shu yerda yopiladi.
        */
       enterApp: () => {
         const s = get()
         if (!s.onboarded) return
         const day = todayKey()
+        const expired = s.isPro && !!s.proExpires && s.proExpires < day
+        const reset = s.day !== day ? dayReset(day) : {}
         const patch: Partial<AppState> = {
-          ...(s.day !== day ? dayReset(day) : {}),
+          ...(expired ? { isPro: false, proExpires: null } : {}),
+          ...reset,
           ...bumpStreak(s, day),
         }
+        const claimed = patch.streakBonusClaimed ?? s.streakBonusClaimed
         const streak = patch.streak ?? s.streak
-        if (streak > 0) patch.streakGift = streakReward(streak)
+        if (streak > 0 && claimed !== day) patch.streakGift = streakReward(streak)
         if (Object.keys(patch).length === 0) return
         set(patch)
-      },
-
-      claimMission: (key, reward) => {
-        const s = get()
-        if (s.claimedMissions.includes(key)) return
-        set({ coin: s.coin + reward, claimedMissions: [...s.claimedMissions, key] })
       },
 
       claimStreakGift: () => {
@@ -827,7 +705,8 @@ export const useApp = create<AppState>()(
 
       dismissStreakGift: () => {
         if (get().streakGift === 0) return
-        set({ streakGift: 0 })
+        /** Taklif yopildi — kun uchun yakunlandi, bugun boshqa chiqmaydi */
+        set({ streakGift: 0, streakBonusClaimed: todayKey() })
       },
 
       clearStreakBurst: () => {
@@ -899,8 +778,6 @@ export const useApp = create<AppState>()(
         set({ inventory: { ...s.inventory, [item.id]: held - 1 } })
         return true
       },
-
-      heldCount: (id) => get().inventory[id] ?? 0,
 
       /** Sovg'a buyurtmasi — coin yechiladi, ombor dona kamayadi, tarixga yoziladi */
       buyProduct: (id) => {
@@ -999,7 +876,6 @@ export const useApp = create<AppState>()(
           proExpires: null,
           studyMinutes: {},
           sessionStartedAt: null,
-          lessons: {},
           solvedQuestions: {},
           levelStars: {},
           starWeek: weekStartKey(),
@@ -1014,7 +890,6 @@ export const useApp = create<AppState>()(
           streakBurst: 0,
           dailyQuestion: null,
           lastResult: null,
-          activeLessonId: null,
           authed: false,
           onboarded: false,
           topicLessons: {},
@@ -1029,27 +904,6 @@ export const useApp = create<AppState>()(
           reviews: [],
           favs: [],
         }),
-
-      lessonStage: (id) => {
-        const p = get().lessons[id] ?? emptyProgress()
-        if (p.testScore !== null) return 'done'
-        if (p.exampleDone) return 'test'
-        if (p.videoWatched) return 'example'
-        return 'new'
-      },
-
-      /** Bepul darslar — hammanyaga; qolgani faqat Pro */
-      canOpenLesson: (id) => {
-        const lesson = findLesson(id)
-        if (!lesson) return false
-        return lesson.free || get().isPro
-      },
-
-      /** Video tugamagan bo'lsa — misolga kirib bo'lmaydi */
-      canEnterExample: (id) => !!get().lessons[id]?.videoWatched,
-
-      /** Misol yechilmagan bo'lsa — testga kirib bo'lmaydi */
-      canEnterTest: (id) => !!get().lessons[id]?.exampleDone,
 
       /** Bepul to'plam hammaga; Pro yoki ochilganlar qolganiga ham kiradi */
       canOpenSet: (id) => {
@@ -1170,7 +1024,6 @@ export const useApp = create<AppState>()(
         studyMinutes: s.studyMinutes,
         notifOn: s.notifOn,
         theme: s.theme,
-        lessons: s.lessons,
         solvedQuestions: s.solvedQuestions,
         levelStars: s.levelStars,
         starWeek: s.starWeek,

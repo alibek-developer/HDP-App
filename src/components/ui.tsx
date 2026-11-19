@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
-import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native'
+import type { StyleProp, TextInputProps, ViewStyle } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { C, R, T } from '../theme/tokens'
 
@@ -9,16 +9,6 @@ import { C, R, T } from '../theme/tokens'
  * (Masalalar/tub ekranlar burchakli), shuning uchun bu yerda faqat splash
  * va login/signup ishlatadigan yumaloq uslub turadi.
  */
-
-export const ScreenBg = ({ children, style }: { children?: React.ReactNode; style?: StyleProp<ViewStyle> }) => (
-  <LinearGradient
-    colors={['#D9EFC1', '#EBF7D9', '#F8FCEE']}
-    locations={[0, 0.42, 0.82]}
-    style={[StyleSheet.absoluteFill, style]}
-  >
-    {children}
-  </LinearGradient>
-)
 
 /**
  * Android edge-to-edge: kontent status bar ostidan o'tadi. Bu qatlam o'sha
@@ -213,20 +203,6 @@ export const StepHeader = ({ step, total = 2 }: { step: number; total?: number }
       <Text style={styles.stepTextDim}>/{total}</Text>
     </Text>
   </View>
-)
-
-export const TapText = ({
-  children,
-  onPress,
-  style,
-}: {
-  children: React.ReactNode
-  onPress: () => void
-  style?: StyleProp<TextStyle>
-}) => (
-  <Pressable onPress={onPress} hitSlop={12} style={({ pressed }) => [pressed && { opacity: 0.6 }]}>
-    <Text style={style}>{children}</Text>
-  </Pressable>
 )
 
 const styles = StyleSheet.create({
