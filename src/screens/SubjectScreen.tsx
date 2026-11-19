@@ -252,7 +252,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   topicTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingLeft: 14, paddingRight: 12, paddingTop: 14 },
   topicNumTile: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 11 },
   topicNumReady: { backgroundColor: C.leafSoft },
-  topicNumActive: { backgroundColor: C.ink },
+  topicNumActive: { backgroundColor: C.brandDeep },
   topicNumText: { fontSize: 13, fontWeight: '600', color: C.limeBright },
   topicMeta: { flex: 1, minWidth: 0 },
   topicTitle: { fontSize: 14, fontWeight: '600', color: C.ink, lineHeight: 19.5 },
@@ -268,7 +268,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   railLabelReady: { color: C.brand },
 
   emptyCard: { ...CARD, borderRadius: 16, overflow: 'hidden' },
-  emptyMedia: { height: 132, backgroundColor: C.ink },
+  emptyMedia: { height: 132, backgroundColor: C.brandDeep },
   emptyPhoto: { width: '100%', height: '100%' },
   emptyBadge: {
     position: 'absolute',
@@ -294,7 +294,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: C.ink,
+    backgroundColor: C.brandDeep,
     borderRadius: 12,
   },
   emptyCtaText: { fontSize: 13, fontWeight: '600', color: C.mint },

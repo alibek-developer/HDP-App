@@ -70,7 +70,7 @@ export const DARK = {
   leafSoft: '#2A4A30',
   leafTint: '#1E3624',
 
-  mint: '#6BC389',
+  mint: '#A4F589',
   mintSoft: '#2A4A30',
   lime: '#9BE04B',
   limeDeep: '#6BC389',

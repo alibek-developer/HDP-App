@@ -882,7 +882,7 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
   heroCard: {
     marginTop: 14, backgroundColor: C.surface, borderRadius: 24,
     padding: 14, borderWidth: 1, borderColor: C.surface2,
-    ...shadow(C.ink, 18, 6, 0.07),
+    ...shadow('#000', 18, 6, 0.07),
   },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatarWrap: {
@@ -893,7 +893,7 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
   },
   avatarInner: { width: 60, height: 60, borderRadius: 100, overflow: 'hidden' },
   avatarImg: { width: 60, height: 60 },
-  avatarText: { fontSize: 22, fontWeight: '600', color: C.surface, letterSpacing: -0.6 },
+  avatarText: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.6 },
   lvlDot: {
     position: 'absolute', right: -2, bottom: -2, minWidth: 21, height: 21,
     paddingHorizontal: 5, borderRadius: 100, backgroundColor: C.lime,
@@ -949,7 +949,7 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
   proSparkB: { position: 'absolute', bottom: -4, left: -6 },
   proMid: { flex: 1, minWidth: 0 },
   proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  proTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '700', color: C.surface, letterSpacing: -0.25 },
+  proTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.25 },
   proPill: {
     backgroundColor: 'rgba(232,163,61,0.18)', borderRadius: 7,
     paddingHorizontal: 6, paddingVertical: 2,
@@ -978,7 +978,7 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
   card: {
     marginTop: 10, backgroundColor: C.surface, borderRadius: 20,
     padding: 13, borderWidth: 1, borderColor: C.surface2,
-    ...shadow(C.ink, 14, 5, 0.05),
+    ...shadow('#000', 14, 5, 0.05),
   },
   chartCard: { marginTop: 10 },
 
@@ -1022,7 +1022,7 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
   },
   btnLimeText: { fontSize: 13, fontWeight: '600', color: C.inkOnLime },
   btnInk: {
-    marginTop: 16, height: 46, borderRadius: 14, backgroundColor: C.ink,
+    marginTop: 16, height: 46, borderRadius: 14, backgroundColor: C.brandDeep,
     alignItems: 'center', justifyContent: 'center',
   },
   btnInkText: { fontSize: 13, fontWeight: '600', color: C.mint },
@@ -1030,7 +1030,7 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
     marginTop: 16, height: 46, borderRadius: 14, backgroundColor: C.danger,
     alignItems: 'center', justifyContent: 'center',
   },
-  btnDangerText: { fontSize: 13, fontWeight: '600', color: C.surface },
+  btnDangerText: { fontSize: 13, fontWeight: '600', color: '#FFFFFF' },
   btnSoft: {
     marginTop: 8, height: 44, borderRadius: 14, backgroundColor: C.surface2,
     alignItems: 'center', justifyContent: 'center',
@@ -1078,7 +1078,7 @@ const makeSt = (C: ThemeColors) => StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: C.surface, borderRadius: 18, padding: 12,
     borderWidth: 1, borderColor: C.surface2,
-    ...shadow(C.ink, 14, 5, 0.05),
+    ...shadow('#000', 14, 5, 0.05),
   },
   bigIcon: { width: 38, height: 38, borderRadius: 100, alignItems: 'center', justifyContent: 'center' },
   bigMid: { flex: 1, minWidth: 0 },

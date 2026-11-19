@@ -533,7 +533,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     flex: 1,
     borderRadius: 13,
     backgroundColor: C.surface,
-    ...shadow(C.ink, 6, 3, 0.12),
+    ...shadow('#000', 6, 3, 0.12),
   },
   cardMatched: { shadowOpacity: 0, elevation: 0 },
   face: { borderRadius: 13, alignItems: 'center', justifyContent: 'center' },

@@ -320,7 +320,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderTopRightRadius: R['3xl'],
     paddingHorizontal: 20,
     paddingTop: 9,
-    ...shadow(C.ink, 28, -8, 0.16),
+    ...shadow('#000', 28, -8, 0.16),
   },
   handle: {
     width: 40,
@@ -390,7 +390,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     backgroundColor: C.brand,
   },
   ctaShadow: shadow(C.brand, 16, 7, 0.24),
-  ctaText: { fontSize: 15.5, letterSpacing: 0.1, fontWeight: '800', color: C.surface },
+  ctaText: { fontSize: 15.5, letterSpacing: 0.1, fontWeight: '800', color: '#FFFFFF' },
 })
 
 export default StreakBonusSheet

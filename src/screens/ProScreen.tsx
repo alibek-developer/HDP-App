@@ -520,7 +520,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
 
   hero: {
     position: 'relative', overflow: 'hidden', borderRadius: 20,
-    backgroundColor: C.ink, marginBottom: 16,
+    backgroundColor: C.brandDeep, marginBottom: 16,
   },
   heroInner: { padding: 18 },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -630,7 +630,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     position: 'absolute', left: 12, right: 12, bottom: 12,
     backgroundColor: C.surface, borderRadius: 20,
     paddingHorizontal: 16, paddingTop: 14,
-    ...shadow(C.ink, 20, 6, 0.12),
+    ...shadow('#000', 20, 6, 0.12),
   },
   dockHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dockLeft: { flex: 1, minWidth: 0 },

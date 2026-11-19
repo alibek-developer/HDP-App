@@ -325,9 +325,9 @@ export const LessonVideo = ({ videoId, title, watched, onWatched, onUnavailable 
 }
 
 const makeStyles = (C: ThemeColors) => StyleSheet.create({
-  card: { backgroundColor: C.ink, borderRadius: 16, overflow: 'hidden' },
-  frame: { aspectRatio: 16 / 9, backgroundColor: C.ink },
-  webview: { flex: 1, backgroundColor: C.ink },
+  card: { backgroundColor: C.brandDeep, borderRadius: 16, overflow: 'hidden' },
+  frame: { aspectRatio: 16 / 9, backgroundColor: C.brandDeep },
+  webview: { flex: 1, backgroundColor: C.brandDeep },
   loading: {
     position: 'absolute',
     left: 0,
@@ -337,7 +337,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: C.ink,
+    backgroundColor: C.brandDeep,
   },
   loadingText: { fontSize: 11.5, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },
 
@@ -370,7 +370,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     color: 'rgba(205,233,174,0.55)',
   },
 
-  failCard: { backgroundColor: C.ink, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14 },
+  failCard: { backgroundColor: C.brandDeep, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14 },
   failTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   failTitle: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: '500', color: 'rgba(255,255,255,0.85)' },
   failNote: { marginTop: 8, fontSize: 12, lineHeight: 18, fontWeight: '500', color: 'rgba(205,233,174,0.7)' },

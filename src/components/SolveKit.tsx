@@ -353,7 +353,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   segRow: { marginTop: 10, flexDirection: 'row', gap: 5 },
   segment: { flex: 1, height: 7, borderRadius: 9999, backgroundColor: C.lineSoft },
   cellDone: { backgroundColor: C.limeDeep },
-  cellNow: { backgroundColor: C.ink },
+  cellNow: { backgroundColor: C.brandDeep },
 
   grid: { marginTop: 10, gap: 4 },
   gridRow: { flexDirection: 'row', gap: 4 },
@@ -367,7 +367,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderColor: C.line,
     borderWidth: 1,
     borderRadius: 18,
-    ...shadow(C.ink, 12, 5, 0.05),
+    ...shadow('#000', 12, 5, 0.05),
   },
   stageRail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
   stageBody: { paddingLeft: 18, paddingRight: 16, paddingVertical: 18 },

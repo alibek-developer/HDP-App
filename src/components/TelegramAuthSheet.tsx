@@ -339,7 +339,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderTopRightRadius: R['3xl'],
     paddingHorizontal: 16,
     paddingTop: 9,
-    shadowColor: C.ink,
+    shadowColor: '#000',
     shadowOpacity: 0.18,
     shadowRadius: 26,
     shadowOffset: { width: 0, height: -8 },
@@ -365,7 +365,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     backgroundColor: C.surface,
   },
   heroText: { flex: 1, minWidth: 0 },
-  heroTitle: { fontSize: 17, lineHeight: 22, letterSpacing: -0.2, fontWeight: '600', color: C.surface },
+  heroTitle: { fontSize: 17, lineHeight: 22, letterSpacing: -0.2, fontWeight: '600', color: '#FFFFFF' },
   heroSub: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: 'rgba(255,255,255,0.62)' },
 
   status: {
@@ -383,7 +383,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   },
   statusBad: { backgroundColor: 'rgba(217,72,59,0.14)', borderColor: 'rgba(255,140,128,0.3)' },
   statusMid: { flex: 1, minWidth: 0 },
-  statusText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: C.surface },
+  statusText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: '#FFFFFF' },
   statusTitleBad: { color: '#FFC9C2' },
   statusHint: { marginTop: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: 'rgba(255,255,255,0.62)' },
 
@@ -448,7 +448,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 12,
   },
-  primaryText: { fontSize: 14.5, fontWeight: '600', color: C.surface },
+  primaryText: { fontSize: 14.5, fontWeight: '600', color: '#FFFFFF' },
 
   cancel: { height: 44, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
   cancelText: { fontSize: 12.5, fontWeight: '600', color: C.ink3 },

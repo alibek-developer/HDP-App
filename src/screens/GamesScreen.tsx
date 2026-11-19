@@ -366,7 +366,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     lineHeight: 25,
     letterSpacing: -0.35,
     fontWeight: '700',
-    color: C.surface,
+    color: '#FFFFFF',
     textShadowColor: 'rgba(4,18,11,0.45)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 8,
@@ -385,7 +385,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  infoTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '700', color: C.surface },
+  infoTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '700', color: '#FFFFFF' },
   infoMeta: { fontSize: 10.5, lineHeight: 13, fontWeight: '500', color: 'rgba(255,255,255,0.78)' },
 
   /* Muvozanat — qiyshaygan oq tarozi paneli + lime tugma */
@@ -491,7 +491,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   ctaLimeText: { fontSize: 13.5, fontWeight: '700', color: C.inkOnLime },
   ctaLimeCount: { fontSize: 11, fontWeight: '600', color: 'rgba(28,50,20,0.72)' },
   ctaViolet: { backgroundColor: C.violet },
-  ctaWhiteText: { fontSize: 13.5, fontWeight: '700', color: C.surface },
+  ctaWhiteText: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
   ctaWhiteCount: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.82)' },
   ctaAmber: { backgroundColor: C.coin },
   ctaAmberText: { fontSize: 13.5, fontWeight: '700', color: '#3B2A07' },

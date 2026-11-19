@@ -556,7 +556,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 26,
   },
   targetLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.4, color: 'rgba(169,196,255,0.75)' },
-  targetValue: { marginTop: 2, fontFamily: MATH_FONT, fontSize: 40, lineHeight: 46, color: C.surface },
+  targetValue: { marginTop: 2, fontFamily: MATH_FONT, fontSize: 40, lineHeight: 46, color: '#FFFFFF' },
   targetHint: { marginTop: 2, fontSize: 11, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },
 
   railWrap: { marginTop: 18 },

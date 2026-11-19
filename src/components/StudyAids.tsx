@@ -487,7 +487,7 @@ const makeSt = (C: ThemeColors) => StyleSheet.create({
   },
   cancelText: { fontSize: 13, fontWeight: '600', color: C.ink3 },
   buyBtn: {
-    flex: 1, height: 50, borderRadius: 100, backgroundColor: C.ink,
+    flex: 1, height: 50, borderRadius: 100, backgroundColor: C.brandDeep,
     alignItems: 'center', justifyContent: 'center',
   },
   buyText: { fontSize: 13, fontWeight: '600', color: C.mint },

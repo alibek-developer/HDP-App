@@ -353,7 +353,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   ledgerValue: { fontSize: 17, lineHeight: 17, fontWeight: '600' },
   ledgerUnit: { marginTop: 6, fontSize: 11, fontWeight: '500', color: C.ink4 },
 
-  perfect: { backgroundColor: C.ink, borderRadius: 14, overflow: 'hidden', flexDirection: 'row' },
+  perfect: { backgroundColor: C.brandDeep, borderRadius: 14, overflow: 'hidden', flexDirection: 'row' },
   perfectBody: { flex: 1, paddingLeft: 15, paddingRight: 14, paddingTop: 14, paddingBottom: 14 },
   perfectTitle: { fontSize: 15, fontWeight: '600', color: C.limeBright },
   perfectText: { marginTop: 4, fontSize: 12.5, fontWeight: '500', color: 'rgba(205,233,174,0.6)' },

@@ -363,7 +363,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 12,
   },
-  tgPrimaryText: { fontSize: 14.5, fontWeight: '600', color: C.surface },
+  tgPrimaryText: { fontSize: 14.5, fontWeight: '600', color: '#FFFFFF' },
 
   handleRow: {
     marginTop: 10,

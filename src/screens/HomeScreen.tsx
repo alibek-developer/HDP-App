@@ -990,7 +990,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   },
   proGloss: { position: 'absolute', top: 0, left: 0, right: 0, height: 14 },
   proShine: { position: 'absolute', top: -16, bottom: -16, width: 18 },
-  proText: { fontSize: 11.5, letterSpacing: 0.9, fontWeight: '800', color: C.surface },
+  proText: { fontSize: 11.5, letterSpacing: 0.9, fontWeight: '800', color: '#FFFFFF' },
 
   /* ── Reklama karuseli ── */
   adWrap: { marginTop: 14, borderRadius: R['2xl'], overflow: 'hidden' },
@@ -1009,7 +1009,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     lineHeight: 22,
     letterSpacing: -0.2,
     fontWeight: '600',
-    color: C.surface,
+    color: '#FFFFFF',
   },
   adDots: {
     position: 'absolute',
@@ -1198,7 +1198,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     backgroundColor: C.surface,
   },
   courseBody: { gap: 2 },
-  courseName: { fontSize: 19, letterSpacing: -0.4, fontWeight: '700', color: C.surface },
+  courseName: { fontSize: 19, letterSpacing: -0.4, fontWeight: '700', color: '#FFFFFF' },
   courseMeta: { fontSize: 11.5, fontWeight: '500', color: 'rgba(255,255,255,0.75)' },
   courseBar: {
     marginTop: 8,

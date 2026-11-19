@@ -294,13 +294,13 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   column: { position: 'absolute', width: 12, borderRadius: 6, overflow: 'hidden' },
   base: {
     position: 'absolute', width: 108, height: 16, borderRadius: 8, overflow: 'hidden',
-    ...shadow(C.ink, 8, 4, 0.18),
+    ...shadow('#000', 8, 4, 0.18),
   },
 
   beamWrap: { position: 'absolute', height: BEAM_H },
   railBar: {
     height: BEAM_H, borderRadius: 6, overflow: 'hidden',
-    ...shadow(C.ink, 6, 3, 0.2),
+    ...shadow('#000', 6, 3, 0.2),
   },
   railShine: {
     position: 'absolute', left: 8, right: 8, top: 2, height: 2,
@@ -349,7 +349,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     minWidth: 27, height: 27, paddingHorizontal: 5, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: C.surface, borderWidth: 1, borderColor: '#DDE4D6',
-    ...shadow(C.ink, 4, 2, 0.08),
+    ...shadow('#000', 4, 2, 0.08),
   },
   plateText: { fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: C.inkOnLime },
 
