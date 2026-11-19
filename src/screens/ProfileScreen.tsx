@@ -649,7 +649,7 @@ const ProfileScreen = () => {
         <View style={p.themeList}>
           {([
             { key: 'light' as const, label: "Yorug' (Toza Oq rejim)", icon: 'weather-sunny' as const, ready: true },
-            { key: 'dark' as const, label: "Qorong'u (Tun rejimi)", icon: 'moon-waning-crescent' as const, ready: false },
+            { key: 'dark' as const, label: "Qorong'u (Tun rejimi)", icon: 'moon-waning-crescent' as const, ready: true },
           ]).map(o => {
             const active = theme === o.key
             return (
