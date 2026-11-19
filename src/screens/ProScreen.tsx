@@ -13,6 +13,7 @@ import { EXAM_SET, PROBLEM_SETS, PRO_TRIAL } from '../data/content'
 import { TOPICS } from '../data/curriculum'
 import { isFreeLessonId, topicHasPaidLessons } from '../data/paywall'
 import { PopIn } from '../components/Reveal'
+import Sheet from '../components/Sheet'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM, shadow } from '../theme/tokens'
@@ -23,8 +24,8 @@ import {
 
 /**
  * HDP Pro sahifasi — tarif tanlash, obuna holati va Pro'ga kirgan
- * imkoniyatlarning to'liq ro'yxati. To'lov tizimi hali ulanmagan:
- * tugma Pro'ni sinov rejimida yoqadi.
+ * imkoniyatlarning to'liq ro'yxati. To'lov qadami varaqada: onlayn
+ * usullar (Payme/Click) hali ulanmagan, hozircha coin evaziga sinov.
  */
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -103,10 +104,13 @@ const ProScreen = () => {
   const exit = useExit('Main')
   const [selected, setSelected] = useState<PlanId>('3m')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [payOpen, setPayOpen] = useState(false)
+  const [payMsg, setPayMsg] = useState<string | null>(null)
 
   const isPro = useApp(s => s.isPro)
   const proExpires = useApp(s => s.proExpires)
-  const subscribePro = useApp(s => s.subscribePro)
+  const coin = useApp(s => s.coin)
+  const buyProTrial = useApp(s => s.buyProTrial)
   const cancelPro = useApp(s => s.cancelPro)
 
   const plan = PLANS.find(p => p.id === selected) ?? PLANS[1]
@@ -114,10 +118,27 @@ const ProScreen = () => {
   const baseline = BASE_PER_MONTH * plan.months
   const saved = baseline - total
 
+  /** To'lov qadami: onlayn usullarsiz obuna faollashmaydi */
   const handleSubscribe = () => {
-    subscribePro(plan.months)
-    triggerHaptic('success')
-    setShowSuccess(true)
+    triggerHaptic('light')
+    setPayMsg(null)
+    setPayOpen(true)
+  }
+
+  const payWithCoins = () => {
+    const result = buyProTrial()
+    if (result === 'ok') {
+      triggerHaptic('success')
+      setPayOpen(false)
+      setShowSuccess(true)
+      return
+    }
+    triggerHaptic('warning')
+    setPayMsg(
+      result === 'poor'
+        ? `Coin yetarli emas — ${PRO_TRIAL.coin} coin kerak.`
+        : 'Bu oy uchun coin sinovi allaqachon ishlatilgan.',
+    )
   }
 
   return (
@@ -352,17 +373,81 @@ const ProScreen = () => {
           >
             <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[ABS_FILL, { borderRadius: 14 }]} />
             <Ionicons name="ribbon" size={17} color="#1C3214" style={s.buyIcon} />
-            <Text style={s.buyText}>To&apos;lovsiz faollashtirish</Text>
+            <Text style={s.buyText}>Obuna olish</Text>
           </Pressable>
 
           <View style={s.dockFoot}>
             <Ionicons name="information-circle-outline" size={12} color={FAINT} />
             <Text style={s.dockFootText}>
-              To&apos;lov tizimi hali ulanmagan — obuna sinov rejimida faollashadi
+              Onlayn to&apos;lov tez orada — hozircha coin bilan sinov
             </Text>
           </View>
         </View>
       )}
+
+      {/* ── To'lov varaqasi ── */}
+      <Sheet
+        open={payOpen}
+        onClose={() => setPayOpen(false)}
+        title="TO'LOV"
+        subtitle={`${plan.label} · ${money(total)} so'm`}
+      >
+        <View style={s.payBox}>
+          <View style={s.payRow}>
+            <Text style={s.payLabel}>Tarif</Text>
+            <Text style={[s.payValue, NUM]}>
+              {plan.label} · {plan.months} oy
+            </Text>
+          </View>
+          <View style={s.payRow}>
+            <Text style={s.payLabel}>Jami</Text>
+            <Text style={[s.payValue, NUM]}>{money(total)} so&apos;m</Text>
+          </View>
+          {saved > 0 && (
+            <View style={s.payRow}>
+              <Text style={s.payLabel}>Tejov</Text>
+              <Text style={[s.payValue, NUM, { color: BRAND }]}>−{money(saved)} so&apos;m</Text>
+            </View>
+          )}
+        </View>
+
+        <Text style={s.paySection}>Onlayn to&apos;lov</Text>
+        {([
+          { name: 'Payme', icon: 'card' },
+          { name: 'Click', icon: 'phone-portrait' },
+        ] as { name: string; icon: keyof typeof Ionicons.glyphMap }[]).map(m => (
+          <View key={m.name} style={s.methodRow}>
+            <View style={s.methodTile}>
+              <Ionicons name={m.icon} size={16} color={FAINT} />
+            </View>
+            <Text style={s.methodName}>{m.name}</Text>
+            <View style={s.soonPill}>
+              <Text style={s.soonText}>Tez orada</Text>
+            </View>
+          </View>
+        ))}
+        <Text style={s.payNote}>
+          Onlayn to&apos;lov hali ulanmagan — ishga tushgach obuna shu yerda faollashadi.
+        </Text>
+
+        <View style={s.payDivider} />
+
+        <View style={s.trialHead}>
+          <Text style={s.paySection}>Hozircha coin bilan</Text>
+          <Text style={[s.trialCoin, NUM]}>{coin} coin</Text>
+        </View>
+        <Pressable
+          onPress={payWithCoins}
+          style={({ pressed }) => [s.trialBtn, pressed && { opacity: 0.9 }]}
+        >
+          <Ionicons name="wallet" size={16} color="#CDE9AE" />
+          <Text style={s.trialBtnText}>
+            {PRO_TRIAL.coin} coin — {PRO_TRIAL.days} kunlik Pro
+          </Text>
+        </Pressable>
+        {!!payMsg && <Text style={s.payMsg}>{payMsg}</Text>}
+        <Text style={s.payFine}>Oyiga bir marta. Obuna avtomatik yangilanmaydi.</Text>
+      </Sheet>
 
       {/* ── Muvaffaqiyat modali ── */}
       <Modal visible={showSuccess} transparent animationType="none" onRequestClose={() => setShowSuccess(false)}>
@@ -379,7 +464,7 @@ const ProScreen = () => {
                       <Ionicons name="checkmark" size={26} color="#1C3214" style={s.successTickIcon} />
                     </View>
                     <View style={s.successTitles}>
-                      <Text style={s.successH3}>Obuna faol!</Text>
+                      <Text style={s.successH3}>Pro faollashtirildi!</Text>
                       <Text style={s.successSub}>Darslar va to&apos;plamlarga kirish ochildi.</Text>
                     </View>
                   </View>
@@ -387,14 +472,20 @@ const ProScreen = () => {
                   <View style={s.receipt}>
                     <View style={s.receiptRow}>
                       <Text style={s.receiptLabel}>Tarif</Text>
-                      <Text style={[s.receiptValue, NUM]}>{plan.label} · {money(total)} so&apos;m</Text>
+                      <Text style={[s.receiptValue, NUM]}>{PRO_TRIAL.days} kunlik sinov</Text>
+                    </View>
+                    <View style={s.receiptRow}>
+                      <Text style={s.receiptLabel}>To&apos;lov</Text>
+                      <Text style={[s.receiptValue, NUM]}>{PRO_TRIAL.coin} coin</Text>
                     </View>
                     <View style={s.receiptRow}>
                       <Text style={s.receiptLabel}>Amal muddati</Text>
                       <Text style={[s.receiptValue, NUM]}>{ruDate(proExpires) ?? '—'} gacha</Text>
                     </View>
                   </View>
-                  <Text style={s.receiptNote}>To&apos;lov olinmadi — sinov faollashtirishi.</Text>
+                  <Text style={s.receiptNote}>
+                    Coin hamyondan yechildi. Obuna avtomatik yangilanmaydi.
+                  </Text>
 
                   <Pressable
                     onPress={() => { setShowSuccess(false); navigation.navigate('Main') }}
@@ -557,6 +648,33 @@ const s = StyleSheet.create({
   buyText: { fontSize: 15, fontWeight: '600', color: '#1C3214' },
   dockFoot: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   dockFootText: { fontSize: 11.5, fontWeight: '500', color: GRAY },
+
+  payBox: {
+    marginTop: 4, backgroundColor: '#F6F8F3', borderColor: '#E1E7DA', borderWidth: 1,
+    borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, gap: 10,
+  },
+  payRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  payLabel: { fontSize: 12, fontWeight: '500', color: GRAY },
+  payValue: { fontSize: 12.5, fontWeight: '600', color: INK },
+  paySection: { marginTop: 16, marginBottom: 4, fontSize: 10.5, fontWeight: '600', letterSpacing: 1.4, color: GRAY },
+  methodRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
+  methodTile: {
+    width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3F5EF',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  methodName: { flex: 1, fontSize: 13.5, fontWeight: '600', color: INK },
+  soonPill: { backgroundColor: '#EDEFF5', borderRadius: 11, paddingHorizontal: 8, paddingVertical: 3 },
+  soonText: { fontSize: 10.5, fontWeight: '600', color: GRAY },
+  payNote: { marginTop: 2, fontSize: 11.5, lineHeight: 16, fontWeight: '500', color: FAINT },
+  payDivider: { height: 1, backgroundColor: '#EDF1E7', marginTop: 16 },
+  trialHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 },
+  trialCoin: { fontSize: 11.5, fontWeight: '600', color: AMBER, marginTop: 16 },
+  trialBtn: {
+    ...INK_BTN, height: 50, marginTop: 10, gap: 8,
+  },
+  trialBtnText: { fontSize: 13.5, fontWeight: '600', color: '#CDE9AE' },
+  payMsg: { marginTop: 10, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#B4442F' },
+  payFine: { marginTop: 10, fontSize: 11, lineHeight: 15, color: FAINT },
 
   modalRoot: { flex: 1, justifyContent: 'center', paddingHorizontal: 20 },
   modalScrim: { backgroundColor: 'rgba(14,26,18,0.6)' },

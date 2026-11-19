@@ -11,9 +11,10 @@ import { useApp } from '../store/useStore'
 import { triggerHaptic } from '../lib/haptics'
 import { useExitToTopics } from '../lib/nav'
 import type { RootStackParamList } from '../navigation/types'
-import { C } from '../theme/tokens'
+import { C, NUM } from '../theme/tokens'
 import { LIME_BTN, LIME_TEXT, SOLVER_BODY } from '../theme/solver'
 import { AnswerOption, QuestionStage, SolveAction, SolveActionBar, SolveProgress, SolveTopBar } from '../components/SolveKit'
+import Sheet from '../components/Sheet'
 
 /**
  * Mavzu yakuniy testi — 30 savol, har to'g'ri javob testning own narxida.
@@ -40,11 +41,18 @@ const TopicTestScreen = () => {
   const topicLessons = useApp(s => s.topicLessons)
   const finishTopicTest = useApp(s => s.finishTopicTest)
   const beginSession = useApp(s => s.beginSession)
+  /** Do'kondan olingan yordamchilar — testda sarflanadi */
+  const hints = useApp(s => s.inventory['it-hint'] ?? 0)
+  const skips = useApp(s => s.inventory['it-skip'] ?? 0)
+  const consume = useApp(s => s.useConsumable)
 
   const [cursor, setCursor] = useState(0)
   const [picked, setPicked] = useState<number | null>(null)
   const [checked, setChecked] = useState(false)
   const [answers, setAnswers] = useState<Answer[]>([])
+  const [hintOpen, setHintOpen] = useState(false)
+  /** Maslahat qaysi savolda ishlatilgan — bir savolga bir marta */
+  const [hintedOn, setHintedOn] = useState(-1)
   const finished = useRef(false)
 
   useEffect(() => {
@@ -98,10 +106,59 @@ const TopicTestScreen = () => {
   const question = test.questions[cursor]
   const isLast = cursor === total - 1
 
+  /** Maslahat: savol tartibi bo'yicha mos bo'limning nazariya eslatmasi */
+  const hintLesson = (() => {
+    const list = entry.lessons
+    if (list.length === 0) return null
+    const start = Math.min(list.length - 1, Math.floor((cursor * list.length) / total))
+    for (let step = 0; step < list.length; step++) {
+      const lesson = list[(start + step) % list.length]
+      if (lesson.theory.length > 0) return lesson
+    }
+    return null
+  })()
+
   const choose = (i: number) => {
     if (checked) return
     triggerHaptic('selection')
     setPicked(i)
+  }
+
+  /** Maslahat varaqasi — birinchi ochilishda bitta buyum sarflanadi */
+  const openHint = () => {
+    if (checked) return
+    if (hintedOn !== cursor) {
+      if (hints <= 0 || !consume('hint')) return
+      setHintedOn(cursor)
+    }
+    triggerHaptic('light')
+    setHintOpen(true)
+  }
+
+  /** O'tkazish — savol xato hisoblanmaydi, xato soniga ham qo'shilmaydi */
+  const skipCurrent = () => {
+    if (checked || skips <= 0 || !consume('skip')) return
+    triggerHaptic('medium')
+    setHintOpen(false)
+    const all: Answer[] = [
+      ...answers,
+      {
+        prompt: question.prompt,
+        picked: -1,
+        correct: question.correct,
+        options: question.options,
+        explain: question.explain,
+        ok: false,
+        skipped: true,
+      },
+    ]
+    if (isLast) {
+      finish(all)
+      return
+    }
+    setAnswers(all)
+    setCursor(c => Math.min(c + 1, total - 1))
+    setPicked(null)
   }
 
   const confirm = () => {
@@ -184,6 +241,43 @@ const TopicTestScreen = () => {
               />
             ))}
           </View>
+
+          {/* Yordamchilar: inventardagi maslahat va o'tkazish */}
+          {!checked && (
+            <View style={styles.aids}>
+              <Pressable
+                onPress={openHint}
+                disabled={hints <= 0}
+                accessibilityRole="button"
+                accessibilityLabel="Maslahat"
+                style={({ pressed }) => [
+                  styles.aid,
+                  hints <= 0 && styles.aidOff,
+                  pressed && hints > 0 && { opacity: 0.7 },
+                ]}
+              >
+                <Ionicons name="bulb-outline" size={14} color="#6B7C66" />
+                <Text style={styles.aidLabel}>Maslahat</Text>
+                <Text style={[styles.aidCount, NUM]}>{hints}</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={skipCurrent}
+                disabled={skips <= 0}
+                accessibilityRole="button"
+                accessibilityLabel="Savolni o'tkazish"
+                style={({ pressed }) => [
+                  styles.aid,
+                  skips <= 0 && styles.aidOff,
+                  pressed && skips > 0 && { opacity: 0.7 },
+                ]}
+              >
+                <Ionicons name="play-skip-forward-outline" size={13} color="#6B7C66" />
+                <Text style={styles.aidLabel}>O&apos;tkazish</Text>
+                <Text style={[styles.aidCount, NUM]}>{skips}</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -199,6 +293,29 @@ const TopicTestScreen = () => {
           onPress={checked ? next : confirm}
         />
       </SolveActionBar>
+
+      <Sheet
+        open={hintOpen}
+        onClose={() => setHintOpen(false)}
+        title="MASLAHAT"
+        subtitle={hintLesson ? `Eslatma: ${hintLesson.title}` : 'Mavzu bo\'yicha eslatma'}
+      >
+        {hintLesson ? (
+          <>
+            {hintLesson.theory.slice(0, 3).map((t, i) => (
+              <View key={i} style={styles.hintBlock}>
+                <Text style={styles.hintKind}>{t.kind}</Text>
+                <Text style={styles.hintText}>{t.text}</Text>
+              </View>
+            ))}
+            <Text style={styles.hintNote}>
+              Eslatma yo&apos;l ko&apos;rsatadi — to&apos;g&apos;ri javobni o&apos;zingiz tanlaysiz.
+            </Text>
+          </>
+        ) : (
+          <Text style={styles.hintText}>Bu mavzuda matnli eslatma yo&apos;q.</Text>
+        )}
+      </Sheet>
     </View>
   )
 }
@@ -219,6 +336,21 @@ const styles = StyleSheet.create({
 
   stage: { paddingHorizontal: 16, marginTop: 14 },
   options: { marginTop: 16, gap: 10 },
+
+  aids: { marginTop: 14, flexDirection: 'row', gap: 8 },
+  aid: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    height: 34, paddingHorizontal: 12, borderRadius: 11,
+    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1E7DA',
+  },
+  aidOff: { opacity: 0.4 },
+  aidLabel: { fontSize: 12, fontWeight: '600', color: '#3B4A36' },
+  aidCount: { fontSize: 11, fontWeight: '600', color: '#9AA995' },
+
+  hintBlock: { marginTop: 12, backgroundColor: '#F7F9F6', borderRadius: 12, padding: 12 },
+  hintKind: { fontSize: 9.5, fontWeight: '600', letterSpacing: 1.2, color: '#6B7C66', marginBottom: 6 },
+  hintText: { fontSize: 13, lineHeight: 19, color: '#26331F' },
+  hintNote: { marginTop: 14, fontSize: 11, lineHeight: 16, color: '#9AA995' },
 })
 
 export default TopicTestScreen

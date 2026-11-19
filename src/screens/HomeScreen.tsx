@@ -23,11 +23,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { CoinIcon } from '../components/CoinIcon'
 import { DAILY_BONUS, WEEK_LABELS, currentWeekKeys, leagueRank } from '../data/content'
-import { todayKey } from '../lib/daily'
+import { difficultyLabel, sourceLabel, todayKey } from '../lib/daily'
 import { SUBJECTS } from '../data/subjects'
 import { BALANCE_LEVELS } from '../data/games'
 import { PROBLEM_SUBJECTS, levelsOf } from '../data/problems'
-import { difficultyLabel, sourceLabel } from '../lib/daily'
 import { useDailyQuestion } from '../lib/useDailyQuestion'
 import { setCoinTarget } from '../lib/coinTarget'
 import { triggerHaptic } from '../lib/haptics'
@@ -250,6 +249,8 @@ const HomeScreen = () => {
   /** Kunlik masala faqat kamida bitta mavzu ochilgandan keyin chiqadi */
   const hasStudied = dailyPlan.studied.length > 0
   const dailyDone = daily ? daily.picked !== null : false
+  /** Yechilgani — javob to'g'ri bo'lsa; xato ham qulflangan, lekin «yechildi» emas */
+  const dailyOk = daily ? daily.picked === daily.correct : false
   const dailyClaimed = dailyBonusOn === todayKey()
 
   /* ── Zanjir bonusi ── */
@@ -568,16 +569,22 @@ const HomeScreen = () => {
             {dailyDone ? (
             <Pressable
               onPress={openDaily}
-              accessibilityLabel="Bugungi masala yechildi"
+              accessibilityLabel={dailyOk ? 'Bugungi masala yechildi' : 'Bugungi masala xato yakunlandi'}
               style={({ pressed }) => [styles.dailyDone, pressed && { opacity: 0.9 }]}
             >
-              <View style={styles.doneIcon}>
-                <MCI name="check-decagram" size={18} color={C.brand} />
+              <View style={[styles.doneIcon, !dailyOk && styles.doneIconWrong]}>
+                <MCI
+                  name={dailyOk ? 'check-decagram' : 'close-circle'}
+                  size={18}
+                  color={dailyOk ? C.brand : '#B87A22'}
+                />
               </View>
               <View style={styles.doneText}>
-                <Text style={styles.doneTitle}>Bugungi masala yechildi</Text>
+                <Text style={[styles.doneTitle, !dailyOk && styles.doneTitleWrong]}>
+                  {dailyOk ? 'Bugungi masala yechildi' : 'Bu safar xato'}
+                </Text>
                 <Text style={[styles.doneSub, NUM]}>
-                  {dailyClaimed
+                  {dailyOk && dailyClaimed
                     ? `+${DAILY_BONUS.coin} tanga · +${DAILY_BONUS.xp} XP`
                     : 'Javob berildi · ertaga yangi masala'}
                 </Text>
@@ -1088,8 +1095,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.leafTint,
   },
+  doneIconWrong: { backgroundColor: '#FCF1DC' },
   doneText: { flex: 1 },
   doneTitle: { fontSize: 13.5, letterSpacing: -0.2, fontWeight: '600', color: C.ink },
+  doneTitleWrong: { color: '#B87A22' },
   doneSub: { marginTop: 1, fontSize: 10.5, fontWeight: '500', color: C.ink3 },
   doneClock: { fontSize: 10, fontWeight: '600', color: C.ink4 },
 
