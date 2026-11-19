@@ -418,7 +418,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3F5EF',
+    backgroundColor: C.surface2,
     borderColor: C.line,
     borderWidth: 1,
   },
@@ -459,7 +459,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     ...shadow(C.limeDeep, 7, 4, 0.28),
   },
   actionFaceOff: {
-    backgroundColor: '#EAEEE3',
+    backgroundColor: C.surface2,
     borderColor: '#DFE5D8',
     borderWidth: 1,
     shadowOpacity: 0,

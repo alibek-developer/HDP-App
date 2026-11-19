@@ -275,7 +275,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     height: 54,
     paddingHorizontal: 16,
     borderRadius: 16,
-    backgroundColor: '#F8FBF3',
+    backgroundColor: C.surface2,
     borderWidth: 1,
     borderColor: '#E6EEDF',
   },

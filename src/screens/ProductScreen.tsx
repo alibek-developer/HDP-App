@@ -554,7 +554,7 @@ const ProductScreen = () => {
                 style={i === all.length - 1 ? styles.revCardLast : styles.revCard}
               >
                 <View style={styles.revTop}>
-                  <View style={[styles.avatar, { backgroundColor: r.own ? C.ink : '#EDF3E7' }]}>
+                  <View style={[styles.avatar, { backgroundColor: r.own ? C.ink : C.surface2 }]}>
                     <Text style={[styles.avatarText, { color: r.own ? C.limeBright : '#33501F' }]}>
                       {r.name.slice(0, 1)}
                     </Text>
@@ -879,7 +879,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 100,
-    backgroundColor: '#F1F4F0',
+    backgroundColor: C.surface2,
     overflow: 'hidden',
   },
   sendText: { fontSize: 13, fontWeight: '600' },
@@ -891,7 +891,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 0,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F4EF',
+    borderBottomColor: C.line,
   },
   revCardLast: { paddingVertical: 14, paddingHorizontal: 0 },
   revTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -959,7 +959,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   orderBtnLime: { backgroundColor: C.lime },
   orderBtnInk: { backgroundColor: C.brandDeep },
   orderBtnQueue: { backgroundColor: C.brandDeep },
-  orderBtnQueueOn: { backgroundColor: '#E9EEE8' },
+  orderBtnQueueOn: { backgroundColor: C.surface2 },
   orderBtnText: { fontSize: 13.5, fontWeight: '600' },
   orderNote: { marginTop: 8, textAlign: 'center', fontSize: 12, fontWeight: '500', color: C.ink3 },
 
@@ -967,7 +967,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   confirmWho: { flex: 1, minWidth: 0 },
   confirmTitle: { fontSize: 15, fontWeight: '600', color: C.ink },
   confirmSub: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: C.ink3 },
-  confirmRows: { marginTop: 16, backgroundColor: '#F7F9F6', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14 },
+  confirmRows: { marginTop: 16, backgroundColor: C.surface2, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14 },
   confirmRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -985,7 +985,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 100,
-    backgroundColor: '#F1F4F0',
+    backgroundColor: C.surface2,
     flexDirection: 'row',
   },
   confirmIcon: { marginRight: 4 },
@@ -1021,7 +1021,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 100,
-    backgroundColor: '#F1F4F0',
+    backgroundColor: C.surface2,
   },
   doneShopText: { fontSize: 13, fontWeight: '600', color: C.ink },
   doneProfile: {

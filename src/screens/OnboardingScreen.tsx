@@ -139,7 +139,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     height: 2,
     borderRadius: 1,
     marginTop: 17,
-    backgroundColor: '#E3EEDB',
+    backgroundColor: C.leafTint,
   },
   chainNode: {
     width: 36,
@@ -149,7 +149,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F2F8EA',
     borderWidth: 1,
-    borderColor: '#E3EEDB',
+    borderColor: C.leafTint,
   },
   chainNodeOn: {
     backgroundColor: C.limeBright,

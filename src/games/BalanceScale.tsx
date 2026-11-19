@@ -348,7 +348,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   plate: {
     minWidth: 27, height: 27, paddingHorizontal: 5, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: C.surface, borderWidth: 1, borderColor: '#DDE4D6',
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.line,
     ...shadow('#000', 4, 2, 0.08),
   },
   plateText: { fontSize: 10.5, lineHeight: 14, fontWeight: '600', color: C.inkOnLime },

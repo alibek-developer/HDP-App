@@ -605,7 +605,7 @@ const ProfileScreen = () => {
       </ScrollView>
 
       {/* Status bar zonasi — kontent shu chegara ostidan o'tadi */}
-      <TopScrim height={insets.top} colors={[C.surface2, C.surface2]} line="rgba(14,26,18,0.05)" />
+      <TopScrim height={insets.top} colors={[C.surface2, C.surface2]} line={C.line} />
 
       {/* ── Varaqa: profilni tahrirlash ── */}
       <Sheet open={editOpen} onClose={() => setEditOpen(false)} title="Profilni tahrirlash">
@@ -699,7 +699,7 @@ const ProfileScreen = () => {
               <Text style={p.themeLabel}>{pushBusy ? 'Yuborilmoqda…' : 'Test bildirishnomasi'}</Text>
               {!!pushMsg && <Text style={p.pushMsg}>{pushMsg}</Text>}
             </View>
-            <MCI name="chevron-right" size={18} color="#C9D3C4" />
+            <MCI name="chevron-right" size={18} color={C.ink4} />
           </Pressable>
         </View>
 
@@ -886,9 +886,9 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
   },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatarWrap: {
-    width: 68, height: 68, borderRadius: 100, backgroundColor: '#EAF4E2',
+    width: 68, height: 68, borderRadius: 100, backgroundColor: C.leafTint,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: '#DCEDCE',
+    borderWidth: 1, borderColor: C.line,
     ...shadow(C.brand, 10, 3, 0.12),
   },
   avatarInner: { width: 60, height: 60, borderRadius: 100, overflow: 'hidden' },
@@ -1004,7 +1004,7 @@ const makeP = (C: ThemeColors) => StyleSheet.create({
   xLabelToday: { color: C.ink, fontWeight: '600' },
 
   legend: {
-    marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#EEF2EA',
+    marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.line,
     flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   legendDot: { width: 8, height: 8, borderRadius: 100, backgroundColor: C.brand },

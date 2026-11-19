@@ -423,7 +423,7 @@ const makeSt = (C: ThemeColors) => StyleSheet.create({
   groupHint: { fontSize: 10.5, fontWeight: '500', color: C.ink3 },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
-  rowLine: { borderBottomWidth: 1, borderBottomColor: '#F1F4EF' },
+  rowLine: { borderBottomWidth: 1, borderBottomColor: C.line },
   tile: {
     width: 24, alignItems: 'center', justifyContent: 'center',
   },
@@ -473,7 +473,7 @@ const makeSt = (C: ThemeColors) => StyleSheet.create({
 
   receiptTitle: { fontSize: 19, fontWeight: '600', color: C.ink },
   receiptDesc: { marginTop: 4, fontSize: 12.5, color: C.ink3, lineHeight: 18 },
-  receiptBox: { marginTop: 16, backgroundColor: '#F7F9F6', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
+  receiptBox: { marginTop: 16, backgroundColor: C.surface2, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
   receiptLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   receiptLineTop: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.line },
   receiptLabel: { fontSize: 12, fontWeight: '600', color: C.ink3 },
@@ -482,7 +482,7 @@ const makeSt = (C: ThemeColors) => StyleSheet.create({
   receiptLeft: { fontSize: 13, fontWeight: '600', color: C.ink },
   receiptActions: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   cancelBtn: {
-    flex: 1, height: 50, borderRadius: 100, backgroundColor: '#F1F4F0',
+    flex: 1, height: 50, borderRadius: 100, backgroundColor: C.surface2,
     alignItems: 'center', justifyContent: 'center',
   },
   cancelText: { fontSize: 13, fontWeight: '600', color: C.ink3 },

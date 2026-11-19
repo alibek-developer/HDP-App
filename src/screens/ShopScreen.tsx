@@ -35,7 +35,6 @@ type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<RootStackParamList>
 >
 
-const AMBER_INK = '#854D0E'
 
 type Filter = 'all' | ProductCat | 'fav'
 type Sort = 'yangi' | 'arzon' | 'qimmat'
@@ -231,7 +230,7 @@ const ShopScreen = () => {
         onPress={() => { triggerHaptic('selection'); setFilter(key) }}
         style={({ pressed }) => [styles.chip, on ? styles.chipOn : styles.chipOff, pressed && { opacity: 0.85 }]}
       >
-        <MCI name={icon} size={14} color={on ? C.limeBright : '#8B9985'} />
+        <MCI name={icon} size={14} color={on ? C.limeBright : C.ink4} />
         <Text style={[styles.chipText, on ? styles.chipTextOn : styles.chipTextOff]}>{label}</Text>
         {count > 0 && (
           <Text style={[styles.chipCount, NUM, on ? styles.chipCountOn : styles.chipCountOff]}>
@@ -275,7 +274,7 @@ const ShopScreen = () => {
             <Text numberOfLines={1} style={styles.cardTitle}>{p.title}</Text>
             <View style={styles.cardFoot}>
               <View style={styles.priceRow}>
-                <MCI name="cash" size={11} color={ready ? C.brand : '#B87A22'} />
+                <MCI name="cash" size={11} color={ready ? C.brand : C.coin} />
                 <Text style={[styles.priceText, NUM, ready ? styles.priceReady : styles.priceIdle]}>
                   {num(p.price)}
                 </Text>
@@ -334,7 +333,7 @@ const ShopScreen = () => {
           <View style={styles.balanceMain}>
             <View style={styles.balanceValueRow}>
               <Reveal key={String(coin)} y={6} duration={300} style={styles.balanceValueInner}>
-                <MCI name="cash" size={19} color="#B87A22" />
+                <MCI name="cash" size={19} color={C.coin} />
                 <Text style={[styles.balanceValue, NUM]}>{num(coin)}</Text>
                 <Text style={styles.balanceUnit}>coin</Text>
               </Reveal>
@@ -369,7 +368,7 @@ const ShopScreen = () => {
 
       {/* Qidiruv — to'ldirilgan yuza, chegara yo'q */}
       <View style={styles.searchBox}>
-        <MCI name="magnify" size={17} color="#8C9A87" />
+        <MCI name="magnify" size={17} color={C.ink3} />
         <TextInput
           value={query}
           onChangeText={setQuery}
@@ -385,7 +384,7 @@ const ShopScreen = () => {
             accessibilityLabel="Tozalash"
             style={({ pressed }) => [pressed && { opacity: 0.6 }]}
           >
-            <MCI name="close" size={16} color="#8C9A87" />
+            <MCI name="close" size={16} color={C.ink3} />
           </Pressable>
         )}
       </View>
@@ -564,7 +563,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 0.8,
     fontWeight: '600',
-    color: '#8A6520',
+    color: C.coin,
     textTransform: 'uppercase',
   },
   balanceEta: { fontSize: 11.5, fontWeight: '700', color: C.brand },
@@ -585,7 +584,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   nextImg: { width: 46, height: 46, borderRadius: 11, backgroundColor: C.surface2 },
   nextText: { flex: 1, minWidth: 0 },
   nextTitle: { fontSize: 12, lineHeight: 15, fontWeight: '600', color: C.ink },
-  nextPrice: { marginTop: 2, fontSize: 11, fontWeight: '600', color: AMBER_INK },
+  nextPrice: { marginTop: 2, fontSize: 11, fontWeight: '600', color: C.coin },
 
   searchBox: {
     marginTop: 18,
@@ -612,10 +611,10 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   chipOn: { backgroundColor: C.brandDeep },
   chipText: { fontSize: 12.5, fontWeight: '600' },
   chipTextOn: { color: '#FFFFFF' },
-  chipTextOff: { color: '#4C5C46' },
+  chipTextOff: { color: C.ink3 },
   chipCount: { fontSize: 11, fontWeight: '600' },
   chipCountOn: { color: 'rgba(255,255,255,0.62)' },
-  chipCountOff: { color: '#95A38F' },
+  chipCountOff: { color: C.ink4 },
 
   resultRow: {
     marginTop: 16,
@@ -660,7 +659,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   priceText: { fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 },
   priceReady: { color: C.brand },
-  priceIdle: { color: AMBER_INK },
+  priceIdle: { color: C.coin },
   footNote: { fontSize: 10.5, fontWeight: '500', color: C.ink4 },
   footReady: { color: C.brand, fontWeight: '700' },
 
@@ -681,7 +680,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   histEmpty: { fontSize: 13, lineHeight: 20, fontWeight: '500', color: C.ink3 },
   histHead: { marginTop: 4, marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   histCount: { fontSize: 12.5, fontWeight: '500', color: C.ink3 },
-  histSpent: { fontSize: 12.5, fontWeight: '600', color: AMBER_INK },
+  histSpent: { fontSize: 12.5, fontWeight: '600', color: C.coin },
   histRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -692,7 +691,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   histMid: { flex: 1, minWidth: 0 },
   histTitle: { fontSize: 13.5, fontWeight: '600', color: C.ink },
   histNote: { fontSize: 12, fontWeight: '500', color: C.ink3 },
-  histPrice: { fontSize: 13, fontWeight: '600', color: AMBER_INK },
+  histPrice: { fontSize: 13, fontWeight: '600', color: C.coin },
   histFoot: { marginTop: 12, fontSize: 11.5, lineHeight: 17, color: C.ink3 },
 })
 

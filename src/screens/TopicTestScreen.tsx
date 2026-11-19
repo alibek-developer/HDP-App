@@ -330,7 +330,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   content: { paddingBottom: 24 },
 
   gate: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
-  gateIcon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBFCF8', borderWidth: 1, borderColor: C.line, borderRadius: 16 },
+  gateIcon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', backgroundColor: C.surface2, borderWidth: 1, borderColor: C.line, borderRadius: 16 },
   gateTitle: { fontSize: 16, fontWeight: '600', color: C.ink, textAlign: 'center' },
   gateSub: { fontSize: 12.5, lineHeight: 19, textAlign: 'center', fontWeight: '500', color: C.ink3 },
   gateBtn: { marginTop: 8, height: 46, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
@@ -351,7 +351,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   aidLabel: { fontSize: 12, fontWeight: '600', color: '#3B4A36' },
   aidCount: { fontSize: 11, fontWeight: '600', color: C.ink4 },
 
-  hintBlock: { marginTop: 12, backgroundColor: '#F7F9F6', borderRadius: 12, padding: 12 },
+  hintBlock: { marginTop: 12, backgroundColor: C.surface2, borderRadius: 12, padding: 12 },
   hintKind: { fontSize: 9.5, fontWeight: '600', letterSpacing: 1.2, color: C.ink3, marginBottom: 6 },
   hintText: { fontSize: 13, lineHeight: 19, color: '#26331F' },
   hintNote: { marginTop: 14, fontSize: 11, lineHeight: 16, color: C.ink4 },

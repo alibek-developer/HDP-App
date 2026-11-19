@@ -293,7 +293,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EDF7DE',
+    backgroundColor: C.leafTint,
     borderColor: C.line,
     borderWidth: 1,
     borderRadius: 16,

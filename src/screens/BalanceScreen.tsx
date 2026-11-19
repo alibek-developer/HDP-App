@@ -618,7 +618,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: '#DDE4D6',
+    borderColor: C.line,
     ...shadow('#000', 5, 2, 0.08),
   },
   chipGone: { backgroundColor: C.surface2, borderStyle: 'dashed', shadowOpacity: 0, elevation: 0 },

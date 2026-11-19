@@ -326,7 +326,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     width: 40,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#E6EAE2',
+    backgroundColor: C.line,
     alignSelf: 'center',
     marginBottom: 2,
   },

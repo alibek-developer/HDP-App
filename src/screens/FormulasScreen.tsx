@@ -246,7 +246,7 @@ const FormulasScreen = () => {
                     style={({ pressed }) => [
                       styles.row,
                       i > 0 && styles.rowBorder,
-                      pressed && { backgroundColor: '#FBFCF8' },
+                      pressed && { backgroundColor: C.surface2 },
                     ]}
                   >
                     <View style={[styles.rowRail, { backgroundColor: group.rail }]} />
@@ -414,7 +414,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#FBFCF8',
+    backgroundColor: C.surface2,
     borderWidth: 1,
     borderColor: C.line,
     borderRadius: 10,
@@ -427,7 +427,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EDF7DE',
+    backgroundColor: C.leafTint,
     borderWidth: 1,
     borderColor: C.line,
     borderRadius: 16,
