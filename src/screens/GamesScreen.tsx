@@ -8,7 +8,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
-import { BALANCE_LEVELS, GAME_CATALOG } from '../data/games'
+import { GAME_CATALOG, GAME_STARS_TOTAL, starsOf } from '../data/games'
 import type { GameMarkKey } from '../data/games'
 import { triggerHaptic } from '../lib/haptics'
 import { navBottomSpace } from '../components/BottomNav'
@@ -30,7 +30,7 @@ const MARKS: Record<GameMarkKey, ComponentType<{ size?: number; color?: string }
   fight: FightersMark,
 }
 
-/** Tayyor bo'lmagan o'yinlarning ohangi — yumshoq fon, to'yingan belgi */
+/** Har o'yin belgisi o'z rangida — kartalar bir xil, ikonka jihatidan farqlanadi */
 const TINT: Record<GameMarkKey, { bg: string; fg: string }> = {
   scale: { bg: C.leafSoft, fg: C.limeDeep },
   memory: { bg: C.violetSoft, fg: C.violet },
@@ -39,8 +39,8 @@ const TINT: Record<GameMarkKey, { bg: string; fg: string }> = {
 }
 
 /**
- * O'yinlar — pastki navigatsiyaning o'z tab'i. Barcha mini-o'yinlar bitta
- * navbatda: tayyori darhol ochiladi, qolganlari «Tez orada» belgisi bilan.
+ * O'yinlar — pastki navigatsiyaning o'z tab'i. To'rttala o'yin ham tayyor:
+ * 2×2 to'r, har kartada darajalar bo'yicha yig'ilgan yulduzlar.
  */
 const GamesScreen = () => {
   const navigation = useNavigation<Nav>()
@@ -49,13 +49,8 @@ const GamesScreen = () => {
   const gamePlays = useApp(s => s.gamePlays)
   const xp = useApp(s => s.xp)
 
-  const levels = BALANCE_LEVELS.length
-  const earned = BALANCE_LEVELS.reduce((n, lvl) => n + (gameStars[`balance:${lvl.id}`] ?? 0), 0)
-  const total = levels * 3
-  const plays = gamePlays.balance ?? 0
-
-  const ready = GAME_CATALOG.filter(g => g.route)
-  const soon = GAME_CATALOG.filter(g => !g.route)
+  const earned = GAME_CATALOG.reduce((n, g) => n + starsOf(gameStars, g.id, g.levels), 0)
+  const rows = [GAME_CATALOG.slice(0, 2), GAME_CATALOG.slice(2, 4)]
 
   return (
     <View style={styles.screen}>
@@ -74,7 +69,7 @@ const GamesScreen = () => {
 
           <View style={styles.starPill}>
             <Ionicons name="star" size={12} color={C.coin} />
-            <Text style={[styles.starText, NUM]}>{earned}/{total}</Text>
+            <Text style={[styles.starText, NUM]}>{earned}/{GAME_STARS_TOTAL}</Text>
           </View>
         </View>
       </View>
@@ -84,80 +79,60 @@ const GamesScreen = () => {
           Qisqa sessiyalar: tanga, XP va yulduzlar progressga qo&apos;shiladi.
         </Text>
 
-        <Reveal delay={60} y={20} duration={380}>
-          {ready.map(g => {
-            const Mark = MARKS[g.mark]
-            return (
-              <Pressable
-                key={g.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${g.title} o'yinini ochish`}
-                onPress={() => {
-                  triggerHaptic('medium')
-                  if (g.route) navigation.navigate(g.route)
-                }}
-                style={({ pressed }) => [styles.heroWrap, pressed && { transform: [{ scale: 0.99 }] }]}
-              >
-                <LinearGradient
-                  colors={['#14452A', '#0B2317']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.hero}
-                >
-                  <View style={styles.heroTop}>
-                    <View style={styles.heroIcon}>
-                      <Mark size={24} color={C.inkOnLime} />
-                    </View>
-                    <View style={styles.heroText}>
-                      <Text style={styles.heroTitle}>{g.title}</Text>
-                      <Text style={styles.heroSub} numberOfLines={1}>{g.sub}</Text>
-                    </View>
-                    <View style={styles.heroGo}>
-                      <Ionicons name="arrow-forward" size={15} color={C.inkOnLime} />
-                    </View>
-                  </View>
+        <Reveal delay={60} y={20} duration={380} style={styles.grid}>
+          {rows.map((row, ri) => (
+            <View key={ri} style={styles.row}>
+              {row.map(g => {
+                const Mark = MARKS[g.mark]
+                const tint = TINT[g.mark]
+                const gStars = starsOf(gameStars, g.id, g.levels)
+                const gTotal = g.levels.length * 3
+                const gPlays = gamePlays[g.id] ?? 0
+                return (
+                  <Pressable
+                    key={g.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${g.title} o'yinini ochish`}
+                    onPress={() => {
+                      triggerHaptic('medium')
+                      navigation.navigate(g.route)
+                    }}
+                    style={({ pressed }) => [{ flex: 1 }, pressed && { transform: [{ scale: 0.98 }] }]}
+                  >
+                    <LinearGradient
+                      colors={['#17301F', '#0B1A12']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.card}
+                    >
+                      <View style={styles.cardTop}>
+                        <View style={[styles.cardIcon, { backgroundColor: tint.bg }]}>
+                          <Mark size={19} color={tint.fg} />
+                        </View>
+                        <View style={styles.cardGo}>
+                          <Ionicons name="arrow-forward" size={12} color={C.inkOnLime} />
+                        </View>
+                      </View>
 
-                  <View style={styles.heroFoot}>
-                    <View style={styles.heroMeta}>
-                      <Ionicons name="layers-outline" size={13} color="rgba(205,233,174,0.7)" />
-                      <Text style={styles.heroMetaText}>{levels} daraja</Text>
-                    </View>
-                    <View style={styles.heroDot} />
-                    <View style={styles.heroMeta}>
-                      <Ionicons name="play-circle-outline" size={13} color="rgba(205,233,174,0.7)" />
-                      <Text style={[styles.heroMetaText, NUM]}>
-                        {plays > 0 ? `${plays} ta urinish` : "Hali o'ynalmagan"}
-                      </Text>
-                    </View>
-                  </View>
-                </LinearGradient>
-              </Pressable>
-            )
-          })}
+                      <Text style={styles.cardTitle} numberOfLines={1}>{g.title}</Text>
+                      <Text style={styles.cardSub} numberOfLines={2}>{g.sub}</Text>
+
+                      <View style={styles.cardFoot}>
+                        <View style={styles.cardStars}>
+                          <Ionicons name="star" size={11} color={C.coin} />
+                          <Text style={[styles.cardStarText, NUM]}>{gStars}/{gTotal}</Text>
+                        </View>
+                        <Text style={[styles.cardPlays, NUM]}>
+                          {gPlays > 0 ? `${gPlays} ta urinish` : 'yangi'}
+                        </Text>
+                      </View>
+                    </LinearGradient>
+                  </Pressable>
+                )
+              })}
+            </View>
+          ))}
         </Reveal>
-
-        <Reveal delay={120} y={24} duration={400} style={styles.soonList}>
-          {soon.map(g => {
-            const Mark = MARKS[g.mark]
-            const tint = TINT[g.mark]
-            return (
-              <View key={g.id} style={[styles.soon, shadow(C.ink, 6, 2, 0.04)]}>
-                <View style={[styles.soonIcon, { backgroundColor: tint.bg }]}>
-                  <Mark size={19} color={tint.fg} />
-                </View>
-                <View style={styles.soonText}>
-                  <Text style={styles.soonTitle}>{g.title}</Text>
-                  <Text style={styles.soonSub} numberOfLines={1}>{g.sub}</Text>
-                </View>
-                <View style={styles.soonChip}>
-                  <Text style={styles.soonChipText}>Tez orada</Text>
-                </View>
-              </View>
-            )
-          })}
-        </Reveal>
-
-        <Text style={styles.note}>Yangi o&apos;yinlar bosqichma-bosqich ochiladi.</Text>
       </View>
     </View>
   )
@@ -211,76 +186,47 @@ const styles = StyleSheet.create({
   body: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
   lede: { fontSize: 12.5, lineHeight: 18, fontWeight: '500', color: C.ink3, marginBottom: 10 },
 
-  heroWrap: {
+  grid: { gap: 10 },
+  row: { flexDirection: 'row', gap: 10 },
+  card: {
+    height: 158,
+    padding: 12,
     borderRadius: 18,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(11,110,79,0.22)',
-    ...shadow('#0B2317', 12, 6, 0.18),
+    overflow: 'hidden',
+    ...shadow('#0B2317', 12, 6, 0.16),
   },
-  hero: { padding: 13 },
-  heroTop: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  heroIcon: {
-    width: 44,
-    height: 44,
+  cardTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  cardIcon: {
+    width: 38,
+    height: 38,
     borderRadius: R.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: C.lime,
   },
-  heroText: { flex: 1, minWidth: 0 },
-  heroTitle: { fontSize: 17.5, lineHeight: 21, letterSpacing: -0.2, fontWeight: '600', color: '#FFFFFF' },
-  heroSub: { marginTop: 3, fontSize: 11.5, lineHeight: 15, fontWeight: '500', color: 'rgba(220,240,205,0.78)' },
-  heroGo: {
-    width: 30,
-    height: 30,
+  cardGo: {
+    width: 24,
+    height: 24,
     borderRadius: R.full,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: C.lime,
   },
-  heroFoot: {
-    marginTop: 10,
-    paddingTop: 9,
+  cardTitle: { marginTop: 9, fontSize: 15, lineHeight: 19, letterSpacing: -0.2, fontWeight: '600', color: '#FFFFFF' },
+  cardSub: { marginTop: 3, fontSize: 10.5, lineHeight: 14, fontWeight: '500', color: 'rgba(220,240,205,0.74)' },
+  cardFoot: {
+    marginTop: 'auto',
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.10)',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'space-between',
   },
-  heroMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  heroMetaText: { fontSize: 11, fontWeight: '600', color: 'rgba(205,233,174,0.74)' },
-  heroDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.24)' },
-
-  soonList: { marginTop: 10, gap: 8 },
-  soon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: C.line,
-  },
-  soonIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  soonText: { flex: 1, minWidth: 0 },
-  soonTitle: { fontSize: 14, lineHeight: 18, fontWeight: '600', color: C.ink },
-  soonSub: { marginTop: 2, fontSize: 11, lineHeight: 15, fontWeight: '500', color: C.ink3 },
-  soonChip: {
-    height: 22,
-    paddingHorizontal: 8,
-    borderRadius: R.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: C.surface2,
-    borderWidth: 1,
-    borderColor: C.line,
-  },
-  soonChipText: { fontSize: 10.5, fontWeight: '600', color: C.ink4 },
-
-  note: { marginTop: 'auto', paddingTop: 10, textAlign: 'center', fontSize: 11, color: C.ink4 },
+  cardStars: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cardStarText: { fontSize: 11, fontWeight: '600', color: 'rgba(205,233,174,0.9)' },
+  cardPlays: { fontSize: 10, fontWeight: '500', color: 'rgba(205,233,174,0.55)' },
 })
 
 export default GamesScreen

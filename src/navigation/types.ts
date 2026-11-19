@@ -66,6 +66,12 @@ export type RootStackParamList = {
   Blitz: undefined
   /** Muvozanat — tarozi mini-o'yini */
   Balance: undefined
+  /** Sonlar xotirasi — juft kartalar */
+  Memory: undefined
+  /** Sonlar chizig'i — nishonni relsda topish */
+  NumberLine: undefined
+  /** Raqam jangchilari — qalqon sonini urish */
+  Fighters: undefined
 }
 
 /** Parametr talab qilmaydigan yo'lar — `navigate(route)` uchun xavfli variant */

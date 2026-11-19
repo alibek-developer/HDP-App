@@ -22,6 +22,9 @@ import ProductScreen from './src/screens/ProductScreen'
 import ProScreen from './src/screens/ProScreen'
 import BlitzScreen from './src/screens/BlitzScreen'
 import BalanceScreen from './src/screens/BalanceScreen'
+import MemoryScreen from './src/screens/MemoryScreen'
+import NumberLineScreen from './src/screens/NumberLineScreen'
+import FightersScreen from './src/screens/FightersScreen'
 import ProblemSetScreen from './src/screens/ProblemSetScreen'
 import SubjectLevelsScreen from './src/screens/SubjectLevelsScreen'
 import DailyScreen from './src/screens/DailyScreen'
@@ -150,6 +153,9 @@ const App = () => {
           <Stack.Screen name="Pro" component={ProScreen} />
           <Stack.Screen name="Blitz" component={BlitzScreen} />
           <Stack.Screen name="Balance" component={BalanceScreen} />
+          <Stack.Screen name="Memory" component={MemoryScreen} />
+          <Stack.Screen name="NumberLine" component={NumberLineScreen} />
+          <Stack.Screen name="Fighters" component={FightersScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StreakBonusSheet />
