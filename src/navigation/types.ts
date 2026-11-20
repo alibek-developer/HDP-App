@@ -63,6 +63,8 @@ export type RootStackParamList = {
   Formulas: undefined
   Pro: { reason?: string; setId?: string } | undefined
   Product: { id: string }
+  /** Do'kondagi buyurtmalar tarixi */
+  Orders: undefined
   Blitz: undefined
   /** Muvozanat — tarozi mini-o'yini */
   Balance: undefined

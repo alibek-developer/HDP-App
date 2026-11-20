@@ -858,6 +858,7 @@ export const useApp = create<AppState>()(
         const day = todayKey()
         if (s.streakBonusClaimed === day) return
         const bonus = Math.min(s.streak, 10) * 5 // max 50 coin (10 streak)
+        if (bonus <= 0) return
         set({ coin: s.coin + bonus, streakBonusClaimed: day })
       },
 

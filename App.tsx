@@ -19,6 +19,7 @@ import TopicScreen from './src/screens/TopicScreen'
 import TopicLessonScreen from './src/screens/TopicLessonScreen'
 import TopicTestScreen from './src/screens/TopicTestScreen'
 import ProductScreen from './src/screens/ProductScreen'
+import OrdersScreen from './src/screens/OrdersScreen'
 import ProScreen from './src/screens/ProScreen'
 import BlitzScreen from './src/screens/BlitzScreen'
 import BalanceScreen from './src/screens/BalanceScreen'
@@ -154,6 +155,7 @@ const App = () => {
           <Stack.Screen name="TopicLesson" component={TopicLessonScreen} />
           <Stack.Screen name="TopicTest" component={TopicTestScreen} />
           <Stack.Screen name="Product" component={ProductScreen} />
+          <Stack.Screen name="Orders" component={OrdersScreen} />
           <Stack.Screen name="Pro" component={ProScreen} />
           <Stack.Screen name="Blitz" component={BlitzScreen} />
           <Stack.Screen name="Balance" component={BalanceScreen} />

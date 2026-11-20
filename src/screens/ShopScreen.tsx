@@ -57,12 +57,6 @@ const CAT_ICON: Record<ProductCat, keyof typeof MCI.glyphMap> = {
 
 const num = (n: number) => n.toLocaleString('en-US')
 
-const fmtDate = (iso: string) => {
-  const d = new Date(iso)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${p(d.getDate())}.${p(d.getMonth() + 1)}`
-}
-
 /* ── ProductArt — rasm, rasm yo'q bo'lsa janr gradienti + belgi ── */
 
 const ART_GLYPH: Record<string, keyof typeof MCI.glyphMap> = {
@@ -178,7 +172,6 @@ const ShopScreen = () => {
   const deferredQuery = useDeferredValue(query)
   const [sort, setSort] = useState<Sort>('yangi')
   const [sortOpen, setSortOpen] = useState(false)
-  const [historyOpen, setHistoryOpen] = useState(false)
 
   const coin = useApp(s => s.coin)
   const favs = useApp(s => s.favs)
@@ -205,7 +198,6 @@ const ShopScreen = () => {
   }, [filter, favs, deferredQuery, sort])
 
   const goal = goalId ? PRODUCTS.find(p => p.id === goalId) ?? null : null
-  const spent = orders.reduce((n, o) => n + o.price, 0)
 
   /** Keyingi sovg'a — balans satri shu sariq chiziq bilan shu yerga qarab yuradi */
   const nextReward = useMemo(() => {
@@ -307,7 +299,7 @@ const ShopScreen = () => {
           <Text style={styles.h1Sub}>Coin yig&apos;ing — sovg&apos;aga almashtiring</Text>
         </View>
         <Pressable
-          onPress={() => { triggerHaptic('selection'); setHistoryOpen(true) }}
+          onPress={() => { triggerHaptic('selection'); navigation.navigate('Orders') }}
           accessibilityLabel="Buyurtmalar tarixi"
           hitSlop={10}
           style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.5 }]}
@@ -506,33 +498,6 @@ const ShopScreen = () => {
         </View>
       </Sheet>
 
-      {/* ── Buyurtmalar tarixi ── */}
-      <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title="Buyurtmalar">
-        {orders.length === 0 ? (
-          <Text style={styles.histEmpty}>
-            Hali birorta sovg&apos;a buyurtma qilinmagan. Kartani ochib, ichidan «Buyurtma berish»
-            tugmasi bilan olasiz.
-          </Text>
-        ) : (
-          <>
-            <View style={styles.histHead}>
-              <Text style={styles.histCount}>{orders.length} ta buyurtma</Text>
-              <Text style={[styles.histSpent, NUM]}>jami {num(spent)} coin</Text>
-            </View>
-            {orders.map((o, i) => (
-              <View key={o.at + i} style={styles.histRow}>
-                <Text style={[styles.histDate, NUM]}>{fmtDate(o.at)}</Text>
-                <View style={styles.histMid}>
-                  <Text numberOfLines={1} style={styles.histTitle}>{o.title}</Text>
-                  <Text style={styles.histNote}>buyurtma qabul qilindi · tarixda saqlandi</Text>
-                </View>
-                <Text style={[styles.histPrice, NUM]}>−{num(o.price)}</Text>
-              </View>
-            ))}
-          </>
-        )}
-        <Text style={styles.histFoot}>Buyurtmalar shu qurilmadagi Profilingizda saqlanadi.</Text>
-      </Sheet>
     </View>
   )
 }

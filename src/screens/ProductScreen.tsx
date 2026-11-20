@@ -275,6 +275,7 @@ const ProductScreen = () => {
   const setGoal = useApp(s => s.setGoal)
 
   const [confirm, setConfirm] = useState(false)
+  const [buyErr, setBuyErr] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [draft, setDraft] = useState('')
   const [draftStars, setDraftStars] = useState(5)
@@ -336,12 +337,18 @@ const ProductScreen = () => {
 
   const onBuy = () => {
     const r = buyProduct(product.id)
-    setConfirm(false)
     if (r === 'ok') {
+      setBuyErr(null)
+      setConfirm(false)
       triggerHaptic('success')
       setDone(true)
     } else {
       triggerHaptic('error')
+      setBuyErr(
+        r === 'poor'
+          ? 'Coin yetarli emas — avval daraja oshiring yoki kunlik mashqni bajaring'
+          : "Kechagi buyurtma omborni tugatdi — boshqa sovg'a tanlang",
+      )
     }
   }
 
@@ -620,7 +627,7 @@ const ProductScreen = () => {
             </Pressable>
           ) : canBuy ? (
             <Pressable
-              onPress={() => { triggerHaptic('medium'); setConfirm(true) }}
+              onPress={() => { triggerHaptic('medium'); setBuyErr(null); setConfirm(true) }}
               style={({ pressed }) => [styles.orderBtn, styles.orderBtnLime, pressed && { transform: [{ scale: 0.98 }] }]}
             >
               <LinearGradient
@@ -678,6 +685,12 @@ const ProductScreen = () => {
             </View>
           ))}
         </View>
+        {buyErr && (
+          <View style={styles.buyErr}>
+            <Ionicons name="alert-circle-outline" size={14} color={C.danger} />
+            <Text style={styles.buyErrText}>{buyErr}</Text>
+          </View>
+        )}
         <View style={styles.confirmBtns}>
           <Pressable
             onPress={() => { triggerHaptic('light'); setConfirm(false) }}
@@ -976,6 +989,11 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   },
   confirmK: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   confirmV: { fontSize: 13, fontWeight: '600', color: C.ink },
+  buyErr: {
+    marginTop: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 7,
+    backgroundColor: C.dangerSoft, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9,
+  },
+  buyErrText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.danger },
   confirmBtns: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   confirmCancel: {
     flex: 1,
