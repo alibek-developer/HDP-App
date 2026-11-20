@@ -260,7 +260,6 @@ const HomeScreen = () => {
   const styles = makeStyles(C)
 
   /** Kunlik masala faqat kamida bitta mavzu ochilgandan keyin chiqadi */
-  const hasStudied = dailyPlan.studied.length > 0
   const dailyTotal = dailySet.length
   const dailyAnswered = dailySet.filter(q => q.picked !== null).length
   const dailyDone = dailyTotal > 0 && dailyAnswered === dailyTotal
@@ -598,8 +597,8 @@ const HomeScreen = () => {
           </View>
         </Reveal>
 
-        {/* ── Bugungi masala — faqat mavzu ochilgandan keyin ── */}
-        {hasStudied ? (
+        {/* ── Bugungi masala — har doim ko'rinadi (to'plam 1-mavzudan ham tuziladi) ── */}
+        {(
           <Reveal delay={100} y={12} duration={360}>
             {dailyDone ? (
             <Pressable
@@ -689,7 +688,7 @@ const HomeScreen = () => {
             </Pressable>
             )}
           </Reveal>
-        ) : null}
+        )}
 
         {/* ── Kurslar ── */}
         <Reveal delay={130} y={12} duration={360}>
