@@ -25,7 +25,7 @@ export const GRAD_HEADER_DARK: readonly [string, string, string] = ['#14301F', '
 
 export const CARD: ViewStyle = {
   get backgroundColor() { return activeColors.surface },
-  get borderColor() { return activeColors.line },
+  get borderColor() { return activeColors.cardEdge },
   borderWidth: 1,
   borderRadius: 14,
 }
@@ -69,7 +69,7 @@ export const INK_TEXT: TextStyle = {
 export const OUT_BTN: ViewStyle = {
   ...BTN_BASE,
   get backgroundColor() { return activeColors.surface },
-  get borderColor() { return activeColors.line },
+  get borderColor() { return activeColors.cardEdge },
   borderWidth: 1,
 }
 export const OUT_TEXT: TextStyle = {

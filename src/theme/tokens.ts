@@ -14,6 +14,8 @@ export const C = {
   surface2: '#F6F8F3',
   line: '#E3E8DE',
   lineSoft: '#EDF1E9',
+  /** karta cheti — line'dan biroz kuchliroq, dark'da ko'rinadigan */
+  cardEdge: '#DFE6DA',
 
   ink: '#0E1A12',
   ink2: '#33452F',
@@ -56,6 +58,7 @@ export const DARK = {
   surface2: '#242F26',
   line: '#2F3A31',
   lineSoft: '#38433A',
+  cardEdge: '#43523F',
 
   ink: '#F1F4EE',
   ink2: '#E6EBE2',
