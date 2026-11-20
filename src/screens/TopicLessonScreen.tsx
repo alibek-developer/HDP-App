@@ -286,7 +286,7 @@ const TopicLessonScreen = () => {
           </View>
 
           <View style={[styles.headerCount, st.done && styles.headerCountDone]}>
-            {st.done && <Ionicons name="checkmark-circle" size={13} color="#5FAF22" />}
+            {st.done && <Ionicons name="checkmark-circle" size={13} color={C.limeDeep} />}
             <Text style={[styles.headerCountText, NUM, st.done && { color: C.brand }]}>
               {idx + 1}/{lessons.length}
             </Text>
@@ -296,7 +296,7 @@ const TopicLessonScreen = () => {
         {/* ── Maqsad ── */}
         <View style={[CARD, styles.goal]}>
           <View style={styles.goalIconWrap}>
-            <Ionicons name="compass" size={14} color="#5FAF22" />
+            <Ionicons name="compass" size={14} color={C.limeDeep} />
           </View>
           <Text style={styles.goalText}>{lesson.goal}</Text>
         </View>
@@ -608,17 +608,17 @@ const TopicLessonScreen = () => {
               <Text style={[styles.dockBtnText, { color: C.inkOnLime }]}>
                 {nextId ? "Keyingi bo'lim" : 'Mavzu yakuniy testi'}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#1C3214" />
+              <Ionicons name="chevron-forward" size={16} color={C.inkOnLime} />
             </>
           ) : canFinish ? (
             <>
               <Text style={[styles.dockBtnText, { color: C.mint }]}>Bo&apos;limni yakunlash</Text>
-              <Ionicons name="checkmark" size={16} color="#9BE04B" />
+              <Ionicons name="checkmark" size={16} color={C.limeBright} />
             </>
           ) : (
             <>
               <Text style={[styles.dockBtnText, { color: C.ink3 }]}>Avval video darsni to&apos;liq ko&apos;ring</Text>
-              <Ionicons name="film" size={16} color="#8A9984" />
+              <Ionicons name="film" size={16} color={C.ink4} />
             </>
           )}
         </Pressable>
@@ -628,7 +628,7 @@ const TopicLessonScreen = () => {
             <Text style={[styles.dockRewardText, NUM]}>
               Yakunlangach +{TOPIC_LESSON_REWARD.coin} coin · +{TOPIC_LESSON_REWARD.xp} XP
             </Text>
-            <Ionicons name="cash" size={11} color="#E8A33D" />
+            <Ionicons name="cash" size={11} color={C.coin} />
           </View>
         )}
 
@@ -679,8 +679,8 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 11,
     borderRadius: 14,
-    backgroundColor: '#F7FBEF',
-    borderColor: '#DCEBC6',
+    backgroundColor: C.leafTint,
+    borderColor: C.leafSoft,
   },
   goalIconWrap: {
     width: 28,
@@ -688,7 +688,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EAF6D8',
+    backgroundColor: C.leafSoft,
   },
   goalText: { flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '500', color: C.ink2 },
 
@@ -713,7 +713,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
 
   blockHead: { marginTop: 24, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 4 },
   blockHeadTitle: { fontSize: 13, fontWeight: '600', color: C.ink2 },
-  blockHeadLine: { flex: 1, height: 1, backgroundColor: '#DDE5D4' },
+  blockHeadLine: { flex: 1, height: 1, backgroundColor: C.line },
 
   block: { borderRadius: 14, marginTop: 12, flexDirection: 'row', overflow: 'hidden' },
   blockRail: { ...cardRail, width: 4 },
@@ -795,7 +795,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   dockBtnLocked: { backgroundColor: C.surface2, borderRadius: 12 },
   dockBtnText: { fontSize: 14.5, fontWeight: '600' },
   dockReward: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  dockRewardText: { fontSize: 11.5, fontWeight: '500', color: '#7C8B77' },
+  dockRewardText: { fontSize: 11.5, fontWeight: '500', color: C.ink4 },
   dockList: { marginTop: 6, height: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   dockListText: { fontSize: 11.5, fontWeight: '600', color: C.ink3 },
 })

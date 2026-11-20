@@ -27,7 +27,6 @@ import {
 
 type Phase = 'lobby' | 'play' | 'result'
 
-const VIOLET_DEEP = '#4B33A0'
 const COLS = 4
 
 const MemoryScreen = () => {
@@ -190,7 +189,7 @@ const MemoryScreen = () => {
         mark={<MemoryMark size={18} color={C.violet} />}
         accent={C.violet}
         accentSoft={C.violetSoft}
-        accentInk="#FFFFFF"
+        accentInk={C.inkOnLime}
         levels={MEMORY_LEVELS}
         selected={levelId}
         starsFor={id => gameStars[`memory:${id}`] ?? 0}
@@ -246,7 +245,7 @@ const MemoryScreen = () => {
                 <Text style={[s.resultPillText, NUM]}>+{outcome.xp}</Text>
               </View>
               <View style={[s.resultPill, { backgroundColor: C.surface2 }]}>
-                <Ionicons name="star" size={13} color="#E8A33D" />
+                <Ionicons name="star" size={13} color={C.coin} />
                 <Text style={[s.resultPillText, NUM]}>rekord {Math.max(outcome.stars, best)}/3</Text>
               </View>
             </View>
@@ -333,9 +332,9 @@ const MemoryScreen = () => {
               <Ionicons
                 name={message.startsWith('Mos') ? 'close-circle' : 'checkmark-circle'}
                 size={14}
-                color={message.startsWith('Mos') ? C.danger : '#3F7D1C'}
+                color={message.startsWith('Mos') ? C.danger : C.limeDeep}
               />
-              <Text style={[s.tipText, { color: message.startsWith('Mos') ? '#B23A2F' : C.limeDeep }]}>
+              <Text style={[s.tipText, { color: message.startsWith('Mos') ? C.danger : C.limeDeep }]}>
                 {message}
               </Text>
             </View>
@@ -423,7 +422,7 @@ const CardTile = ({
               card.face === 'expr' ? s.cardExpr : s.cardAns,
               card.face === 'expr' && { fontSize: exprSize, lineHeight: Math.round(exprSize * 1.5) },
               card.face === 'ans' && { fontSize: ansSize, lineHeight: Math.round(ansSize * 1.3) },
-              matched && { color: '#3F7D1C' },
+              matched && { color: C.limeDeep },
             ]}
             numberOfLines={1}
             adjustsFontSizeToFit
@@ -501,11 +500,11 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     height: 26,
     paddingHorizontal: 9,
     borderRadius: 9,
-    backgroundColor: '#F1ECFE',
+    backgroundColor: C.violetSoft,
     borderWidth: 1,
     borderColor: 'rgba(124,92,224,0.24)',
   },
-  livesText: { fontSize: 12, fontWeight: '600', color: VIOLET_DEEP },
+  livesText: { fontSize: 12, fontWeight: '600', color: C.violet },
 
   timerTrack: {
     marginTop: 10,
@@ -545,7 +544,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: C.line,
   },
-  faceMatched: { backgroundColor: '#F4FBED', borderColor: '#BDE39A' },
+  faceMatched: { backgroundColor: C.leafTint, borderColor: C.leafSoft },
   cardBackRing: {
     width: '62%',
     aspectRatio: 1,
@@ -582,7 +581,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: C.line,
   },
-  tipPillBad: { backgroundColor: '#FBEAE8', borderColor: '#F0C6C1' },
+  tipPillBad: { backgroundColor: C.dangerSoft, borderColor: C.danger },
   tipText: { fontSize: 12.5, fontWeight: '600' },
 
   resultBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },

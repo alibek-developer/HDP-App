@@ -62,7 +62,6 @@ const ruDate = (iso: string | null) => {
   return `${d}.${m}.${y}`
 }
 
-const BRAND = '#0B6E4F'
 
 /** Chegarasiz oq karta soyasi */
 const soft = shadow('#0E1A12', 12, 8, 0.07)
@@ -174,7 +173,7 @@ const ProScreen = () => {
           <View style={s.heroInner}>
             <View style={s.heroTop}>
               <View style={s.heroBadge}>
-                <Ionicons name="diamond" size={18} color="#1C3214" />
+                <Ionicons name="diamond" size={18} color={C.inkOnLime} />
               </View>
               <View style={s.heroPill}>
                 <Text style={s.heroPillText}>HDP PRO</Text>
@@ -213,7 +212,7 @@ const ProScreen = () => {
               </Text>
               {!!proExpires && (
                 <View style={s.activeDateRow}>
-                  <Ionicons name="calendar" size={14} color="#0B4A34" />
+                  <Ionicons name="calendar" size={14} color={C.inkOnLime} />
                   <Text style={[s.activeDate, NUM]}>Amal qiladi: {ruDate(proExpires)} gacha</Text>
                 </View>
               )}
@@ -257,7 +256,7 @@ const ProScreen = () => {
                       </Text>
                     </View>
                     <View style={s.planRight}>
-                      <Text style={[s.planPrice, NUM, { color: on ? '#0B4A34' : C.ink }]}>{money(p.perMonth)}</Text>
+                      <Text style={[s.planPrice, NUM, { color: on ? C.inkOnLime : C.ink }]}>{money(p.perMonth)}</Text>
                       <Text style={[s.planUnit, NUM]}>so'm /oy</Text>
                       {pSaved > 0 && (
                         <View style={s.saveChip}>
@@ -304,7 +303,7 @@ const ProScreen = () => {
               style={[s.feature, i > 0 ? { borderTopWidth: 1, borderTopColor: C.line } : null]}
             >
               <View style={s.featureTile}>
-                <Ionicons name={f.icon} size={17} color={BRAND} />
+                <Ionicons name={f.icon} size={17} color={C.brand} />
               </View>
               <View style={s.featureMid}>
                 <Text style={s.featureTitle}>{f.title}</Text>
@@ -330,7 +329,7 @@ const ProScreen = () => {
         </Pressable>
 
         <View style={s.plainNote}>
-          <Ionicons name="shield-checkmark" size={14} color={BRAND} />
+          <Ionicons name="shield-checkmark" size={14} color={C.brand} />
           <Text style={s.plainNoteText}>
             Yashirin to&apos;lov yo&apos;q — muddat tugagach obuna o&apos;zi yangilanmaydi.
           </Text>
@@ -372,7 +371,7 @@ const ProScreen = () => {
             style={({ pressed }) => [s.buyBtn, pressed && { transform: [{ scale: 0.985 }] }]}
           >
             <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[ABS_FILL, { borderRadius: 14 }]} />
-            <Ionicons name="ribbon" size={17} color="#1C3214" style={s.buyIcon} />
+            <Ionicons name="ribbon" size={17} color={C.inkOnLime} style={s.buyIcon} />
             <Text style={s.buyText}>Obuna olish</Text>
           </Pressable>
 
@@ -406,7 +405,7 @@ const ProScreen = () => {
           {saved > 0 && (
             <View style={s.payRow}>
               <Text style={s.payLabel}>Tejov</Text>
-              <Text style={[s.payValue, NUM, { color: BRAND }]}>−{money(saved)} so&apos;m</Text>
+              <Text style={[s.payValue, NUM, { color: C.brand }]}>−{money(saved)} so&apos;m</Text>
             </View>
           )}
         </View>
@@ -461,7 +460,7 @@ const ProScreen = () => {
                   <View style={s.successHead}>
                     <View style={s.successTick}>
                       <LinearGradient colors={GRAD_RAIL} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[ABS_FILL, { borderRadius: 16 }]} />
-                      <Ionicons name="checkmark" size={26} color="#1C3214" style={s.successTickIcon} />
+                      <Ionicons name="checkmark" size={26} color={C.inkOnLime} style={s.successTickIcon} />
                     </View>
                     <View style={s.successTitles}>
                       <Text style={s.successH3}>Pro faollashtirildi!</Text>
@@ -560,12 +559,12 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     minHeight: 74, borderRadius: 18, paddingVertical: 11, paddingLeft: 16, paddingRight: 16,
   },
   planIdle: { backgroundColor: C.surface, ...soft },
-  planOn: { backgroundColor: '#F1FAE7', ...glowGreen },
+  planOn: { backgroundColor: C.leafTint, ...glowGreen },
   radio: {
     width: 22, height: 22, borderRadius: 999, alignItems: 'center', justifyContent: 'center',
   },
   radioIdle: { backgroundColor: C.surface, borderColor: C.line, borderWidth: 1.5 },
-  radioOn: { backgroundColor: BRAND, borderColor: BRAND, borderWidth: 1.5 },
+  radioOn: { backgroundColor: C.brand, borderColor: C.brand, borderWidth: 1.5 },
   planMid: { flex: 1, minWidth: 0 },
   planTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   planLabel: { fontSize: 14.5, fontWeight: '600', color: C.ink },
@@ -574,9 +573,9 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   planPrice: { fontSize: 19, fontWeight: '600', lineHeight: 21 },
   planUnit: { marginTop: 2, fontSize: 12, fontWeight: '500', color: C.ink4 },
   saveChip: { marginTop: 6, backgroundColor: C.leafSoft, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  saveChipText: { fontSize: 12, fontWeight: '600', color: BRAND },
+  saveChipText: { fontSize: 12, fontWeight: '600', color: C.brand },
   badgeLime: { backgroundColor: C.leafTint, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  badgeLimeText: { fontSize: 11, fontWeight: '600', color: BRAND },
+  badgeLimeText: { fontSize: 11, fontWeight: '600', color: C.brand },
   badgeAmber: { backgroundColor: C.coinSoft, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   badgeAmberText: { fontSize: 11, fontWeight: '600', color: C.coin },
 
@@ -612,14 +611,14 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
 
   activeCard: {
     position: 'relative', overflow: 'hidden', marginBottom: 20,
-    backgroundColor: '#E9F7DF', borderRadius: 18, ...glowGreen,
+    backgroundColor: C.mintSoft, borderRadius: 18, ...glowGreen,
   },
   activeInner: { paddingLeft: 18, paddingRight: 16, paddingVertical: 16 },
   activeHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  activeTitle: { fontSize: 14, fontWeight: '600', color: '#0B4A34' },
-  activeSub: { marginTop: 6, fontSize: 12, fontWeight: '500', color: BRAND },
+  activeTitle: { fontSize: 14, fontWeight: '600', color: C.inkOnLime },
+  activeSub: { marginTop: 6, fontSize: 12, fontWeight: '500', color: C.brand },
   activeDateRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  activeDate: { fontSize: 12, fontWeight: '600', color: '#0B4A34' },
+  activeDate: { fontSize: 12, fontWeight: '600', color: C.inkOnLime },
   cancelPro: {
     backgroundColor: C.surface, borderRadius: 14, height: 48,
     alignItems: 'center', justifyContent: 'center', ...soft,
@@ -640,7 +639,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   dockCur: { color: C.ink3, fontSize: 21 },
   dockOld: { color: C.ink4, fontSize: 12, fontWeight: '500', textDecorationLine: 'line-through' },
   dockSave: { backgroundColor: C.leafSoft, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
-  dockSaveText: { fontSize: 12, fontWeight: '600', color: BRAND },
+  dockSaveText: { fontSize: 12, fontWeight: '600', color: C.brand },
   buyBtn: {
     ...LIME_BTN, height: 52, borderRadius: 14,
   },

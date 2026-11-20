@@ -147,7 +147,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F2F8EA',
+    backgroundColor: C.leafTint,
     borderWidth: 1,
     borderColor: C.leafTint,
   },

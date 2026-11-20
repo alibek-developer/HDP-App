@@ -608,7 +608,7 @@ const HomeScreen = () => {
                 <MCI
                   name={dailyOk ? 'check-decagram' : 'close-circle'}
                   size={18}
-                  color={dailyOk ? C.brand : '#B87A22'}
+                  color={dailyOk ? C.brand : C.coin}
                 />
               </View>
               <View style={styles.doneText}>
@@ -894,7 +894,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     lineHeight: 25,
     letterSpacing: -0.4,
     fontWeight: '500',
-    color: '#55655C',
+    color: C.ink3,
   },
   avatarRing: {
     width: 46,
@@ -923,7 +923,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F2FAE9',
+    backgroundColor: C.leafTint,
   },
   avatarMonogram: {
     width: '100%',
@@ -932,7 +932,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   avatarImg: { width: '100%', height: '100%' },
-  avatarText: { fontSize: 16, fontWeight: '800', letterSpacing: 0.2, color: '#0B4A34' },
+  avatarText: { fontSize: 16, fontWeight: '800', letterSpacing: 0.2, color: C.ink },
 
   headRight: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 0 },
   statPill: {
@@ -956,7 +956,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   },
   burstCoin: { position: 'absolute', bottom: 0 },
   burstPrize: { position: 'absolute', bottom: 1 },
-  burstPrizeText: { fontSize: 12, fontWeight: '800', color: '#C97A16' },
+  burstPrizeText: { fontSize: 12, fontWeight: '800', color: C.coin },
 
   proWrap: {
     height: 30,
@@ -1027,7 +1027,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     marginTop: 12,
     borderRadius: R['2xl'],
     padding: 14,
-    backgroundColor: '#F5FAEE',
+    backgroundColor: C.leafTint,
     borderWidth: 1,
     borderColor: 'rgba(11,110,79,0.18)',
   },
@@ -1094,8 +1094,8 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderColor: 'rgba(232,163,61,0.3)',
   },
   rewardChipXp: { backgroundColor: C.xpSoft, borderColor: 'rgba(76,125,240,0.28)' },
-  rewardText: { fontSize: 10.5, fontWeight: '700', color: '#B87A22' },
-  rewardTextXp: { color: '#3560C4' },
+  rewardText: { fontSize: 10.5, fontWeight: '700', color: C.coin },
+  rewardTextXp: { color: C.xp },
   dailyCta: {
     height: 34,
     paddingHorizontal: 14,
@@ -1131,7 +1131,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   doneIconWrong: { backgroundColor: C.coinSoft },
   doneText: { flex: 1 },
   doneTitle: { fontSize: 13.5, letterSpacing: -0.2, fontWeight: '600', color: C.ink },
-  doneTitleWrong: { color: '#B87A22' },
+  doneTitleWrong: { color: C.coin },
   doneSub: { marginTop: 1, fontSize: 10.5, fontWeight: '500', color: C.ink3 },
   doneClock: { fontSize: 10, fontWeight: '600', color: C.ink4 },
 

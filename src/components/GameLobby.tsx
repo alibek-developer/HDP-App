@@ -343,7 +343,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     height: 22,
     paddingHorizontal: 7,
     borderRadius: 8,
-    backgroundColor: '#F2F6EC',
+    backgroundColor: C.leafTint,
   },
   starsChipText: { fontSize: 10.5, fontWeight: '700' },
   check: {

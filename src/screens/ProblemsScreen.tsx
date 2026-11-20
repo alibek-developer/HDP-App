@@ -259,7 +259,7 @@ const ProblemsScreen = () => {
                 <MCI
                   name="star"
                   size={12}
-                  color={weekStars >= WEEKLY_STAR_GOAL ? C.limeDeep : '#B87A22'}
+                  color={weekStars >= WEEKLY_STAR_GOAL ? C.limeDeep : C.coin}
                 />
                 <Text
                   style={[styles.weekChipText, weekStars >= WEEKLY_STAR_GOAL && styles.weekChipTextDone, NUM]}
@@ -291,7 +291,7 @@ const ProblemsScreen = () => {
             </View>
 
             <View style={styles.subjectHint}>
-              <MCI name="star-circle-outline" size={13} color="#B87A22" />
+              <MCI name="star-circle-outline" size={13} color={C.coin} />
               <Text style={styles.subjectHintText}>
                 Har darajada <Text style={styles.subjectHintStrong}>6, 8 va 10</Text> to&apos;g&apos;ri javob —
                 1, 2 va 3 yulduz.
@@ -433,7 +433,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  ticketTearDash: { width: 1.5, height: 4, borderRadius: 1, backgroundColor: '#C9D4C0' },
+  ticketTearDash: { width: 1.5, height: 4, borderRadius: 1, backgroundColor: C.line },
   notch: {
     position: 'absolute',
     left: 41,
@@ -455,7 +455,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderRadius: 7,
     backgroundColor: C.surface2,
     borderWidth: 1,
-    borderColor: '#E7ECE0',
+    borderColor: C.line,
   },
   clockText: { fontSize: 11, fontWeight: '600', color: C.ink2 },
   ticketTitle: { flex: 1, fontSize: 15, lineHeight: 19, fontWeight: '600', color: C.ink },
@@ -467,15 +467,15 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     backgroundColor: C.surface2,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#D5DECC',
+    borderColor: C.line,
     borderRadius: 9,
   },
   promptText: { fontFamily: MATH_FONT, fontWeight: '400', fontSize: 13, lineHeight: 18, color: C.ink },
   ticketBottom: { marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   rewardLedger: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  rewardDivider: { width: 3, height: 3, borderRadius: 2, marginHorizontal: 3, backgroundColor: '#C9D4C0' },
-  rewardCoin: { fontSize: 13.5, fontWeight: '600', color: '#B87A22' },
-  rewardXp: { fontSize: 13.5, fontWeight: '600', color: '#3560C4' },
+  rewardDivider: { width: 3, height: 3, borderRadius: 2, marginHorizontal: 3, backgroundColor: C.line },
+  rewardCoin: { fontSize: 13.5, fontWeight: '600', color: C.coin },
+  rewardXp: { fontSize: 13.5, fontWeight: '600', color: C.xp },
   rewardUnit: { fontSize: 11, fontWeight: '500', color: C.ink4 },
   claimedNote: { marginLeft: 4, fontSize: 11, fontWeight: '500', color: C.ink4 },
   ticketCta: { height: 38, paddingHorizontal: 14, gap: 5, overflow: 'hidden' },
@@ -498,12 +498,12 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     height: 26,
     paddingHorizontal: 9,
     borderRadius: R.full,
-    backgroundColor: '#FCF7EC',
+    backgroundColor: C.coinSoft,
     borderWidth: 1,
     borderColor: 'rgba(232,163,61,0.3)',
   },
   weekChipDone: { backgroundColor: C.leafTint, borderColor: 'rgba(11,110,79,0.22)' },
-  weekChipText: { fontSize: 11.5, fontWeight: '700', color: '#8A6520' },
+  weekChipText: { fontSize: 11.5, fontWeight: '700', color: C.coin },
   weekChipTextDone: { color: C.brand },
 
   subjectList: { gap: 10 },

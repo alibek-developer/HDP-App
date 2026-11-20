@@ -251,7 +251,7 @@ const NumberLineScreen = () => {
         mark={<NumberLineMark size={18} color={C.xp} />}
         accent={C.xp}
         accentSoft={C.xpSoft}
-        accentInk="#FFFFFF"
+        accentInk={C.inkOnLime}
         levels={NUMBERLINE_LEVELS}
         selected={levelId}
         starsFor={id => gameStars[`numberline:${id}`] ?? 0}
@@ -307,7 +307,7 @@ const NumberLineScreen = () => {
                 <Text style={[s.resultPillText, NUM]}>+{outcome.xp}</Text>
               </View>
               <View style={[s.resultPill, { backgroundColor: C.surface2 }]}>
-                <Ionicons name="star" size={13} color="#E8A33D" />
+                <Ionicons name="star" size={13} color={C.coin} />
                 <Text style={[s.resultPillText, NUM]}>rekord {Math.max(outcome.stars, best)}/3</Text>
               </View>
             </View>
@@ -448,9 +448,9 @@ const NumberLineScreen = () => {
               <Ionicons
                 name={okPulse ? 'checkmark-circle' : 'alert-circle'}
                 size={14}
-                color={okPulse ? '#3F7D1C' : '#B23A2F'}
+                color={okPulse ? C.limeDeep : C.danger}
               />
-              <Text style={[s.tipText, { color: okPulse ? C.limeDeep : '#B23A2F' }]}>{message}</Text>
+              <Text style={[s.tipText, { color: okPulse ? C.limeDeep : C.danger }]}>{message}</Text>
             </View>
           ) : (
             <Text style={s.tip}>Puckni sudrang yoki relsga bosing</Text>
@@ -566,11 +566,11 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     top: 44,
     height: 3,
     borderRadius: 999,
-    backgroundColor: '#B9C4B0',
+    backgroundColor: C.line,
   },
   tickWrap: { position: 'absolute', top: 36, alignItems: 'center', width: 1 },
-  tick: { width: 1.5, height: 9, borderRadius: 1, backgroundColor: '#B9C4B0' },
-  tickMajor: { width: 2, height: 14, backgroundColor: '#7C8B74' },
+  tick: { width: 1.5, height: 9, borderRadius: 1, backgroundColor: C.line },
+  tickMajor: { width: 2, height: 14, backgroundColor: C.ink3 },
   tickLabel: {
     marginTop: 3,
     fontSize: 9.5,
@@ -601,7 +601,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
     ...shadow(C.xp, 8, 4, 0.4),
   },
-  puckOk: { backgroundColor: C.limeDeep, borderColor: '#F0FBDF' },
+  puckOk: { backgroundColor: C.limeDeep, borderColor: C.limeBright },
   puckDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.surface },
   railHint: { marginTop: 6, textAlign: 'center', fontSize: 10.5, color: C.ink4 },
 
@@ -618,7 +618,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderWidth: 1,
   },
   tipPillOk: { backgroundColor: C.surface2, borderColor: C.line },
-  tipPillBad: { backgroundColor: '#FBEAE8', borderColor: '#F0C6C1' },
+  tipPillBad: { backgroundColor: C.dangerSoft, borderColor: C.danger },
   tipText: { fontSize: 11.5, fontWeight: '600', flexShrink: 1 },
 
   dock: { paddingHorizontal: 16, paddingTop: 10, backgroundColor: C.solverBody },

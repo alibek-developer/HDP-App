@@ -135,7 +135,7 @@ const TopicScreen = () => {
             accessibilityLabel="Hamyon"
             style={({ pressed }) => [styles.wallet, pressed && { transform: [{ scale: 0.96 }] }]}
           >
-            <Ionicons name="cash" size={12} color="#B87A22" />
+            <Ionicons name="cash" size={12} color={C.coin} />
             <Text style={[styles.walletText, NUM]}>{coin}</Text>
           </Pressable>
         </View>
@@ -160,7 +160,7 @@ const TopicScreen = () => {
                   ? 'Pro bilan davom etish'
                   : 'Barcha bo\'limlar tugagan'}
           </Text>
-          <Ionicons name="chevron-forward" size={16} color="#1C3214" />
+          <Ionicons name="chevron-forward" size={16} color={C.inkOnLime} />
         </Pressable>
 
         {/* ── Mavzu varaqasi ── */}
@@ -240,7 +240,7 @@ const TopicScreen = () => {
                   style={({ pressed }) => [
                     styles.row,
                     idx > 0 && styles.rowDivided,
-                    pressed && { backgroundColor: '#F8FAF5' },
+                    pressed && { backgroundColor: C.surface2 },
                   ]}
                 >
                   <View style={[styles.tile, tile]}>
@@ -249,7 +249,7 @@ const TopicScreen = () => {
                     ) : locked ? (
                       <Ionicons name="lock-closed" size={15} color={C.ink4} />
                     ) : started ? (
-                      <Ionicons name="play" size={14} color="#9BE04B" />
+                      <Ionicons name="play" size={14} color={C.limeBright} />
                     ) : (
                       <Text style={[styles.tileText, NUM]}>{l.id}</Text>
                     )}
@@ -267,19 +267,19 @@ const TopicScreen = () => {
                     </Text>
                     <View style={styles.tickRow}>
                       <View style={[styles.tickChip, ticks[0] && styles.tickChipOn]}>
-                        <Ionicons name="videocam" size={11} color={ticks[0] ? C.brand : '#B9C5B3'} />
+                        <Ionicons name="videocam" size={11} color={ticks[0] ? C.brand : C.ink4} />
                       </View>
                       <View style={[styles.tickChip, ticks[1] && styles.tickChipOn]}>
-                        <Ionicons name="checkmark" size={11} color={ticks[1] ? C.brand : '#B9C5B3'} />
+                        <Ionicons name="checkmark" size={11} color={ticks[1] ? C.brand : C.ink4} />
                       </View>
                     </View>
                   </View>
 
                   <View style={styles.rowRight}>
                     {locked ? (
-                      <Text style={[styles.rowStage, { color: '#B87A22' }]}>Pro</Text>
+                      <Text style={[styles.rowStage, { color: C.coin }]}>Pro</Text>
                     ) : (
-                      <Text style={[styles.rowStage, { color: done ? C.brand : started ? '#B87A22' : C.ink3 }]}>
+                      <Text style={[styles.rowStage, { color: done ? C.brand : started ? C.coin : C.ink3 }]}>
                         {done ? 'Yakunlangan' : started ? 'Davom etish' : 'Boshlash'}
                       </Text>
                     )}
@@ -292,7 +292,7 @@ const TopicScreen = () => {
             {/* ── Yakuniy test ── */}
             <Pressable
               onPress={openTest}
-              style={[styles.row, styles.rowDivided, { backgroundColor: testOpen ? '#EDF7DE' : '#FBFCF8' }]}
+              style={[styles.row, styles.rowDivided, { backgroundColor: testOpen ? C.leafTint : C.surface2 }]}
             >
               <View style={[styles.tile, passed ? styles.tileDone : testOpen ? styles.tileStarted : styles.tileIdle]}>
                 <Ionicons
@@ -318,10 +318,10 @@ const TopicScreen = () => {
               </View>
 
               <View style={styles.rowRight}>
-                <Text style={[styles.testLabel, { color: testOpen ? '#B87A22' : C.ink4 }]}>
+                <Text style={[styles.testLabel, { color: testOpen ? C.coin : C.ink4 }]}>
                   {testProLocked ? 'Pro' : testOpen ? (topicTest ? 'Yana ishlash' : 'Boshlash') : `${doneCount}/${totalLessons}`}
                 </Text>
-                <Text style={[styles.testCoins, NUM, { color: testOpen ? C.brand : '#CBD5C5' }]}>
+                <Text style={[styles.testCoins, NUM, { color: testOpen ? C.brand : C.ink4 }]}>
                   +{test.total * test.coinPerSolve} coin
                 </Text>
               </View>
@@ -329,7 +329,7 @@ const TopicScreen = () => {
 
             {testHint && !testOpen && (
               <View style={styles.lockNote}>
-                <Ionicons name="information-circle" size={14} color="#B87A22" />
+                <Ionicons name="information-circle" size={14} color={C.coin} />
                 <Text style={styles.lockNoteText}>
                   Test ochilishi uchun yana {totalLessons - doneCount} ta bo&apos;limni tugating.
                 </Text>
@@ -357,7 +357,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   headerKicker: { fontSize: 12, lineHeight: 15, fontWeight: '500', color: C.ink3, textAlign: 'center' },
   headerName: { fontSize: 15, lineHeight: 19, fontWeight: '600', color: C.ink, marginTop: 2, textAlign: 'center' },
   wallet: { width: 46, height: 40, alignItems: 'center', justifyContent: 'center', gap: 1, backgroundColor: C.coinSoft, borderWidth: 1, borderColor: C.coin, borderRadius: 12 },
-  walletText: { fontSize: 10.5, fontWeight: '600', color: '#B87A22' },
+  walletText: { fontSize: 10.5, fontWeight: '600', color: C.coin },
 
   sheet: { backgroundColor: C.brandDeep, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', marginBottom: 24 },
   sheetRailWrap: { ...railBase, borderRadius: 16 },
@@ -415,10 +415,10 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderTopWidth: 1,
-    borderTopColor: '#F2E5C9',
-    backgroundColor: '#FDF7EA',
+    borderTopColor: C.line,
+    backgroundColor: C.coinSoft,
   },
-  lockNoteText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#8A6117' },
+  lockNoteText: { flex: 1, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.coin },
 
   cta: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, marginBottom: 16 },
   ctaText: { fontSize: 14.5, fontWeight: '600', color: C.inkOnLime },

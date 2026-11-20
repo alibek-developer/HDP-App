@@ -147,7 +147,7 @@ const ProblemSubjectCard = ({
                     key={k}
                     name={k < got ? 'star' : 'star-outline'}
                     size={9}
-                    color={k < got ? art.star : '#C7D2BE'}
+                    color={k < got ? art.star : C.line}
                   />
                 ))}
               </View>
@@ -178,7 +178,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   },
   body: { flex: 1, minWidth: 0 },
   name: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', color: C.ink },
-  note: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: '#7D8C77' },
+  note: { marginTop: 2, fontSize: 11.5, fontWeight: '500', color: C.ink3 },
   go: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
 
   levelRow: { marginTop: 10, flexDirection: 'row', gap: 6 },
@@ -187,14 +187,14 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     height: 30,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: '#E6ECE0',
-    backgroundColor: '#FAFBF7',
+    borderColor: C.line,
+    backgroundColor: C.surface2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
   },
-  levelLabel: { fontSize: 11, fontWeight: '600', color: '#5E6E58' },
+  levelLabel: { fontSize: 11, fontWeight: '600', color: C.ink3 },
   pips: { flexDirection: 'row', gap: 1 },
 
   track: { marginTop: 9, height: 4, borderRadius: 2, backgroundColor: C.lineSoft, overflow: 'hidden' },

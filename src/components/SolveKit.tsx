@@ -200,7 +200,7 @@ export const AnswerOption = ({
           s.optionLabel,
           compact && s.optionLabelCompact,
           (state === 'selected' || state === 'correct') && s.optionLabelLit,
-          state === 'wrong' && { color: '#8C2F26' },
+          state === 'wrong' && { color: C.danger },
         ]}
         numberOfLines={compact ? 2 : 3}
       >
@@ -211,7 +211,7 @@ export const AnswerOption = ({
         <Ionicons name="checkmark-circle" size={19} color={C.limeDeep} />
       )}
       {!compact && state === 'correct' && (
-        <Ionicons name="checkmark-circle" size={19} color="#4E9420" />
+        <Ionicons name="checkmark-circle" size={19} color={C.brand} />
       )}
       {!compact && state === 'wrong' && (
         <Ionicons name="close-circle" size={19} color={C.danger} />
@@ -276,7 +276,7 @@ export const SolveAction = ({
                   ? { color: C.ink4 }
                   : ink
                     ? { color: C.mint }
-                    : { color: '#123B24' },
+                    : { color: C.inkOnLime },
               ]}
             >
               {label}
@@ -388,7 +388,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#E5E9E0',
+    borderColor: C.line,
     backgroundColor: C.surface,
   },
   optionCompact: {
@@ -404,13 +404,13 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   optionIdle: {},
   optionSelected: {
     borderColor: C.lime,
-    backgroundColor: '#F7FDEE',
+    backgroundColor: C.leafTint,
     ...shadow(C.limeDeep, 8, 3, 0.14),
   },
   optionCorrect: { borderColor: C.limeDeep, backgroundColor: C.surface2 },
-  optionWrong: { borderColor: C.danger, backgroundColor: '#FDF2F0' },
+  optionWrong: { borderColor: C.danger, backgroundColor: C.dangerSoft },
   optionDim: { opacity: 0.5 },
-  optionPressed: { backgroundColor: '#F4F7EF' },
+  optionPressed: { backgroundColor: C.surface2 },
 
   chip: {
     width: 32,
@@ -425,7 +425,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   chipCompact: { width: 26, height: 26, borderRadius: 8 },
   chipLit: { backgroundColor: C.lime, borderColor: C.lime, overflow: 'hidden' },
   chipCorrect: { backgroundColor: C.limeDeep, borderColor: C.limeDeep },
-  chipWrong: { backgroundColor: C.dangerSoft, borderColor: '#EFC9C4' },
+  chipWrong: { backgroundColor: C.dangerSoft, borderColor: C.danger },
   chipText: { fontSize: 13, fontWeight: '600', color: C.ink3 },
   chipTextCompact: { fontSize: 11 },
   chipTextLit: { color: C.inkOnLime },
@@ -460,7 +460,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   },
   actionFaceOff: {
     backgroundColor: C.surface2,
-    borderColor: '#DFE5D8',
+    borderColor: C.line,
     borderWidth: 1,
     shadowOpacity: 0,
     elevation: 0,

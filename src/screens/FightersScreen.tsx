@@ -25,7 +25,6 @@ import {
 
 type Phase = 'lobby' | 'play' | 'result'
 
-const AMBER_DEEP = '#B87A22'
 
 const FightersScreen = () => {
   const C = useColors()
@@ -197,7 +196,7 @@ const FightersScreen = () => {
         title="Raqam jangchilari"
         blurb="Raqib qalqonini yorib o'ting"
         art={require('../assets/games/bgw-fighters.jpg')}
-        mark={<FightersMark size={18} color={'#B87A22'} />}
+        mark={<FightersMark size={18} color={C.coin} />}
         accent={C.coin}
         accentSoft={C.coinSoft}
         accentInk="#3B2A07"
@@ -375,7 +374,7 @@ const FightersScreen = () => {
               <Animated.View
                 style={[s.pulseRing, { opacity: ringOpacity, transform: [{ scale: ringScale }] }]}
               />
-              <Ionicons name="shield-half" size={17} color={AMBER_DEEP} />
+              <Ionicons name="shield-half" size={17} color={C.coin} />
             </View>
             <View>
               <Text style={s.shieldLabel}>QALQON</Text>
@@ -440,9 +439,9 @@ const FightersScreen = () => {
               <Ionicons
                 name={message.ok ? 'checkmark-circle' : 'close-circle'}
                 size={14}
-                color={message.ok ? '#3F7D1C' : C.danger}
+                color={message.ok ? C.limeDeep : C.danger}
               />
-              <Text style={[s.msgText, { color: message.ok ? C.limeDeep : '#B23A2F' }]} numberOfLines={1}>
+              <Text style={[s.msgText, { color: message.ok ? C.limeDeep : C.danger }]} numberOfLines={1}>
                 {message.text}
               </Text>
             </View>
@@ -549,7 +548,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(232,163,61,0.28)',
   },
-  livesText: { fontSize: 12, fontWeight: '600', color: AMBER_DEEP },
+  livesText: { fontSize: 12, fontWeight: '600', color: C.coin },
 
   playBody: { flex: 1, paddingHorizontal: 16, paddingTop: 12, gap: 9 },
 
@@ -625,7 +624,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderWidth: 1.5,
     borderColor: C.coin,
   },
-  shieldLabel: { fontSize: 10, letterSpacing: 0.9, fontWeight: '600', color: AMBER_DEEP },
+  shieldLabel: { fontSize: 10, letterSpacing: 0.9, fontWeight: '600', color: C.coin },
   shieldHint: { marginTop: 1, fontSize: 11, color: C.ink3 },
   shieldNum: { fontFamily: MATH_FONT, fontSize: 30, lineHeight: 34, color: C.ink, paddingHorizontal: 6 },
 
@@ -637,7 +636,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     paddingVertical: 7,
   },
   exprNum: { fontFamily: MATH_FONT, fontSize: 20, lineHeight: 26, color: C.ink, minWidth: 24, textAlign: 'center' },
-  exprOp: { fontFamily: MATH_FONT, fontSize: 18, lineHeight: 24, color: AMBER_DEEP },
+  exprOp: { fontFamily: MATH_FONT, fontSize: 18, lineHeight: 24, color: C.coin },
   exprEq: { fontFamily: MATH_FONT, fontSize: 17, lineHeight: 24, color: C.ink4 },
   exprQ: { fontFamily: MATH_FONT, fontSize: 22, lineHeight: 28, color: C.coin },
   exprDim: { color: C.ink4 },
@@ -653,9 +652,9 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderWidth: 1.5,
     borderColor: C.line,
   },
-  chipOn: { borderColor: C.coin, backgroundColor: '#FDF6E9', ...shadow(C.coin, 6, 3, 0.18) },
+  chipOn: { borderColor: C.coin, backgroundColor: C.coinSoft, ...shadow(C.coin, 6, 3, 0.18) },
   chipNum: { fontSize: 18, fontWeight: '600', color: C.ink },
-  chipNumOn: { color: AMBER_DEEP },
+  chipNumOn: { color: C.coin },
   chipBadge: {
     position: 'absolute',
     top: 5,
@@ -667,7 +666,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.coin,
   },
-  chipBadgeText: { fontSize: 9, fontWeight: '700', color: '#3A2A0E' },
+  chipBadgeText: { fontSize: 9, fontWeight: '700', color: C.coin },
 
   opRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
   opPill: {
@@ -683,7 +682,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   },
   opPillOn: { borderColor: C.coin, backgroundColor: C.coin },
   opText: { fontFamily: MATH_FONT, fontSize: 16, lineHeight: 20, color: C.ink3 },
-  opTextOn: { color: '#3A2A0E' },
+  opTextOn: { color: C.coin },
 
   msgWrap: { marginTop: 'auto', alignItems: 'center', minHeight: 30, justifyContent: 'center' },
   msgHint: { fontSize: 12, color: C.ink3, textAlign: 'center' },
@@ -699,7 +698,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: C.line,
   },
-  msgPillBad: { backgroundColor: '#FBEAE8', borderColor: '#F0C6C1' },
+  msgPillBad: { backgroundColor: C.dangerSoft, borderColor: C.danger },
   msgText: { flexShrink: 1, fontSize: 12.5, fontWeight: '600' },
 
   playFoot: { paddingHorizontal: 16, paddingTop: 8, backgroundColor: C.solverBody },

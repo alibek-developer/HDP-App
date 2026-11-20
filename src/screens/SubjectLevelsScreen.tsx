@@ -91,7 +91,7 @@ const SubjectLevelsScreen = () => {
           </View>
 
           <View style={styles.wallet}>
-            <Ionicons name="cash" size={12} color="#B87A22" />
+            <Ionicons name="cash" size={12} color={C.coin} />
             <Text style={[styles.walletText, NUM]}>{coin}</Text>
           </View>
         </View>
@@ -99,14 +99,14 @@ const SubjectLevelsScreen = () => {
         {/* ── Fan holati ── */}
         <View style={styles.hero}>
           <LinearGradient
-            colors={[C.ink, '#143326']}
+            colors={['#0E1A12', '#143326']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.heroTop}>
             <View style={styles.heroTile}>
-              <MCI name={subject.icon as keyof typeof MCI.glyphMap} size={20} color="#9BE04B" />
+              <MCI name={subject.icon as keyof typeof MCI.glyphMap} size={20} color={C.limeBright} />
             </View>
             <View style={styles.heroBody}>
               <Text style={styles.heroName}>{subject.name}</Text>
@@ -128,7 +128,7 @@ const SubjectLevelsScreen = () => {
         <View style={[CARD, styles.week]}>
           <View style={styles.weekTop}>
             <View style={styles.weekLabel}>
-              <Ionicons name="trophy" size={13} color="#B87A22" />
+              <Ionicons name="trophy" size={13} color={C.coin} />
               <Text style={styles.weekTitle}>Haftalik maqsad</Text>
             </View>
             <Text style={[styles.weekCount, NUM]}>
@@ -209,7 +209,7 @@ const SubjectLevelsScreen = () => {
                       <Text style={[styles.levelCtaText, LIME_TEXT]}>
                         {done === 0 ? 'Boshlash' : earned === 3 ? 'Qayta ishlash' : 'Davom etish'}
                       </Text>
-                      <Ionicons name="arrow-forward" size={14} color="#1C3214" />
+                      <Ionicons name="arrow-forward" size={14} color={C.inkOnLime} />
                     </View>
                   </View>
                 </View>
@@ -270,7 +270,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderColor: C.coin,
     gap: 1,
   },
-  walletText: { fontSize: 10.5, fontWeight: '600', color: '#B87A22' },
+  walletText: { fontSize: 10.5, fontWeight: '600', color: C.coin },
 
   hero: {
     marginTop: 4,
@@ -319,12 +319,12 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   weekTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   weekLabel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   weekTitle: { fontSize: 12.5, fontWeight: '600', color: '#8A6520' },
-  weekCount: { fontSize: 12, fontWeight: '600', color: '#B87A22' },
+  weekCount: { fontSize: 12, fontWeight: '600', color: C.coin },
   weekTrack: {
     marginTop: 10,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#F6E7CB',
+    backgroundColor: C.coinSoft,
     overflow: 'hidden',
   },
   weekFill: { height: '100%', borderRadius: 3, backgroundColor: C.coin },

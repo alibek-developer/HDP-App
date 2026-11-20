@@ -29,8 +29,6 @@ import { PRODUCT_IMAGES, PRODUCT_THUMBS } from '../data/productImages'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
-const AMBER_BG = '#FEF3C7'
-const AMBER_INK = '#854D0E'
 
 const num = (n: number) => n.toLocaleString('en-US')
 
@@ -220,7 +218,7 @@ const Stars = ({ value, size = 12 }: { value: number; size?: number }) => {
         key={i}
         name={i <= Math.round(value) ? 'star' : 'star-outline'}
         size={size}
-        color={i <= Math.round(value) ? C.coin : '#D7DED6'}
+        color={i <= Math.round(value) ? C.coin : C.line}
       />
     ))}
   </View>
@@ -244,7 +242,7 @@ const StarsRow = ({ value, onChange }: { value: number; onChange: (n: number) =>
         <Ionicons
           name={i <= value ? 'star' : 'star-outline'}
           size={15}
-          color={i <= value ? C.coin : '#D7DED6'}
+          color={i <= value ? C.coin : C.line}
         />
       </Pressable>
     ))}
@@ -408,19 +406,19 @@ const ProductScreen = () => {
 
             <View style={styles.priceLine}>
               <View style={styles.priceLeft}>
-                <Ionicons name="cash" size={21} color={AMBER_INK} />
+                <Ionicons name="cash" size={21} color={C.coin} />
                 <Text style={[styles.priceValue, NUM]}>{num(product.price)}</Text>
               </View>
               <View style={styles.priceRight}>
                 <Text style={styles.walletLabel}>hamyonda</Text>
-                <Text style={[styles.walletValue, NUM, { color: coin >= product.price ? C.brand : AMBER_INK }]}>
+                <Text style={[styles.walletValue, NUM, { color: coin >= product.price ? C.brand : C.coin }]}>
                   {num(coin)}
                 </Text>
               </View>
             </View>
 
             <View style={styles.timerRow}>
-              <Ionicons name="time" size={13} color="#5FAF22" />
+              <Ionicons name="time" size={13} color={C.limeDeep} />
               <Text style={styles.timerText}>
                 {out
                   ? 'Keyingi partiyaga navbatga turing'
@@ -456,7 +454,7 @@ const ProductScreen = () => {
                 { icon: 'shield-checkmark' as const, k: 'Kafolat', v: 'Rasmiy hujjat bilan' },
               ].map(b => (
                 <View key={b.k} style={styles.noteRow}>
-                  <Ionicons name={b.icon} size={15} color="#5FAF22" />
+                  <Ionicons name={b.icon} size={15} color={C.limeDeep} />
                   <Text style={styles.noteK}>{b.k}</Text>
                   <Text style={styles.noteV}>{b.v}</Text>
                 </View>
@@ -554,8 +552,8 @@ const ProductScreen = () => {
                 style={i === all.length - 1 ? styles.revCardLast : styles.revCard}
               >
                 <View style={styles.revTop}>
-                  <View style={[styles.avatar, { backgroundColor: r.own ? C.ink : C.surface2 }]}>
-                    <Text style={[styles.avatarText, { color: r.own ? C.limeBright : '#33501F' }]}>
+                  <View style={[styles.avatar, { backgroundColor: r.own ? C.brandDeep : C.surface2 }]}>
+                    <Text style={[styles.avatarText, { color: r.own ? C.limeBright : C.ink2 }]}>
                       {r.name.slice(0, 1)}
                     </Text>
                   </View>
@@ -600,7 +598,7 @@ const ProductScreen = () => {
           <View style={styles.orderPrice}>
             <Text style={styles.orderPriceLabel}>narxi</Text>
             <View style={styles.orderPriceRow}>
-              <Ionicons name="cash" size={14} color={AMBER_INK} />
+              <Ionicons name="cash" size={14} color={C.coin} />
               <Text style={[styles.orderPriceValue, NUM]}>{num(product.price)}</Text>
             </View>
           </View>
@@ -616,7 +614,7 @@ const ProductScreen = () => {
                 pressed && { transform: [{ scale: 0.98 }] },
               ]}
             >
-              <Text style={[styles.orderBtnText, { color: isGoal ? '#8A9784' : C.mint }]}>
+              <Text style={[styles.orderBtnText, { color: isGoal ? C.ink4 : C.mint }]}>
                 {isGoal ? 'Navbatga qo\'yildingiz' : 'Tugagan — navbatga qo\'yish'}
               </Text>
             </Pressable>
@@ -642,7 +640,7 @@ const ProductScreen = () => {
                 pressed && { transform: [{ scale: 0.98 }] },
               ]}
             >
-              <Ionicons name="cash" size={15} color="#9BE04B" />
+              <Ionicons name="cash" size={15} color={C.limeBright} />
               <Text style={[styles.orderBtnText, NUM, { color: C.mint }]}>
                 {num(gap)} coin yig'ish
               </Text>
@@ -717,7 +715,7 @@ const ProductScreen = () => {
                   end={{ x: 1, y: 1 }}
                   style={styles.doneBadge}
                 >
-                  <Ionicons name="checkmark" size={30} color="#12300A" />
+                  <Ionicons name="checkmark" size={30} color={C.inkOnLime} />
                 </LinearGradient>
                 <Text style={styles.doneTitle}>Buyurtma qabul qilindi</Text>
                 <Text style={styles.doneText}>
@@ -810,7 +808,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   rateEmpty: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   priceLine: { marginTop: 14, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
   priceLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  priceValue: { fontSize: 30, lineHeight: 30, fontWeight: '600', letterSpacing: -0.8, color: AMBER_INK },
+  priceValue: { fontSize: 30, lineHeight: 30, fontWeight: '600', letterSpacing: -0.8, color: C.coin },
   priceRight: { alignItems: 'flex-end' },
   walletLabel: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   walletValue: { fontSize: 15, fontWeight: '600', marginTop: 2 },
@@ -911,10 +909,10 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   boughtBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: AMBER_BG,
+    backgroundColor: C.coinSoft,
     borderRadius: 100,
   },
-  boughtBadgeText: { fontSize: 11.5, fontWeight: '600', color: AMBER_INK },
+  boughtBadgeText: { fontSize: 11.5, fontWeight: '600', color: C.coin },
   revText: { marginTop: 8, fontSize: 13, lineHeight: 20, color: C.ink2 },
   revEmpty: { paddingVertical: 6 },
   revEmptyTitle: { fontSize: 13.5, fontWeight: '600', color: C.ink },
@@ -945,7 +943,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   orderPrice: {},
   orderPriceLabel: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   orderPriceRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  orderPriceValue: { fontSize: 17, lineHeight: 17, fontWeight: '600', color: AMBER_INK },
+  orderPriceValue: { fontSize: 17, lineHeight: 17, fontWeight: '600', color: C.coin },
   orderBtn: {
     flex: 1,
     height: 52,

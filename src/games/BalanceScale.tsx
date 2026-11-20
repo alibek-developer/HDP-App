@@ -343,7 +343,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     marginTop: 6, fontSize: 11.5, fontWeight: '600',
     color: C.ink3, letterSpacing: 0.2,
   },
-  panTotalLit: { color: '#3F7D1C' },
+  panTotalLit: { color: C.limeDeep },
 
   plate: {
     minWidth: 27, height: 27, paddingHorizontal: 5, borderRadius: 8,
@@ -356,7 +356,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   xTile: {
     minWidth: 27, height: 27, paddingHorizontal: 5, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#F5FBEC', borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.limeDeep,
+    backgroundColor: C.leafTint, borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.limeDeep,
   },
   xText: { fontFamily: MATH_FONT, fontSize: 15, lineHeight: 20, color: C.limeDeep },
 })
