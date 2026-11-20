@@ -378,7 +378,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderColor: C.coin,
     borderRadius: 12,
   },
-  blitzText: { fontSize: 11.5, fontWeight: '600', color: '#B87A22' },
+  blitzText: { fontSize: 11.5, fontWeight: '600', color: C.coin },
 
   searchWrap: { marginBottom: 12 },
   searchCard: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, height: 48 },

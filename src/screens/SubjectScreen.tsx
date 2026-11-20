@@ -231,7 +231,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   headerKicker: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   headerName: { marginTop: 2, fontSize: 15, fontWeight: '600', color: C.ink, lineHeight: 19 },
   wallet: { ...headerBtn, width: 46, backgroundColor: C.coinSoft, borderWidth: 1, borderColor: C.coin, gap: 1 },
-  walletText: { fontSize: 10.5, fontWeight: '600', color: '#B87A22' },
+  walletText: { fontSize: 10.5, fontWeight: '600', color: C.coin },
 
   section: { paddingHorizontal: 16 },
   topicSection: { marginTop: 20 },

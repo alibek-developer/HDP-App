@@ -315,7 +315,7 @@ const ProblemsScreen = () => {
             style={({ pressed }) => [styles.formulasCta, pressed && { transform: [{ scale: 0.985 }] }]}
           >
             <LinearGradient
-              colors={['#0E1A12', '#17512F']}
+              colors={isDark ? ['#1C5A36', '#14301F'] : ['#0E1A12', '#17512F']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={ABS_FILL}

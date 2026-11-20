@@ -337,7 +337,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
   flyCoin: { position: 'absolute', width: 134, height: 134 },
   spark: { position: 'absolute', left: '50%', top: '50%', marginLeft: -7, marginTop: -7 },
   prize: { position: 'absolute', top: 10 },
-  prizeText: { fontSize: 15, fontWeight: '800', color: '#C9862A' },
+  prizeText: { fontSize: 15, fontWeight: '800', color: C.coin },
 
   /* ── Sarlavha ── */
   title: {
@@ -370,7 +370,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     gap: 3,
   },
   dayNum: { fontSize: 17, letterSpacing: -0.4, fontWeight: '800', color: C.ink },
-  dayNumNext: { color: '#A6B0A3' },
+  dayNumNext: { color: C.ink4 },
   dayLabel: {
     marginTop: 5,
     textAlign: 'center',

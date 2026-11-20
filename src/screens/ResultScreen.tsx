@@ -342,7 +342,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     borderTopColor: C.line,
   },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  starsValue: { marginLeft: 4, fontSize: 15, fontWeight: '600', color: '#B87A22' },
+  starsValue: { marginLeft: 4, fontSize: 15, fontWeight: '600', color: C.coin },
   starsHint: { marginTop: 8, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.ink3 },
   starsWeek: { marginTop: 6, fontSize: 11.5, fontWeight: '500', color: C.ink4 },
 

@@ -673,7 +673,7 @@ const makeS = (C: ThemeColors) => StyleSheet.create({
     ...INK_BTN, height: 50, marginTop: 10, gap: 8,
   },
   trialBtnText: { fontSize: 13.5, fontWeight: '600', color: C.mint },
-  payMsg: { marginTop: 10, fontSize: 12, lineHeight: 17, fontWeight: '500', color: '#B4442F' },
+  payMsg: { marginTop: 10, fontSize: 12, lineHeight: 17, fontWeight: '500', color: C.danger },
   payFine: { marginTop: 10, fontSize: 11, lineHeight: 15, color: C.ink4 },
 
   modalRoot: { flex: 1, justifyContent: 'center', paddingHorizontal: 20 },

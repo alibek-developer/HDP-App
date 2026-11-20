@@ -348,7 +348,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     backgroundColor: C.surface, borderWidth: 1, borderColor: C.line,
   },
   aidOff: { opacity: 0.4 },
-  aidLabel: { fontSize: 12, fontWeight: '600', color: '#3B4A36' },
+  aidLabel: { fontSize: 12, fontWeight: '600', color: C.ink2 },
   aidCount: { fontSize: 11, fontWeight: '600', color: C.ink4 },
 
   hintBlock: { marginTop: 12, backgroundColor: C.surface2, borderRadius: 12, padding: 12 },

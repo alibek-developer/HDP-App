@@ -321,7 +321,7 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   week: { marginTop: 12, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14 },
   weekTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   weekLabel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  weekTitle: { fontSize: 12.5, fontWeight: '600', color: '#8A6520' },
+  weekTitle: { fontSize: 12.5, fontWeight: '600', color: C.coin },
   weekCount: { fontSize: 12, fontWeight: '600', color: C.coin },
   weekTrack: {
     marginTop: 10,
