@@ -609,6 +609,8 @@ export const ALL_SETS: ProblemSet[] = [...PROBLEM_SETS, STREAK_SET, EXAM_SET, ..
 
 /** Kunlik mega masala bonusi — bir marta, kuniga */
 export const DAILY_BONUS = { coin: 50, xp: 80 }
+/** Kunlik to'plamdagi har bir to'g'ri javob uchun (10 ta savol) */
+export const DAILY_QUESTION_REWARD = { coin: 10, xp: 15 }
 
 /** Dars testi: har to'g'ri javob */
 export const TEST_REWARD = { coin: 5, xp: 20 }

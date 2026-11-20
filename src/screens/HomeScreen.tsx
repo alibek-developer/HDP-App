@@ -22,12 +22,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
 import { CoinIcon } from '../components/CoinIcon'
-import { DAILY_BONUS, WEEK_LABELS, currentWeekKeys, leagueRank } from '../data/content'
-import { difficultyLabel, sourceLabel, todayKey } from '../lib/daily'
+import { DAILY_QUESTION_REWARD, WEEK_LABELS, currentWeekKeys, leagueRank } from '../data/content'
+import { sourceLabel, todayKey } from '../lib/daily'
 import { SUBJECTS } from '../data/subjects'
 import { BALANCE_LEVELS } from '../data/games'
 import { PROBLEM_SUBJECTS, levelsOf } from '../data/problems'
-import { useDailyQuestion } from '../lib/useDailyQuestion'
+import { useDailySet } from '../lib/useDailySet'
 import { setCoinTarget } from '../lib/coinTarget'
 import { triggerHaptic } from '../lib/haptics'
 import { BrandMark } from '../components/Brand'
@@ -254,18 +254,19 @@ const HomeScreen = () => {
   const studyMinutes = useApp(s => s.studyMinutes)
   const gameStars = useApp(s => s.gameStars)
   const blitzBest = useApp(s => s.blitzBest)
-  const dailyBonusOn = useApp(s => s.dailyBonusOn)
-  const { question: daily, status: dailyStatus, plan: dailyPlan } = useDailyQuestion()
+  const { questions: dailySet, status: dailyStatus, plan: dailyPlan } = useDailySet()
 
   const C = useColors()
   const styles = makeStyles(C)
 
   /** Kunlik masala faqat kamida bitta mavzu ochilgandan keyin chiqadi */
   const hasStudied = dailyPlan.studied.length > 0
-  const dailyDone = daily ? daily.picked !== null : false
-  /** Yechilgani — javob to'g'ri bo'lsa; xato ham qulflangan, lekin «yechildi» emas */
-  const dailyOk = daily ? daily.picked === daily.correct : false
-  const dailyClaimed = dailyBonusOn === todayKey()
+  const dailyTotal = dailySet.length
+  const dailyAnswered = dailySet.filter(q => q.picked !== null).length
+  const dailyDone = dailyTotal > 0 && dailyAnswered === dailyTotal
+  const dailyCorrect = dailySet.filter(q => q.picked !== null && q.picked === q.correct).length
+  /** ko'rsatiladigan savol — birinchi javobsiz (yoki oxirgisi) */
+  const daily = dailySet.find(q => q.picked === null) ?? dailySet[dailySet.length - 1] ?? null
 
   /* ── Zanjir bonusi ── */
   const burst = useRef(new Animated.Value(0)).current
@@ -378,9 +379,11 @@ const HomeScreen = () => {
     })
 
   const dailyLine = daily
-    ? `${sourceLabel(daily.source)} · ${difficultyLabel(daily.difficulty)}`
+    ? dailyDone
+      ? `${dailyCorrect}/${dailyTotal} to'g'ri — ertaga yangi to'plam`
+      : `${dailyAnswered}/${dailyTotal} bajarildi · ${sourceLabel(daily.source)}`
     : dailyStatus === 'error'
-      ? 'Savol yuklanmadi'
+      ? 'Savollar yuklanmadi'
       : 'O’rgangan mavzularingizdan tuzilyapti…'
 
   return (
@@ -601,24 +604,22 @@ const HomeScreen = () => {
             {dailyDone ? (
             <Pressable
               onPress={openDaily}
-              accessibilityLabel={dailyOk ? 'Bugungi masala yechildi' : 'Bugungi masala xato yakunlandi'}
+              accessibilityLabel={"Bugungi to'plam yakunlandi"}
               style={({ pressed }) => [styles.dailyDone, pressed && { opacity: 0.9 }]}
             >
-              <View style={[styles.doneIcon, !dailyOk && styles.doneIconWrong]}>
+              <View style={[styles.doneIcon, dailyCorrect < dailyTotal / 2 && styles.doneIconWrong]}>
                 <MCI
-                  name={dailyOk ? 'check-decagram' : 'close-circle'}
+                  name={dailyCorrect >= dailyTotal / 2 ? 'check-decagram' : 'close-circle'}
                   size={18}
-                  color={dailyOk ? C.brand : C.coin}
+                  color={dailyCorrect >= dailyTotal / 2 ? C.brand : C.coin}
                 />
               </View>
               <View style={styles.doneText}>
-                <Text style={[styles.doneTitle, !dailyOk && styles.doneTitleWrong]}>
-                  {dailyOk ? 'Bugungi masala yechildi' : 'Bu safar xato'}
+                <Text style={[styles.doneTitle, dailyCorrect < dailyTotal / 2 && styles.doneTitleWrong]}>
+                  Bugungi to'plam tugadi
                 </Text>
                 <Text style={[styles.doneSub, NUM]}>
-                  {dailyOk && dailyClaimed
-                    ? `+${DAILY_BONUS.coin} tanga · +${DAILY_BONUS.xp} XP`
-                    : 'Javob berildi · ertaga yangi masala'}
+                  {dailyCorrect}/{dailyTotal} to'g'ri · +{dailyCorrect * DAILY_QUESTION_REWARD.coin} tanga · +{dailyCorrect * DAILY_QUESTION_REWARD.xp} XP
                 </Text>
               </View>
               <MidnightClock style={[styles.doneClock, NUM]} />
@@ -671,12 +672,12 @@ const HomeScreen = () => {
                 <View style={styles.rewards}>
                   <View style={styles.rewardChip}>
                     <CoinIcon size={14} />
-                    <Text style={[styles.rewardText, NUM]}>+{DAILY_BONUS.coin}</Text>
+                    <Text style={[styles.rewardText, NUM]}>+{dailyTotal * DAILY_QUESTION_REWARD.coin}</Text>
                   </View>
                   <View style={[styles.rewardChip, styles.rewardChipXp]}>
                     <MCI name="flash" size={12} color={C.xp} />
                     <Text style={[styles.rewardText, styles.rewardTextXp, NUM]}>
-                      +{DAILY_BONUS.xp} XP
+                      +{dailyTotal * DAILY_QUESTION_REWARD.xp} XP
                     </Text>
                   </View>
                 </View>

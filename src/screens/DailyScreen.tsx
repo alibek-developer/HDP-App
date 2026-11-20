@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,20 +11,20 @@ import { LinearGradient } from 'expo-linear-gradient'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useApp } from '../store/useStore'
-import { DAILY_BONUS } from '../data/content'
+import { DAILY_QUESTION_REWARD } from '../data/content'
 import { difficultyLabel } from '../lib/daily'
-import { useDailyQuestion } from '../lib/useDailyQuestion'
+import { DAILY_SET_SIZE, useDailySet } from '../lib/useDailySet'
 import { triggerHaptic } from '../lib/haptics'
 import { useExit } from '../lib/nav'
 import { MidnightClock } from '../components/MidnightClock'
 import { NUM, TICK, type ThemeColors } from '../theme/tokens'
 import { useColors } from '../theme/useTheme'
-import { CARD, GRAD_RAIL, LIME_TEXT } from '../theme/solver'
+import { CARD, GRAD_RAIL } from '../theme/solver'
 import { AnswerOption, QuestionStage, SolveAction, SolveActionBar } from '../components/SolveKit'
 
 /**
- * Kunlik masala — o'quvchi o'rgangan mavzulardan AI tuzgan bitta savol.
- * Javob kuniga bir marta qabul qilinadi; to'g'ri javob DAILY_BONUS beradi.
+ * Kunlik to'plam — o'rgangan mavzular bo'ylab 10 ta savol.
+ * Har bir javob o'zicha qayd etiladi; to'g'ri javob DAILY_QUESTION_REWARD beradi.
  */
 
 const LETTER = ['A', 'B', 'C', 'D']
@@ -50,8 +49,8 @@ const DailyScreen = () => {
   const insets = useSafeAreaInsets()
   const exit = useExit('Main')
 
-  const { question, status, plan, reload } = useDailyQuestion()
-  const answerDailyQuestion = useApp(s => s.answerDailyQuestion)
+  const { questions, status, plan } = useDailySet()
+  const answerDailySetQuestion = useApp(s => s.answerDailySetQuestion)
   const coin = useApp(s => s.coin)
   const streak = useApp(s => s.streak)
   const solvedCount = useApp(s => s.solvedCount)
@@ -62,22 +61,49 @@ const DailyScreen = () => {
   const s = makeStyles(C)
 
   const [picked, setPicked] = useState<number | null>(null)
-  const [sourceOpen, setSourceOpen] = useState(false)
+  /** javob berilgach — shu savolning natijasi ko'rinadigan indeks; null — birinchi javobsiz */
+  const [viewIdx, setViewIdx] = useState<number | null>(null)
 
   useEffect(() => {
     beginSession()
   }, [beginSession])
 
-  const answered = question?.picked !== null && question?.picked !== undefined
+  const total = questions.length
+  const answeredCount = questions.filter(q => q.picked !== null).length
+  const done = total > 0 && answeredCount === total
+  const firstOpen = questions.findIndex(q => q.picked === null)
+  const idx = viewIdx ?? (firstOpen === -1 ? Math.max(0, total - 1) : firstOpen)
+  const question = questions[idx] ?? null
+  const position = Math.min(idx + 1, total)
+
+  const correctCount = useMemo(
+    () => questions.reduce((n, q) => n + (q.picked !== null && q.picked === q.correct ? 1 : 0), 0),
+    [questions],
+  )
+
+  /** savol o'zgarganda tanlovni tozalash */
+  useEffect(() => {
+    setPicked(null)
+  }, [idx])
+
+  const answered = question ? question.picked !== null : false
   const chosen = answered ? question?.picked ?? null : picked
   const ok = answered && question ? chosen === question.correct : false
   const diff = question ? diffTones(C)[question.difficulty] ?? diffTones(C)["o'rta"] : null
 
   const submit = () => {
     if (picked === null || !question) return
-    answerDailyQuestion(picked)
+    answerDailySetQuestion(idx, picked)
+    setViewIdx(idx)
     triggerHaptic(picked === question.correct ? 'success' : 'error')
   }
+
+  const next = () => {
+    triggerHaptic('light')
+    setViewIdx(null)
+  }
+
+  const progress = total ? Math.round((answeredCount / total) * 100) : 0
 
   return (
     <View style={[s.screen, { paddingTop: insets.top + 8 }]}>
@@ -90,7 +116,17 @@ const DailyScreen = () => {
         >
           <Ionicons name="chevron-back" size={18} color={C.ink2} />
         </Pressable>
-        <Text style={s.headKicker}>Kunlik masala</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={s.headKicker}>Kunlik to'plam</Text>
+          {total > 0 && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: C.line, overflow: 'hidden' }}>
+                <View style={{ width: `${progress}%`, height: '100%', borderRadius: 2, backgroundColor: C.limeDeep }} />
+              </View>
+              <Text style={[s.clockText, NUM]}>{position}/{total}</Text>
+            </View>
+          )}
+        </View>
         <View style={s.clockChip}>
           <Ionicons name="time-outline" size={12} color={C.ink4} />
           <MidnightClock style={[s.clockText, NUM]} />
@@ -123,9 +159,9 @@ const DailyScreen = () => {
             <LinearGradient colors={GRAD_RAIL} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.rail} />
             <View style={s.loadingWrap}>
               <ActivityIndicator color={C.brand} />
-              <Text style={s.loadingTitle}>Savol tayyorlanmoqda…</Text>
+              <Text style={s.loadingTitle}>To'plam tayyorlanmoqda…</Text>
               <Text style={s.loadingSub}>
-                O&apos;rgangan mavzularingiz asosida tuzilyapti
+                {DAILY_SET_SIZE} ta savol — o'rgangan mavzularingiz asosida
               </Text>
             </View>
           </View>
@@ -135,35 +171,83 @@ const DailyScreen = () => {
           <View style={[CARD, s.promptCard]}>
             <View style={s.loadingWrap}>
               <Ionicons name="cloud-offline-outline" size={26} color={C.ink3} />
-              <Text style={s.loadingTitle}>Savolni yuklab bo&apos;lmadi</Text>
-              <Text style={s.loadingSub}>Internetni tekshirib, qayta urinib ko&apos;ring</Text>
-              <Pressable
-                onPress={() => { triggerHaptic('light'); reload() }}
-                style={({ pressed }) => [s.retryBtn, pressed && { opacity: 0.85 }]}
-              >
-                <Ionicons name="refresh" size={15} color={C.inkOnLime} />
-                <Text style={[s.retryText, LIME_TEXT]}>Qayta urinish</Text>
-              </Pressable>
+              <Text style={s.loadingTitle}>Savollarni yuklab bo'lmadi</Text>
+              <Text style={s.loadingSub}>Ilovani qayta oching</Text>
             </View>
           </View>
         )}
 
-        {question && (
+        {done && total > 0 && (
+          <View style={[CARD, s.resultCard]}>
+            <View style={[s.resultRail, { backgroundColor: correctCount >= total / 2 ? TICK.ok : C.coin }]} />
+            <View style={s.resultBody}>
+              <View style={s.resultHead}>
+                <View style={s.resultHeadText}>
+                  <Text style={s.resultKicker}>Kunlik to'plam natijasi</Text>
+                  <Text style={s.resultTitle}>{correctCount}/{total} to'g'ri</Text>
+                </View>
+                <View style={s.scoreWrap}>
+                  <Text style={[s.score, NUM]}>{correctCount}</Text>
+                  <Text style={[s.scoreTotal, NUM]}>/{total}</Text>
+                </View>
+              </View>
+
+              <View style={s.tickRow}>
+                <View style={[s.tick, { backgroundColor: correctCount >= total / 2 ? TICK.ok : C.coin }]} />
+              </View>
+
+              <View style={s.tickFoot}>
+                <Text style={[s.percent, NUM, { color: correctCount >= total / 2 ? TICK.ok : '#B87A22' }]}>
+                  {correctCount === total ? "Ajoyib! Barcha savollar to'g'ri" : correctCount >= total / 2 ? 'Yaxshi natija' : "Davom eting — mashq qiling"}
+                </Text>
+                <Text style={s.claimedNote}>ertaga yangi to'plam</Text>
+              </View>
+
+              <View style={s.ledger}>
+                {[
+                  { v: `+${correctCount * DAILY_QUESTION_REWARD.coin}`, u: 'coin', c: '#B87A22' },
+                  { v: `+${correctCount * DAILY_QUESTION_REWARD.xp}`, u: 'XP', c: '#3560C4' },
+                  { v: coin.toLocaleString('en-US'), u: 'hamyonda', c: C.ink },
+                ].map((cell, i) => (
+                  <View key={cell.u} style={s.ledgerCell}>
+                    {i > 0 && <View style={s.ledgerDivider} />}
+                    <View style={s.ledgerInner}>
+                      <Text style={[s.ledgerValue, NUM, { color: cell.c }]}>{cell.v}</Text>
+                      <Text style={s.ledgerUnit}>{cell.u}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              <View style={s.overallRow}>
+                <View style={s.overallCell}>
+                  <Text style={[s.overallValue, NUM]}>{streak}</Text>
+                  <Text style={s.overallUnit}>kun ketma-ket</Text>
+                </View>
+                <View style={s.overallDivider} />
+                <View style={s.overallCell}>
+                  <Text style={[s.overallValue, NUM]}>{solvedCount}</Text>
+                  <Text style={s.overallUnit}>jami yechilgan</Text>
+                </View>
+                <View style={s.overallDivider} />
+                <View style={s.overallCell}>
+                  <Text style={[s.overallValue, NUM]}>{solvedToday}</Text>
+                  <Text style={s.overallUnit}>bugun</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {!done && question && (
           <>
             <QuestionStage
               prompt={question.prompt}
               badge={
-                <Pressable
-                  onPress={() => { triggerHaptic('light'); setSourceOpen(true) }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Savol manbasini ko'rish"
-                  hitSlop={8}
-                  style={({ pressed }) => [s.sourcePill, pressed && { opacity: 0.7 }]}
-                >
+                <View style={s.sourcePill}>
                   <Ionicons name={SOURCE[question.source].icon} size={12} color={C.brand} />
                   <Text style={s.sourceText}>{SOURCE[question.source].pill}</Text>
-                  <Ionicons name="chevron-forward" size={10} color={C.brand} />
-                </Pressable>
+                </View>
               }
             />
 
@@ -187,7 +271,7 @@ const DailyScreen = () => {
                 <View style={s.resultBody}>
                   <View style={s.resultHead}>
                     <View style={s.resultHeadText}>
-                      <Text style={s.resultKicker}>Kunlik masala natijasi</Text>
+                      <Text style={s.resultKicker}>Savol {position} natijasi</Text>
                       <Text style={s.resultTitle} numberOfLines={1}>{question.topic}</Text>
                     </View>
                     <View style={s.scoreWrap}>
@@ -205,61 +289,27 @@ const DailyScreen = () => {
                       {ok ? "To'g'ri javob berdingiz" : "Bu safar xato"}
                     </Text>
                     <Text style={s.claimedNote}>
-                      {ok ? 'bugun olindi' : 'ertaga yangi masala'}
+                      {ok ? `+${DAILY_QUESTION_REWARD.coin} coin · +${DAILY_QUESTION_REWARD.xp} XP` : "Keyingi savolga o'ting"}
                     </Text>
-                  </View>
-
-                  <View style={s.ledger}>
-                    {[
-                      { v: ok ? `+${DAILY_BONUS.coin}` : '+0', u: 'coin', c: '#B87A22' },
-                      { v: ok ? `+${DAILY_BONUS.xp}` : '+0', u: 'XP', c: '#3560C4' },
-                      { v: coin.toLocaleString('en-US'), u: 'hamyonda', c: C.ink },
-                    ].map((cell, i) => (
-                      <View key={cell.u} style={s.ledgerCell}>
-                        {i > 0 && <View style={s.ledgerDivider} />}
-                        <View style={s.ledgerInner}>
-                          <Text style={[s.ledgerValue, NUM, { color: cell.c }]}>{cell.v}</Text>
-                          <Text style={s.ledgerUnit}>{cell.u}</Text>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-
-                  <View style={s.overallRow}>
-                    <View style={s.overallCell}>
-                      <Text style={[s.overallValue, NUM]}>{streak}</Text>
-                      <Text style={s.overallUnit}>kun ketma-ket</Text>
-                    </View>
-                    <View style={s.overallDivider} />
-                    <View style={s.overallCell}>
-                      <Text style={[s.overallValue, NUM]}>{solvedCount}</Text>
-                      <Text style={s.overallUnit}>jami yechilgan</Text>
-                    </View>
-                    <View style={s.overallDivider} />
-                    <View style={s.overallCell}>
-                      <Text style={[s.overallValue, NUM]}>{solvedToday}</Text>
-                      <Text style={s.overallUnit}>bugun</Text>
-                    </View>
                   </View>
                 </View>
               </View>
             )}
-
           </>
         )}
       </ScrollView>
 
-      {question && (
+      {!done && question && (
         <SolveActionBar
-          note={answered ? undefined : 'Kuniga bitta masala — javob bir marta qabul qilinadi'}
+          note={answered ? undefined : `${DAILY_SET_SIZE - answeredCount} ta savol qoldi · javob bir marta qabul qilinadi`}
           bottom={insets.bottom}
         >
           {answered ? (
             <SolveAction
-              label="Yopish"
-              tone="ink"
-              icon="none"
-              onPress={() => { triggerHaptic('light'); exit() }}
+              label="Keyingi"
+              tone="lime"
+              icon="next"
+              onPress={next}
             />
           ) : (
             <SolveAction
@@ -272,119 +322,22 @@ const DailyScreen = () => {
         </SolveActionBar>
       )}
 
-      <Modal
-        visible={sourceOpen}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => setSourceOpen(false)}
-      >
-        <View style={s.backdrop}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setSourceOpen(false)} />
-          <View style={[s.sheet, { paddingBottom: Math.max(insets.bottom, 14) + 6 }]}>
-            <View style={s.grabber} />
-            <Text style={s.sheetTitle}>Savol manbasi</Text>
-            <View style={s.sheetSourceRow}>
-              <Ionicons
-                name={question ? SOURCE[question.source].icon : 'sparkles'}
-                size={14}
-                color={C.brand}
-              />
-              <Text style={s.sheetSourceText}>
-                {question ? SOURCE[question.source].sheet : ''}
-              </Text>
-            </View>
-
-            {question?.source === 'ai' && (
-              <>
-                <View style={s.factRow}>
-                  <Ionicons name="layers-outline" size={15} color={C.ink3} />
-                  <Text style={s.factText}>
-                    Siz o&apos;rgangan {plan.topics.length} mavzu asosida tuzilgan.
-                  </Text>
-                </View>
-                <View style={s.factRow}>
-                  <Ionicons name="shield-checkmark-outline" size={15} color={C.ink3} />
-                  <Text style={s.factText}>
-                    Javob ikkinchi model bilan qayta yechib tekshirilgan — faqat mos kelgan savol
-                    qabul qilinadi.
-                  </Text>
-                </View>
-              </>
-            )}
-
-            {question?.source === 'gen' && (
-              <>
-                <View style={s.factRow}>
-                  <Ionicons name="layers-outline" size={15} color={C.ink3} />
-                  <Text style={s.factText}>
-                    Siz o&apos;rgangan mavzu va darajangiz asosida ilova ichida tuzilgan.
-                  </Text>
-                </View>
-                <View style={s.factRow}>
-                  <Ionicons name="calculator-outline" size={15} color={C.ink3} />
-                  <Text style={s.factText}>
-                    Javob ilovada hisoblanadi — internet yoki AI javobiga bog&apos;liq emas.
-                  </Text>
-                </View>
-              </>
-            )}
-
-            {question?.source === 'bank' && (
-              <>
-                <View style={s.factRow}>
-                  <Ionicons name="library-outline" size={15} color={C.ink3} />
-                  <Text style={s.factText}>
-                    Savol o&apos;rgangan mavzuingiz testidan olingan.
-                  </Text>
-                </View>
-                <View style={s.factRow}>
-                  <Ionicons name="checkmark-done-outline" size={15} color={C.ink3} />
-                  <Text style={s.factText}>Javob va izoh mavzu testida tekshirilgan.</Text>
-                </View>
-              </>
-            )}
-
-            <View style={s.chipWrap}>
-              {question && <View style={s.chip}><Text style={s.chipText}>{difficultyLabel(question.difficulty)}</Text></View>}
-              {plan.topics.map(t => (
-                <View key={t.num} style={s.chip}>
-                  <Text style={s.chipText} numberOfLines={1}>{t.title}</Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={s.sheetActions}>
-              <Pressable
-                onPress={() => setSourceOpen(false)}
-                style={({ pressed }) => [s.sheetBtn, s.sheetBtnGhost, pressed && { opacity: 0.8 }]}
-              >
-                <Text style={s.sheetBtnText}>Yopish</Text>
-              </Pressable>
-              {question && !answered && (
-                <Pressable
-                  onPress={() => {
-                    triggerHaptic('light')
-                    setSourceOpen(false)
-                    reload()
-                  }}
-                  style={({ pressed }) => [s.sheetBtn, s.sheetBtnMain, pressed && { opacity: 0.85 }]}
-                >
-                  <Ionicons name="refresh" size={14} color={C.inkOnLime} />
-                  <Text style={[s.sheetBtnText, { color: C.inkOnLime }]}>Qayta so&apos;rash</Text>
-                </Pressable>
-              )}
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {done && (
+        <SolveActionBar note=" ertaga yangi to'plam" bottom={insets.bottom}>
+          <SolveAction
+            label="Yopish"
+            tone="ink"
+            icon="none"
+            onPress={() => { triggerHaptic('light'); exit() }}
+          />
+        </SolveActionBar>
+      )}
     </View>
   )
 }
 
 const makeStyles = (C: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.solverBody },
-  scroll: { flex: 1 },
 
   head: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -425,11 +378,6 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   loadingSub: { fontSize: 12, fontWeight: '500', color: C.ink3 },
   promptCard: { position: 'relative', overflow: 'hidden', borderRadius: 16, paddingLeft: 14, paddingRight: 14, paddingVertical: 14 },
   rail: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
-  retryBtn: {
-    marginTop: 6, height: 40, paddingHorizontal: 16, borderRadius: 11, flexDirection: 'row',
-    alignItems: 'center', gap: 7, backgroundColor: C.lime,
-  },
-  retryText: { fontSize: 13 },
 
   options: { marginTop: 16, gap: 10 },
 
@@ -461,29 +409,6 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   overallValue: { fontSize: 14, lineHeight: 15, fontWeight: '600', color: C.ink2 },
   overallUnit: { marginTop: 4, fontSize: 10, fontWeight: '500', color: C.ink4 },
   overallDivider: { width: 1, backgroundColor: C.line, marginVertical: 4 },
-
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(14,24,18,0.36)' },
-  sheet: {
-    backgroundColor: C.surface, borderTopLeftRadius: 22, borderTopRightRadius: 22,
-    paddingHorizontal: 18, paddingTop: 9,
-  },
-  grabber: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: C.line, marginBottom: 13 },
-  sheetTitle: { fontSize: 15, fontWeight: '700', color: C.ink },
-  sheetSourceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
-  sheetSourceText: { fontSize: 12.5, fontWeight: '600', color: C.brand },
-  factRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 11 },
-  factText: { flex: 1, fontSize: 13, lineHeight: 18.5, fontWeight: '500', color: C.ink2 },
-  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14 },
-  chip: { maxWidth: '100%', height: 26, paddingHorizontal: 9, borderRadius: 8, backgroundColor: C.leafTint, justifyContent: 'center' },
-  chipText: { flexShrink: 1, fontSize: 11.5, fontWeight: '600', color: C.brand },
-  sheetActions: { flexDirection: 'row', gap: 8, marginTop: 18 },
-  sheetBtn: {
-    flex: 1, height: 46, borderRadius: 13, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'center', gap: 7,
-  },
-  sheetBtnGhost: { backgroundColor: C.canvas, borderWidth: 1, borderColor: C.line },
-  sheetBtnMain: { backgroundColor: C.lime },
-  sheetBtnText: { fontSize: 13.5, fontWeight: '600', color: C.ink2 },
 })
 
 export default DailyScreen

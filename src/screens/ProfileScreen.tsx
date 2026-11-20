@@ -345,14 +345,14 @@ const ProfileScreen = () => {
             <HeadBtn
               icon="bell-outline"
               label="Faollik hisoboti"
-              tint="#FFFFFF"
+              tint={C.surface}
               ink={C.ink}
               onPress={() => { triggerHaptic('light'); setBellOpen(true) }}
             />
             <HeadBtn
               icon="cog-outline"
               label="Sozlamalar"
-              tint="#FFFFFF"
+              tint={C.surface}
               ink={C.ink}
               onPress={() => { triggerHaptic('light'); setSettingsOpen(true) }}
             />

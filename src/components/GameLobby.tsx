@@ -133,7 +133,7 @@ export function GameLobby<T extends string>({
                     {[0, 1, 2].map(d => (
                       <View
                         key={d}
-                        style={[s.trailDash, { backgroundColor: prevDone ? accent : '#CBD6C1' }]}
+                        style={[s.trailDash, { backgroundColor: prevDone ? accent : C.line }]}
                       />
                     ))}
                   </View>
@@ -174,7 +174,7 @@ export function GameLobby<T extends string>({
                       <Ionicons
                         name={lvBest > 0 ? 'star' : 'star-outline'}
                         size={10}
-                        color={lvBest > 0 ? C.coin : '#AFBCA6'}
+                        color={lvBest > 0 ? C.coin : C.ink4}
                       />
                       <Text style={[s.starsChipText, { color: lvBest > 0 ? C.ink : C.ink4 }]}>
                         {lvBest}/3

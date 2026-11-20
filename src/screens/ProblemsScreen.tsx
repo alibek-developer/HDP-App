@@ -20,8 +20,8 @@ import { DAILY_BONUS, FORMULA_GROUPS } from '../data/content'
 import {
   PROBLEM_SUBJECTS, WEEKLY_STAR_GOAL, levelsOf, weekStartKey,
 } from '../data/problems'
-import { difficultyLabel, sourceLabel } from '../lib/daily'
-import { useDailyQuestion } from '../lib/useDailyQuestion'
+import { sourceLabel } from '../lib/daily'
+import { useDailySet } from '../lib/useDailySet'
 import { CARD_LIFT, GRAD_HEADER, GRAD_HEADER_DARK, GRAD_LIME, GRAD_RAIL, LIME_BTN, LIME_TEXT } from '../theme/solver'
 
 /**
@@ -63,7 +63,7 @@ const ProblemsScreen = () => {
   const starsThisWeek = useApp(s => s.starsThisWeek)
   const rollDay = useApp(s => s.rollDay)
   const dailyBonusOn = useApp(s => s.dailyBonusOn)
-  const { question: daily, status: dailyStatus } = useDailyQuestion()
+  const { questions: dailySet, status: dailyStatus } = useDailySet()
 
   const C = useColors()
   const isDark = useIsDark()
@@ -77,7 +77,10 @@ const ProblemsScreen = () => {
   }, [rollDay])
 
   const dailyClaimed = dailyBonusOn === todayKey()
-  const dailyDone = daily ? daily.picked !== null : false
+  const dailyTotal = dailySet.length
+  const dailyAnswered = dailySet.filter(q => q.picked !== null).length
+  const dailyDone = dailyTotal > 0 && dailyAnswered === dailyTotal
+  const daily = dailySet.find(q => q.picked === null) ?? dailySet[dailySet.length - 1] ?? null
 
   const openSubject = (subjectId: string) => {
     triggerHaptic('medium')
@@ -207,8 +210,11 @@ const ProblemsScreen = () => {
               </View>
 
               <Text style={styles.ticketMeta}>
-                {daily ? sourceLabel(daily.source) : 'Kunlik mashq'}
-                {daily ? ` · ${difficultyLabel(daily.difficulty)}` : ''}
+                {daily
+                  ? dailyDone
+                    ? `To'plam tugadi · ${dailySet.filter(q => q.picked === q.correct).length}/${dailyTotal} to'g'ri`
+                    : `${dailyAnswered}/${dailyTotal} bajarildi · ${sourceLabel(daily.source)}`
+                  : 'Kunlik mashq'}
               </Text>
 
               <View style={styles.promptBox}>
@@ -239,7 +245,7 @@ const ProblemsScreen = () => {
                   style={({ pressed }) => [LIME_BTN, styles.ticketCta, pressed && { transform: [{ scale: 0.97 }] }]}
                 >
                   <LinearGradient colors={GRAD_LIME} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={ABS_FILL} />
-                  <Text style={[styles.ticketCtaText, LIME_TEXT]}>{dailyDone ? "Ko'rish" : 'Yechish'}</Text>
+                  <Text style={[styles.ticketCtaText, LIME_TEXT]}>{dailyDone ? 'Natija' : 'Davom etish'}</Text>
                   <MCI name="arrow-right" size={15} color="#1C3214" />
                 </Pressable>
               </View>

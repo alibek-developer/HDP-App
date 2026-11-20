@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
   LESSONS, PROBLEM_SETS, findProblemSet,
-  CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_BONUS, findProduct, streakReward,
+  CONSUMABLES, PRO_TRIAL, BOOST_CARD, DAILY_QUESTION_REWARD, findProduct, streakReward,
   type ConsumableKind,
 } from '../data/content'
 import {
@@ -169,8 +169,8 @@ interface AppState {
   streakGift: number
   /** endigina olingan bonus — sarlavha animatsiyasi uchun, saqlanmaydi */
   streakBurst: number
-  /** bugungi AI masala (kun yarim tunda almashadi) */
-  dailyQuestion: DailyQuestion | null
+  /** bugungi kunlik to'plam — 10 ta savol (kun yarim tunda almashadi) */
+  dailySet: DailyQuestion[]
   /** oxirgi natija ekrani ma'lumoti */
   lastResult: SessionResult | null
   /** Hisob ochilgan — keyingi ochilishda ro'yxatdan o'tkazmaymiz */
@@ -214,10 +214,10 @@ interface AppState {
   /** Seans boshlandi — daqiqa hisobi shu nuqtadan yuriladi */
   beginSession: () => void
   finishProblemSet: (setId: string, result: SessionResult) => void
-  /** bugungi savolni saqlash (AI yoki zaxira) */
-  setDailyQuestion: (question: DailyQuestion) => void
-  /** javobni qayd etish — to'g'ri bo'lsa kunlik bonus, keyin qulflanadi */
-  answerDailyQuestion: (picked: number) => void
+  /** bugungi to'plamni saqlash */
+  setDailySet: (questions: DailyQuestion[]) => void
+  /** to'plamdagi savolga javob — to'g'ri bo'lsa bonus, keyin o'sha savol qulflanadi */
+  answerDailySetQuestion: (index: number, picked: number) => void
   /** Blitz sprint yakuni: ball, coin/XP (sessiya va zanjir hisobi bilan) */
   creditBlitz: (coins: number, xp: number, score: number) => void
   /** Mini-o'yin yakuni: daraja rekordi + coin/XP */
@@ -402,7 +402,7 @@ export const useApp = create<AppState>()(
       streakBonusClaimed: null,
       streakGift: 0,
       streakBurst: 0,
-      dailyQuestion: null,
+      dailySet: [],
       lastResult: null,
       authed: false,
       onboarded: false,
@@ -542,22 +542,22 @@ export const useApp = create<AppState>()(
           }
         }),
 
-      /** Bugungi savolni saqlash — ekran va Home kartasi bitta nusxani o'qiydi */
-      setDailyQuestion: (question) => set({ dailyQuestion: question }),
+      /** Bugungi to'plamni saqlash — ekran va Home kartasi bitta nusxani o'qiydi */
+      setDailySet: (questions) => set({ dailySet: questions }),
 
-      /** Javob: to'g'ri bo'lsa DAILY_BONUS, xato bo'lsa faqat qayd etiladi */
-      answerDailyQuestion: (picked) =>
+      /** Javob: to'g'ri bo'lsa DAILY_QUESTION_REWARD, xato bo'lsa faqat qayd etiladi */
+      answerDailySetQuestion: (index, picked) =>
         set((s) => {
-          const q = s.dailyQuestion
+          const q = s.dailySet[index]
           const day = todayKey()
           if (!q || q.day !== day || q.picked !== null) return {}
           const ok = picked === q.correct
-          const coin = ok ? DAILY_BONUS.coin : 0
-          const xp = ok ? DAILY_BONUS.xp : 0
+          const coin = ok ? DAILY_QUESTION_REWARD.coin : 0
+          const xp = ok ? DAILY_QUESTION_REWARD.xp : 0
           const result: SessionResult = {
             kind: 'daily',
-            refId: `daily-${q.topicNum}`,
-            title: q.topic || 'Kunlik masala',
+            refId: `daily-${index}-${q.topicNum}`,
+            title: `Kunlik ${index + 1}`,
             answers: [
               {
                 prompt: q.prompt,
@@ -573,8 +573,9 @@ export const useApp = create<AppState>()(
           }
           const credited = applyBoost(s, result)
           const rolled = s.day !== day
+          const dailySet = s.dailySet.map((it, i) => (i === index ? { ...it, picked } : it))
           return {
-            dailyQuestion: { ...q, picked },
+            dailySet,
             coin: s.coin + credited.coinsEarned,
             xp: s.xp + credited.xpEarned,
             level: levelFromXp(s.xp + credited.xpEarned),
@@ -899,7 +900,7 @@ export const useApp = create<AppState>()(
           streakBonusClaimed: null,
           streakGift: 0,
           streakBurst: 0,
-          dailyQuestion: null,
+          dailySet: [],
           lastResult: null,
           authed: false,
           onboarded: false,
@@ -1046,7 +1047,7 @@ export const useApp = create<AppState>()(
         claimedMissions: s.claimedMissions,
         dailyBonusOn: s.dailyBonusOn,
         streakBonusClaimed: s.streakBonusClaimed,
-        dailyQuestion: s.dailyQuestion,
+        dailySet: s.dailySet,
         authed: s.authed,
         onboarded: s.onboarded,
         topicLessons: s.topicLessons,
