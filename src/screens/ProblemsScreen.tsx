@@ -14,7 +14,7 @@ import { MidnightClock } from '../components/MidnightClock'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList, TabParamList } from '../navigation/types'
 import { ABS_FILL, MATH_FONT, NUM, R, type ThemeColors } from '../theme/tokens'
-import { useColors } from '../theme/useTheme'
+import { useColors, useIsDark } from '../theme/useTheme'
 import ProblemSubjectCard from '../components/ProblemSubjectCard'
 import { DAILY_BONUS, FORMULA_GROUPS } from '../data/content'
 import {
@@ -22,7 +22,7 @@ import {
 } from '../data/problems'
 import { difficultyLabel, sourceLabel } from '../lib/daily'
 import { useDailyQuestion } from '../lib/useDailyQuestion'
-import { CARD_LIFT, GRAD_HEADER, GRAD_LIME, GRAD_RAIL, LIME_BTN, LIME_TEXT } from '../theme/solver'
+import { CARD_LIFT, GRAD_HEADER, GRAD_HEADER_DARK, GRAD_LIME, GRAD_RAIL, LIME_BTN, LIME_TEXT } from '../theme/solver'
 
 /**
  * Masalalar — fan → daraja → 10 masalalik sessiya xaritasi.
@@ -66,6 +66,7 @@ const ProblemsScreen = () => {
   const { question: daily, status: dailyStatus } = useDailyQuestion()
 
   const C = useColors()
+  const isDark = useIsDark()
   const styles = makeStyles(C)
 
   /** Hafta almashgan bo'lsa eski yulduzlar ko'rinmaydi */
@@ -110,7 +111,7 @@ const ProblemsScreen = () => {
       >
         {/* ── 1. Header: siyoh varaq + ledger ── */}
         <LinearGradient
-          colors={GRAD_HEADER}
+          colors={isDark ? GRAD_HEADER_DARK : GRAD_HEADER}
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.55, y: 1 }}
           style={[styles.header, { paddingTop: insets.top + 12 }]}
@@ -513,6 +514,8 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
 
   formulasCta: {
     marginTop: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(205,233,174,0.14)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,

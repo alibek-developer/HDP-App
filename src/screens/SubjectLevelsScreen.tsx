@@ -15,7 +15,7 @@ import {
 import type { LevelKey } from '../data/problems'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM } from '../theme/tokens'
-import { useColors } from '../theme/useTheme'
+import { useColors, useIsDark } from '../theme/useTheme'
 import type { ThemeColors } from '../theme/tokens'
 import { CARD, GRAD_LIME, LIME_BTN, LIME_TEXT } from '../theme/solver'
 
@@ -34,6 +34,7 @@ const TONE: Record<LevelKey, { rail: string; tile: string; ink: string; icon: ke
 
 const SubjectLevelsScreen = () => {
   const C = useColors()
+  const isDark = useIsDark()
   const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
@@ -99,7 +100,7 @@ const SubjectLevelsScreen = () => {
         {/* ── Fan holati ── */}
         <View style={styles.hero}>
           <LinearGradient
-            colors={['#0E1A12', '#143326']}
+            colors={isDark ? ['#1C5A36', '#14301F'] : ['#0E1A12', '#143326']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
@@ -276,6 +277,8 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
     marginTop: 4,
     borderRadius: 18,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(205,233,174,0.14)',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 18,

@@ -17,10 +17,10 @@ import Sheet from '../components/Sheet'
 import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { ABS_FILL, NUM, shadow } from '../theme/tokens'
-import { useColors } from '../theme/useTheme'
+import { useColors, useIsDark } from '../theme/useTheme'
 import type { ThemeColors } from '../theme/tokens'
 import {
-  GRAD_HEADER, GRAD_LIME, GRAD_RAIL,
+  GRAD_HEADER, GRAD_HEADER_DARK, GRAD_LIME, GRAD_RAIL,
   INK_BTN, LIME_BTN,
 } from '../theme/solver'
 
@@ -97,6 +97,7 @@ const HeroGrid = () => {
 
 const ProScreen = () => {
   const C = useColors()
+  const isDark = useIsDark()
   const s = makeS(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
@@ -168,7 +169,7 @@ const ProScreen = () => {
 
         {/* ── Hero: siyoh varaq ── */}
         <View style={s.hero}>
-          <LinearGradient colors={GRAD_HEADER} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={ABS_FILL} />
+          <LinearGradient colors={isDark ? GRAD_HEADER_DARK : GRAD_HEADER} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={ABS_FILL} />
           <HeroGrid />
           <View style={s.heroInner}>
             <View style={s.heroTop}>

@@ -20,6 +20,9 @@ export const GRAD_AMBER: readonly [string, string] = ['#F6D8A6', '#E8A33D']
 export const GRAD_RAIL: readonly [string, string] = ['#9BE04B', '#5FAF22']
 export const GRAD_HEADER: readonly [string, string, string] = ['#0E1A12', '#123B24', '#164A2C']
 
+/** Qorong'u tema uchun — dark fondan ajralib turadigan bosh gradient */
+export const GRAD_HEADER_DARK: readonly [string, string, string] = ['#14301F', '#1C5A36', '#22704A']
+
 export const CARD: ViewStyle = {
   get backgroundColor() { return activeColors.surface },
   get borderColor() { return activeColors.line },
@@ -56,7 +59,7 @@ export const AMBER_TEXT: TextStyle = { color: '#0E1A12', fontWeight: '600' }
 
 export const INK_BTN: ViewStyle = {
   ...BTN_BASE,
-  get backgroundColor() { return activeColors.ink },
+  get backgroundColor() { return activeColors.brandDeep },
 }
 export const INK_TEXT: TextStyle = {
   get color() { return activeColors.mint },

@@ -13,10 +13,10 @@ import { TopScrim } from '../components/ui'
 import type { RootStackParamList } from '../navigation/types'
 import { PROBLEM_SETS } from '../data/content'
 import { ABS_FILL, MATH_FONT, NUM, shadow } from '../theme/tokens'
-import { useColors } from '../theme/useTheme'
+import { useColors, useIsDark } from '../theme/useTheme'
 import type { ThemeColors } from '../theme/tokens'
 import {
-  CARD, GRAD_HEADER, GRAD_LIME, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT,
+  CARD, GRAD_HEADER, GRAD_HEADER_DARK, GRAD_LIME, INK_BTN, INK_TEXT, LIME_BTN, LIME_TEXT,
 } from '../theme/solver'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -87,6 +87,7 @@ interface DetailState {
 
 const FormulasScreen = () => {
   const C = useColors()
+  const isDark = useIsDark()
   const styles = makeStyles(C)
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
@@ -313,7 +314,7 @@ const FormulasScreen = () => {
                 <Text style={styles.sheetDesc}>{detail.desc}</Text>
 
                 <View style={styles.detailBox}>
-                  <LinearGradient colors={GRAD_HEADER} start={{ x: 0.15, y: 0 }} end={{ x: 0.6, y: 1 }} style={ABS_FILL} />
+                  <LinearGradient colors={isDark ? GRAD_HEADER_DARK : GRAD_HEADER} start={{ x: 0.15, y: 0 }} end={{ x: 0.6, y: 1 }} style={ABS_FILL} />
                   <View style={[styles.detailRail, { backgroundColor: detail.rail }]} />
                   <View style={styles.detailInner}>
                     <Text style={styles.detailKicker}>Formula</Text>
