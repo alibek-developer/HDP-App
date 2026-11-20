@@ -31,7 +31,11 @@ export const CARD: ViewStyle = {
 }
 
 export const CARD_LIFT: ViewStyle = {
-  ...CARD,
+  /* spread getter'larni qiymatga aylantiradi — alohida getter'lar shart */
+  get backgroundColor() { return activeColors.surface },
+  get borderColor() { return activeColors.cardEdge },
+  borderWidth: 1,
+  borderRadius: 14,
   ...shadow('#0E1A12', 11, 8, 0.08),
 }
 
