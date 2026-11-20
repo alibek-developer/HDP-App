@@ -8,7 +8,6 @@ import { useEffect, useRef } from 'react'
  */
 export const CoinIcon = ({ size = 20, mark = 'π' }: { size?: number; mark?: string }) => {
   const s = size / 100
-  const r = 42 // outer radius for symbols
   const symbols = ['√', '∞', 'Σ', '∫', 'x²']
   const symbolRadius = 36
   const symbolAngles = [0, 72, 144, 216, 288] // 5 symbols evenly spaced
@@ -81,7 +80,7 @@ export const AnimatedCoinIcon = ({ size = 20, mark = 'π' }: { size?: number; ma
   const scale = useRef(new Animated.Value(0)).current
   useEffect(() => {
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, damping: 12, stiffness: 180 }).start()
-  }, [])
+  }, [scale])
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <CoinIcon size={size} mark={mark} />
