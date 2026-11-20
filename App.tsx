@@ -33,7 +33,6 @@ import ResultScreen from './src/screens/ResultScreen'
 import MainTabs from './src/navigation/MainTabs'
 import StreakBonusSheet from './src/components/StreakBonusSheet'
 import type { RootStackParamList } from './src/navigation/types'
-import { C } from './src/theme/tokens'
 import { useColors, useIsDark } from './src/theme/useTheme'
 import { navigationRef } from './src/lib/navRef'
 import { configureNotifications, ensurePushToken, syncPushTokenToBackend } from './src/lib/push'
@@ -58,6 +57,8 @@ const App = () => {
   /** AsyncStorage'dan holat kelguncha kutamiz — aks holda kirgan foydalanuvchi
    *  har safar onboarding'ga qaytariladi. */
   const [hydrated, setHydrated] = useState(() => useApp.persist.hasHydrated())
+  const colors = useColors()
+  const isDark = useIsDark()
   const [fontsLoaded, fontError] = useFonts({
     STIXTwoMath: require('./src/assets/fonts/STIXTwoMath-Regular.ttf'),
   })
@@ -101,13 +102,10 @@ const App = () => {
 
   if (!hydrated || (!fontsLoaded && !fontError))
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.mintSoft }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mintSoft }}>
         <BrandMark size={76} hero />
       </View>
     )
-
-  const colors = useColors()
-  const isDark = useIsDark()
 
   const startRoute: keyof RootStackParamList = useApp.getState().onboarded
     ? 'Main'
