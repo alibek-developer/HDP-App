@@ -254,7 +254,7 @@ const HomeScreen = () => {
   const studyMinutes = useApp(s => s.studyMinutes)
   const gameStars = useApp(s => s.gameStars)
   const blitzBest = useApp(s => s.blitzBest)
-  const { questions: dailySet, status: dailyStatus, plan: dailyPlan } = useDailySet()
+  const { questions: dailySet, status: dailyStatus } = useDailySet()
 
   const C = useColors()
   const styles = makeStyles(C)
