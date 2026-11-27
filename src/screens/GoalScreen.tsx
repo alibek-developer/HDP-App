@@ -40,7 +40,8 @@ const GoalScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList, '
 
   const back = () => {
     triggerHaptic('light')
-    navigation.replace('Login')
+    if (navigation.canGoBack()) navigation.goBack()
+    else navigation.replace('Onboarding')
   }
 
   return (

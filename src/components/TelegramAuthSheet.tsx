@@ -196,7 +196,7 @@ const TelegramAuthSheet = ({ visible, onClose, onDone }: Props) => {
   const activeStep = phase === 'starting' ? 0 : waiting ? 1 : -1
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.root}>
         <Pressable style={ABS_FILL} onPress={onClose} accessibilityLabel="Yopish" />
         <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>

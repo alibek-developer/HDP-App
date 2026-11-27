@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useApp } from './src/store/useStore'
 import { BrandMark } from './src/components/Brand'
 import OnboardingScreen from './src/screens/OnboardingScreen'
+import DemoResultScreen from './src/screens/DemoResultScreen'
 import GoalScreen from './src/screens/GoalScreen'
 import BirthDateScreen from './src/screens/BirthDateScreen'
 import LoginScreen from './src/screens/LoginScreen'
@@ -138,11 +139,36 @@ const App = () => {
           }}
         >
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-          <Stack.Screen name="Goal" component={GoalScreen} />
-          <Stack.Screen name="BirthDate" component={BirthDateScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen
+            name="DemoResult"
+            component={DemoResultScreen}
+            options={{ animation: 'fade', animationDuration: 260, animationTypeForReplace: 'pop' }}
+          />
+          <Stack.Screen
+            name="Goal"
+            component={GoalScreen}
+            options={{ animation: 'fade', animationDuration: 280, animationTypeForReplace: 'pop' }}
+          />
+          <Stack.Screen
+            name="BirthDate"
+            component={BirthDateScreen}
+            options={{ animation: 'fade', animationDuration: 280, animationTypeForReplace: 'pop' }}
+          />
+          <Stack.Screen
+            name="SignUp"
+            component={SignUpScreen}
+            options={{ animation: 'fade_from_bottom', animationDuration: 340, animationTypeForReplace: 'pop' }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ animation: 'fade_from_bottom', animationDuration: 340, animationTypeForReplace: 'pop' }}
+          />
+          <Stack.Screen
+            name="Main"
+            component={MainTabs}
+            options={{ animation: 'fade', animationDuration: 320, animationTypeForReplace: 'pop' }}
+          />
           <Stack.Screen name="ProblemSet" component={ProblemSetScreen} />
           <Stack.Screen name="SubjectLevels" component={SubjectLevelsScreen} />
           <Stack.Screen name="Daily" component={DailyScreen} />

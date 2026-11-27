@@ -1,175 +1,250 @@
-import { Fragment } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useState } from 'react'
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { BrandMark, Wordmark } from '../components/Brand'
-import { Fade, Reveal } from '../components/Reveal'
-import OnboardingHero from '../components/OnboardingHero'
+import { BalanceLab } from '../components/BalanceLab'
 import { LimeButton } from '../components/ui'
+import { DEMO_QUESTION } from '../lib/onboardingDemo'
 import { triggerHaptic } from '../lib/haptics'
-import { TOPICS } from '../data/curriculum'
 import type { RootStackParamList } from '../navigation/types'
-import { NUM, type ThemeColors } from '../theme/tokens'
+import { T, type ThemeColors } from '../theme/tokens'
 import { useColors } from '../theme/useTheme'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>
 
-const CHAIN = [
-  { icon: 'play' as const, label: 'Video' },
-  { icon: 'bulb-outline' as const, label: 'Misol' },
-  { icon: 'checkmark' as const, label: 'Test' },
-]
-
-/**
- * Kutib olish — bitta ekran, scrollsiz. Sahna oq fonda chiziladi va nafas
- * oladi; matn qisqa: yo'l nima ekanini rasm emas, uchta so'z aytadi.
- */
 const OnboardingScreen = ({ navigation }: Props) => {
   const C = useColors()
   const styles = makeStyles(C)
   const insets = useSafeAreaInsets()
+  const { height } = useWindowDimensions()
+  const [picked, setPicked] = useState<number | null>(null)
+  const [checked, setChecked] = useState(false)
+  const correct = picked === DEMO_QUESTION.correct
+  const pickedValue = picked === null ? null : Number(DEMO_QUESTION.options[picked])
+  const sceneScale = Math.min(
+    1,
+    Math.max(0.52, (height - insets.top - insets.bottom - (checked ? 430 : 390)) / 300),
+  )
 
-  const start = () => {
-    triggerHaptic('medium')
-    navigation.replace('SignUp')
+  const pick = (index: number) => {
+    if (checked) return
+    triggerHaptic('selection')
+    setPicked(index)
   }
 
-  const login = () => {
+  const check = () => {
+    if (picked === null || checked) return
+    setChecked(true)
+    triggerHaptic(correct ? 'success' : 'warning')
+  }
+
+  const next = () => {
+    if (picked === null || !checked) return
+    triggerHaptic('medium')
+    navigation.replace('DemoResult', { questionId: DEMO_QUESTION.id, picked })
+  }
+
+  const openLogin = () => {
     triggerHaptic('light')
     navigation.replace('Login')
   }
 
+  const stateOf = (index: number) => {
+    if (!checked) return picked === index ? 'selected' : 'idle'
+    if (index === DEMO_QUESTION.correct) return 'correct'
+    if (index === picked) return 'wrong'
+    return 'dim'
+  }
+
+  const feedback = checked
+    ? correct
+      ? `Muvozanat tiklandi — x = ${DEMO_QUESTION.options[DEMO_QUESTION.correct]}`
+      : `Muvozanat tiklanmadi. To‘g‘ri javob: x = ${DEMO_QUESTION.options[DEMO_QUESTION.correct]}`
+    : picked === null
+      ? 'x uchun og‘irlik tanlang.'
+      : 'Tarozi hali muvozanatda emas. Boshqa og‘irlikni sinang.'
+
   return (
-    <Fade>
-      <View
-        style={[
-          styles.screen,
-          { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 14 },
-        ]}
-      >
-        <View style={styles.header}>
-          <BrandMark size={30} />
-          <Wordmark size={18} />
+    <View style={[styles.root, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 14 }]}>
+      <LinearGradient
+        colors={[C.mintSoft, C.solverBody]}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.8, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.watermark} pointerEvents="none">
+        <Text style={styles.watermarkText}>x</Text>
+      </View>
+
+      <View style={styles.header}>
+        <View style={styles.brand}>
+          <BrandMark size={34} />
+          <Wordmark size={21} />
+        </View>
+        <Pressable onPress={openLogin} style={styles.login} accessibilityRole="button">
+          <Text style={styles.loginText}>Kirish</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.heading}>
+        <Text style={styles.kicker}>TAROZI LABORATORIYASI</Text>
+        <Text style={styles.title}>Tenglikni yech.</Text>
+        <Text style={styles.subtitle}>x ni toping — tarozi o‘zi ko‘rsatadi.</Text>
+      </View>
+
+      <View style={styles.sceneArea}>
+        <View style={{ width: 320, height: 300 * sceneScale, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 320, height: 300, transform: [{ scale: sceneScale }] }}>
+            <BalanceLab value={pickedValue} success={checked && correct} />
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.controls}>
+        <Text style={styles.weightLabel}>x uchun og‘irlik</Text>
+        <View style={styles.weights}>
+          {DEMO_QUESTION.options.map((option, index) => {
+            const state = stateOf(index)
+            return (
+              <Pressable
+                key={option}
+                onPress={() => pick(index)}
+                disabled={checked}
+                accessibilityRole="radio"
+                accessibilityLabel={`x = ${option}`}
+                accessibilityState={{ checked: picked === index, disabled: checked }}
+                style={({ pressed }) => [
+                  styles.weightWrap,
+                  pressed && !checked && styles.weightPressed,
+                  state === 'dim' && styles.weightDim,
+                ]}
+              >
+                <View style={[styles.weightRing, state !== 'idle' && styles.weightRingActive]} />
+                <LinearGradient
+                  colors={
+                    state === 'correct'
+                      ? ['#9BE04B', '#62B92B']
+                      : state === 'wrong'
+                        ? ['#F08076', '#C9483B']
+                        : state === 'selected'
+                          ? ['#F0D58D', '#B98734']
+                          : ['#E6E9E2', '#B7C1B4']
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[styles.weightBody, state !== 'idle' && styles.weightBodyActive]}
+                >
+                  <Text style={[styles.weightText, state !== 'idle' && styles.weightTextActive]}>{option}</Text>
+                </LinearGradient>
+                <View style={styles.weightFoot} />
+              </Pressable>
+            )
+          })}
         </View>
 
-        <Reveal y={18} duration={440} style={styles.heroWrap}>
-          <OnboardingHero />
-        </Reveal>
-
-        <Reveal y={14} delay={80} duration={380}>
-          <Text style={styles.title}>
-            <Text style={styles.titleDim}>Har dars — </Text>
-            <Text style={styles.titleStrong}>bir qadam</Text>
-          </Text>
-          <Text style={styles.sub}>
-            Video, misol va test — har mavzuni bitta yo&apos;lda o&apos;zlashtirasiz.
-          </Text>
-        </Reveal>
-
-        <Reveal y={12} delay={140} duration={360} style={styles.chainWrap}>
-          <View style={styles.chainRow}>
-            {CHAIN.map((step, i) => (
-              <Fragment key={step.label}>
-                {i > 0 && <View style={styles.chainLink} />}
-                <View style={styles.chainCol}>
-                  <View style={[styles.chainNode, i === CHAIN.length - 1 && styles.chainNodeOn]}>
-                    <Ionicons
-                      name={step.icon}
-                      size={15}
-                      color={i === CHAIN.length - 1 ? C.inkOnLime : C.brand}
-                    />
-                  </View>
-                  <Text style={[styles.chainLabel, i === CHAIN.length - 1 && styles.chainLabelOn]}>
-                    {step.label}
-                  </Text>
-                </View>
-              </Fragment>
-            ))}
-          </View>
-        </Reveal>
-
-        <View style={styles.spacer} />
-
-        <Reveal y={12} delay={190} duration={360}>
-          <LimeButton
-            label="Boshlash"
-            onPress={start}
-            trailing={<Ionicons name="arrow-forward" size={16} color={C.inkOnLime} />}
+        <View style={styles.feedback}>
+          <Ionicons
+            name={checked ? (correct ? 'checkmark-circle' : 'alert-circle') : 'hand-left-outline'}
+            size={16}
+            color={checked ? (correct ? C.brand : C.danger) : C.ink3}
           />
-
-          <Pressable
-            onPress={login}
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.loginRow, pressed && { opacity: 0.65 }]}
-          >
-            <Text style={styles.loginText}>Hisobingiz bormi?</Text>
-            <Text style={styles.loginLink}>Kirish</Text>
-            <Ionicons name="chevron-forward" size={13} color={C.brand} />
-          </Pressable>
-
-          <Text style={[styles.footNote, NUM]}>{TOPICS.length} mavzu · bepul boshlash</Text>
-        </Reveal>
+          <View style={styles.feedbackText}>
+            <Text style={[styles.feedbackTitle, checked && (correct ? styles.feedbackOk : styles.feedbackBad)]}>
+              {feedback}
+            </Text>
+            {checked && <Text style={styles.explain}>{DEMO_QUESTION.explain}</Text>}
+          </View>
+        </View>
       </View>
-    </Fade>
+
+      <View style={styles.actions}>
+        <LimeButton
+          label={checked ? 'Natijani ko‘rish' : 'Tekshirish'}
+          onPress={checked ? next : check}
+          disabled={picked === null}
+          height={56}
+        />
+        <Text style={styles.actionNote}>
+          {checked ? 'Natijani Telegram bilan saqlash mumkin.' : 'Hisobsiz sinab ko‘ring.'}
+        </Text>
+      </View>
+    </View>
   )
 }
 
 const makeStyles = (C: ThemeColors) => StyleSheet.create({
-  screen: {
+  root: {
     flex: 1,
-    backgroundColor: C.surface,
     paddingHorizontal: 20,
+    backgroundColor: C.solverBody,
+    overflow: 'hidden',
   },
-
-  header: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 2 },
-
-  heroWrap: { flex: 1, minHeight: 150, justifyContent: 'center' },
-
-  title: { marginTop: 6, fontSize: 29, lineHeight: 35, letterSpacing: -0.7 },
-  titleDim: { color: C.ink3, fontWeight: '400' },
-  titleStrong: { color: C.ink, fontWeight: '700' },
-  sub: { marginTop: 6, maxWidth: 330, fontSize: 13.5, lineHeight: 20, fontWeight: '500', color: C.ink3 },
-
-  chainWrap: { marginTop: 16 },
-  chainRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  chainCol: { alignItems: 'center', minWidth: 64 },
-  chainLink: {
-    flex: 1,
-    height: 2,
-    borderRadius: 1,
-    marginTop: 17,
-    backgroundColor: C.leafTint,
+  watermark: { position: 'absolute', right: -18, top: 90, opacity: 0.035 },
+  watermarkText: { fontFamily: 'STIXTwoMath', fontSize: 360, lineHeight: 360, color: C.brandDeep },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  login: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
+  loginText: { ...T.bodyMd, color: C.brand, fontWeight: '700' },
+  heading: { marginTop: 18 },
+  kicker: { ...T.tiny, color: C.brand, marginBottom: 6 },
+  title: { ...T.display, fontSize: 34, lineHeight: 38, color: C.ink },
+  subtitle: { ...T.bodyMd, color: C.ink2, marginTop: 5 },
+  sceneArea: { flex: 1, minHeight: 150, alignItems: 'center', justifyContent: 'center' },
+  controls: { alignItems: 'center' },
+  weightLabel: { ...T.label, color: C.ink3, marginBottom: 10 },
+  weights: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 18 },
+  weightWrap: { width: 54, height: 64, alignItems: 'center', justifyContent: 'flex-end' },
+  weightPressed: { transform: [{ translateY: 3 }, { scale: 0.96 }] },
+  weightDim: { opacity: 0.35 },
+  weightRing: {
+    position: 'absolute',
+    top: 0,
+    width: 20,
+    height: 15,
+    borderRadius: 8,
+    borderWidth: 3,
+    borderColor: '#9EAAA0',
   },
-  chainNode: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  weightRingActive: { borderColor: '#B98734' },
+  weightBody: {
+    width: 54,
+    height: 45,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: C.leafTint,
     borderWidth: 1,
-    borderColor: C.leafTint,
+    borderColor: 'rgba(255,255,255,0.8)',
   },
-  chainNodeOn: {
-    backgroundColor: C.limeBright,
-    borderColor: 'rgba(95,175,34,0.5)',
+  weightBodyActive: { borderColor: 'rgba(255,255,255,0.95)' },
+  weightText: { ...T.h3, color: C.ink2, fontWeight: '700' },
+  weightTextActive: { color: '#FFFFFF' },
+  weightFoot: {
+    position: 'absolute',
+    bottom: 9,
+    width: 42,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: 'rgba(14,26,18,0.16)',
   },
-  chainLabel: { marginTop: 6, fontSize: 12, fontWeight: '600', color: C.ink3 },
-  chainLabelOn: { color: C.ink },
-
-  spacer: { flexGrow: 0.35, minHeight: 14 },
-
-  loginRow: {
-    marginTop: 12,
+  feedback: {
+    minHeight: 52,
+    marginTop: 10,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    gap: 5,
+    gap: 7,
+    paddingHorizontal: 8,
   },
-  loginText: { fontSize: 13, fontWeight: '500', color: C.ink3 },
-  loginLink: { fontSize: 13, fontWeight: '600', color: C.brand },
-  footNote: { marginTop: 8, textAlign: 'center', fontSize: 11, fontWeight: '500', color: C.ink4 },
+  feedbackText: { flex: 1, alignItems: 'center' },
+  feedbackTitle: { ...T.bodySm, color: C.ink3, textAlign: 'center' },
+  feedbackOk: { color: C.brand, fontWeight: '700' },
+  feedbackBad: { color: C.danger, fontWeight: '700' },
+  explain: { ...T.label, color: C.ink2, textAlign: 'center', marginTop: 3 },
+  actions: { gap: 5 },
+  actionNote: { ...T.label, color: C.ink3, textAlign: 'center' },
 })
 
 export default OnboardingScreen

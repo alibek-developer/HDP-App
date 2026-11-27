@@ -33,6 +33,7 @@ export const ROUTE_TAB: Record<keyof TabParamList, TabKey> = {
  */
 export type RootStackParamList = {
   Onboarding: undefined
+  DemoResult: { questionId: string; picked: number }
   Login: undefined
   SignUp: undefined
 

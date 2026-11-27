@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { Animated, ActivityIndicator, Easing, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { StyleProp, TextInputProps, ViewStyle } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { R, T, type ThemeColors } from '../theme/tokens'
@@ -178,34 +178,62 @@ export const AuthSwitch = ({
 }) => {
   const C = useColors()
   const styles = makeStyles(C)
+  const [width, setWidth] = useState(0)
+  const progress = useRef(new Animated.Value(active === 'signup' ? 1 : 0)).current
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: active === 'signup' ? 1 : 0,
+      duration: 260,
+      easing: Easing.bezier(0.22, 1, 0.36, 1),
+      useNativeDriver: true,
+    }).start()
+  }, [active, progress])
+
+  const tabWidth = Math.max(0, (width - 10) / 2)
+
   return (
-  <View style={[styles.switch, style]}>
-    {([
-      { key: 'login' as const, label: 'Kirish' },
-      { key: 'signup' as const, label: "Ro'yxatdan o'tish" },
-    ]).map(tab => {
-      const on = tab.key === active
-      return (
-        <Pressable
-          key={tab.key}
-          onPress={() => { if (!on) onSwitch(tab.key) }}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: on }}
-          style={styles.switchTab}
+    <View
+      style={[styles.switch, style]}
+      onLayout={event => setWidth(event.nativeEvent.layout.width)}
+    >
+      {tabWidth > 0 && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.switchActive,
+            {
+              width: tabWidth,
+              transform: [{ translateX: progress.interpolate({ inputRange: [0, 1], outputRange: [0, tabWidth] }) }],
+            },
+          ]}
         >
-          {on && (
-            <LinearGradient
-              colors={[C.limeBright, C.lime]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[StyleSheet.absoluteFill, { borderRadius: R.full }]}
-            />
-          )}
-          <Text style={[styles.switchText, on && styles.switchTextOn]}>{tab.label}</Text>
-        </Pressable>
-      )
-    })}
-  </View>
+          <LinearGradient
+            colors={[C.limeBright, C.lime]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: R.sm }]}
+          />
+        </Animated.View>
+      )}
+      {([
+        { key: 'login' as const, label: 'Kirish' },
+        { key: 'signup' as const, label: "Ro'yxatdan o'tish" },
+      ]).map(tab => {
+        const on = tab.key === active
+        return (
+          <Pressable
+            key={tab.key}
+            onPress={() => { if (!on) onSwitch(tab.key) }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: on }}
+            style={styles.switchTab}
+          >
+            <Text style={[styles.switchText, on && styles.switchTextOn]}>{tab.label}</Text>
+          </Pressable>
+        )
+      })}
+    </View>
   )
 }
 
@@ -293,15 +321,23 @@ const makeStyles = (C: ThemeColors) => StyleSheet.create({
   switch: {
     flexDirection: 'row',
     padding: 4,
-    borderRadius: R.full,
-    backgroundColor: 'rgba(255,255,255,0.62)',
+    borderRadius: R.md,
+    backgroundColor: C.surface,
     borderWidth: 1,
-    borderColor: 'rgba(28,50,20,0.08)',
+    borderColor: C.line,
+  },
+  switchActive: {
+    position: 'absolute',
+    left: 4,
+    top: 4,
+    height: 42,
+    borderRadius: R.sm,
+    overflow: 'hidden',
   },
   switchTab: {
     flex: 1,
     height: 42,
-    borderRadius: R.full,
+    borderRadius: R.sm,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
